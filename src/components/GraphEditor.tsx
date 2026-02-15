@@ -150,13 +150,15 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   );
 
   const onConnectEnd = useCallback(
-    (event: MouseEvent | TouchEvent, connectionState: { isValid: boolean; fromNode?: { id: string } | null }) => {
+    (event: MouseEvent | TouchEvent, connectionState: { isValid: boolean | null; fromNode?: { id: string } | null }) => {
       if (connectionState.isValid) return;
       const sourceId = connectionState.fromNode?.id;
       if (!sourceId) return;
 
-      const clientX = 'changedTouches' in event ? event.changedTouches[0].clientX : (event as MouseEvent).clientX;
-      const clientY = 'changedTouches' in event ? event.changedTouches[0].clientY : (event as MouseEvent).clientY;
+      const clientX = 'changedTouches' in event ? event.changedTouches[0]?.clientX : (event as MouseEvent).clientX;
+      const clientY = 'changedTouches' in event ? event.changedTouches[0]?.clientY : (event as MouseEvent).clientY;
+      if (clientX === undefined || clientY === undefined) return;
+
       const position = screenToFlowPosition({ x: clientX, y: clientY });
 
       setPendingConnection({ sourceId, position });

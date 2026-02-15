@@ -8,7 +8,7 @@ import { useGraphStore } from '../store/graph-store';
 import type { EdgeType } from '../engine/types';
 
 export function EditorPage() {
-  const [edgeMode, setEdgeMode] = useState<EdgeType>('requires');
+  const [edgeMode] = useState<EdgeType>('requires');
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
 
   return (

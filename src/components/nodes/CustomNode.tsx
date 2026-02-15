@@ -48,10 +48,10 @@ export function CustomNode({ data, selected }: NodeProps<Node<CustomNodeData>>) 
   const progressPct = q ? Math.min(100, Math.round((q.current / q.target) * 100)) : 0;
   const progressColor = q
     ? q.current >= q.target
-      ? PROGRESS_COLORS.full
+      ? PROGRESS_COLORS['full']
       : q.current > 0
-        ? PROGRESS_COLORS.partial
-        : PROGRESS_COLORS.empty
+        ? PROGRESS_COLORS['partial']
+        : PROGRESS_COLORS['empty']
     : '';
 
   return (
