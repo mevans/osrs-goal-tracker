@@ -125,7 +125,10 @@ export function TemplateDialog({ onApply, onClose }: TemplateDialogProps) {
         {stage === 'configure' && (
           <div className="p-4 border-t border-gray-700 flex items-center justify-between">
             <button
-              onClick={() => { setStage('pick'); setTemplate(undefined); }}
+              onClick={() => {
+                setStage('pick');
+                setTemplate(undefined);
+              }}
               className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
             >
               Back
@@ -157,7 +160,9 @@ const TYPE_BADGES: Record<string, string> = {
 function HardNodeRow({ node }: { node: TemplateNode }) {
   return (
     <div className="flex items-center gap-2 bg-gray-700/50 rounded px-3 py-2">
-      <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-medium ${TYPE_BADGES[node.type] ?? ''}`}>
+      <span
+        className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-medium ${TYPE_BADGES[node.type] ?? ''}`}
+      >
         {node.type}
       </span>
       {node.skillData && <SkillIcon skill={node.skillData.skillName} size={14} />}
@@ -187,9 +192,13 @@ function SoftNodeRow({
 
   const displayTitle = edited ? (decision.edits.title ?? node.title) : node.title;
   return (
-    <div className={`rounded border ${discarded ? 'border-gray-700 opacity-50' : 'border-gray-600'} bg-gray-700/50`}>
+    <div
+      className={`rounded border ${discarded ? 'border-gray-700 opacity-50' : 'border-gray-600'} bg-gray-700/50`}
+    >
       <div className="flex items-center gap-2 px-3 py-2">
-        <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-medium ${TYPE_BADGES[node.type] ?? ''}`}>
+        <span
+          className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-medium ${TYPE_BADGES[node.type] ?? ''}`}
+        >
           {node.type}
         </span>
         {node.skillData && <SkillIcon skill={node.skillData.skillName} size={14} />}
@@ -203,7 +212,9 @@ function SoftNodeRow({
         <div className="flex items-center gap-1 shrink-0">
           {!discarded && (
             <button
-              onClick={() => { onStartEdit(); }}
+              onClick={() => {
+                onStartEdit();
+              }}
               className="text-xs text-gray-400 hover:text-white px-1.5 py-0.5 rounded hover:bg-gray-600"
             >
               Edit
@@ -212,9 +223,7 @@ function SoftNodeRow({
           <button
             onClick={() => onDecision(discarded ? { action: 'keep' } : { action: 'discard' })}
             className={`text-xs px-1.5 py-0.5 rounded ${
-              discarded
-                ? 'text-green-400 hover:bg-gray-600'
-                : 'text-red-400 hover:bg-gray-600'
+              discarded ? 'text-green-400 hover:bg-gray-600' : 'text-red-400 hover:bg-gray-600'
             }`}
           >
             {discarded ? 'Restore' : 'Discard'}
@@ -307,7 +316,9 @@ function EditPanel({
                 onChange={(e) => setSkillNameEdit(e.target.value as SkillName)}
               >
                 {OSRS_SKILLS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
                 ))}
               </select>
             </div>

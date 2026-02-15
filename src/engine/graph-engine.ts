@@ -2,16 +2,12 @@ import type { GraphNode, GraphEdge, DerivedStatus, BottleneckEntry } from './typ
 
 /** Get IDs of nodes that are required prerequisites for `nodeId`. */
 export function getRequiredPrerequisites(nodeId: string, edges: GraphEdge[]): string[] {
-  return edges
-    .filter((e) => e.to === nodeId && e.type === 'requires')
-    .map((e) => e.from);
+  return edges.filter((e) => e.to === nodeId && e.type === 'requires').map((e) => e.from);
 }
 
 /** Get IDs of nodes that depend on `nodeId` (i.e. nodeId is their prerequisite). */
 export function getDependents(nodeId: string, edges: GraphEdge[]): string[] {
-  return edges
-    .filter((e) => e.from === nodeId && e.type === 'requires')
-    .map((e) => e.to);
+  return edges.filter((e) => e.from === nodeId && e.type === 'requires').map((e) => e.to);
 }
 
 /** Get IDs of nodes connected via "improves" edges (either direction). */

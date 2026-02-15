@@ -21,7 +21,10 @@ export function Toolbar() {
     setShowAddNode(false);
   };
 
-  const handleApplyTemplate = (template: TemplateDefinition, decisions: Map<string, SoftDecision>) => {
+  const handleApplyTemplate = (
+    template: TemplateDefinition,
+    decisions: Map<string, SoftDecision>,
+  ) => {
     const { nodes, edges } = useGraphStore.getState();
     const result = expandTemplate(template, decisions, nodes, edges);
 
@@ -81,7 +84,9 @@ export function Toolbar() {
         <div className="flex-1" />
 
         <button
-          onClick={() => { if (window.confirm('Clear the entire canvas?')) useGraphStore.getState().clearGraph(); }}
+          onClick={() => {
+            if (window.confirm('Clear the entire canvas?')) useGraphStore.getState().clearGraph();
+          }}
           className="px-3 py-1.5 text-sm text-red-400 hover:text-red-300 bg-gray-700 hover:bg-gray-600 rounded"
         >
           Clear All

@@ -57,7 +57,12 @@ export function PlanningDrawer() {
       <div className="flex-1 overflow-y-auto p-3">
         {activeTab === 'available' && (
           <NodeItemList
-            items={available.map((n) => ({ id: n.id, title: n.title, type: n.type, skillData: n.skillData }))}
+            items={available.map((n) => ({
+              id: n.id,
+              title: n.title,
+              type: n.type,
+              skillData: n.skillData,
+            }))}
             onSelect={selectNode}
           />
         )}

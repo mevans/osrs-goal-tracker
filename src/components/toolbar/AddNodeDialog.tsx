@@ -47,10 +47,7 @@ export function AddNodeDialog({ onSubmit, onClose }: AddNodeDialogProps) {
         type === 'skill'
           ? { skillName, targetLevel: Number(targetLevel) || 1, boost: Number(boost) || undefined }
           : undefined,
-      questData:
-        type === 'quest' && questId.trim()
-          ? { questId: questId.trim() }
-          : undefined,
+      questData: type === 'quest' && questId.trim() ? { questId: questId.trim() } : undefined,
       quantity: qTarget > 0 ? { target: qTarget, current: 0 } : undefined,
     });
   };
@@ -106,7 +103,9 @@ export function AddNodeDialog({ onSubmit, onClose }: AddNodeDialogProps) {
                   onChange={(e) => setSkillName(e.target.value as SkillName)}
                 >
                   {OSRS_SKILLS.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
                 </select>
               </div>

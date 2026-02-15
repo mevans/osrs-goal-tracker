@@ -21,10 +21,7 @@ export function SidePanel() {
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
   const { toggleNodeComplete, removeNode, selectNode, updateNode } = useGraphStore.getState();
 
-  const node = useMemo(
-    () => nodes.find((n) => n.id === selectedNodeId),
-    [nodes, selectedNodeId],
-  );
+  const node = useMemo(() => nodes.find((n) => n.id === selectedNodeId), [nodes, selectedNodeId]);
 
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
@@ -32,10 +29,7 @@ export function SidePanel() {
     () => (node ? getRequiredPrerequisites(node.id, edges) : []),
     [node, edges],
   );
-  const dependentIds = useMemo(
-    () => (node ? getDependents(node.id, edges) : []),
-    [node, edges],
-  );
+  const dependentIds = useMemo(() => (node ? getDependents(node.id, edges) : []), [node, edges]);
   const improvementIds = useMemo(
     () => (node ? getImprovements(node.id, edges) : []),
     [node, edges],
@@ -97,7 +91,8 @@ export function SidePanel() {
             {node.skillData.skillName} — Level {node.skillData.targetLevel}
             {node.skillData.boost ? (
               <span className="text-blue-400 ml-1">
-                (train to {node.skillData.targetLevel - node.skillData.boost} + {node.skillData.boost} boost)
+                (train to {node.skillData.targetLevel - node.skillData.boost} +{' '}
+                {node.skillData.boost} boost)
               </span>
             ) : null}
           </div>
@@ -129,7 +124,8 @@ export function SidePanel() {
                 <button
                   onClick={() => {
                     const cur = node.quantity!.current;
-                    if (cur > 0) updateNode(node.id, { quantity: { ...node.quantity!, current: cur - 1 } });
+                    if (cur > 0)
+                      updateNode(node.id, { quantity: { ...node.quantity!, current: cur - 1 } });
                   }}
                   className="w-7 h-7 text-sm font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
                 >
@@ -142,14 +138,18 @@ export function SidePanel() {
                   className="w-16 bg-gray-700 text-white text-sm text-center rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
                   value={node.quantity.current}
                   onChange={(e) => {
-                    const val = Math.max(0, Math.min(node.quantity!.target, Number(e.target.value) || 0));
+                    const val = Math.max(
+                      0,
+                      Math.min(node.quantity!.target, Number(e.target.value) || 0),
+                    );
                     updateNode(node.id, { quantity: { ...node.quantity!, current: val } });
                   }}
                 />
                 <button
                   onClick={() => {
                     const cur = node.quantity!.current;
-                    if (cur < node.quantity!.target) updateNode(node.id, { quantity: { ...node.quantity!, current: cur + 1 } });
+                    if (cur < node.quantity!.target)
+                      updateNode(node.id, { quantity: { ...node.quantity!, current: cur + 1 } });
                   }}
                   className="w-7 h-7 text-sm font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
                 >
@@ -162,7 +162,9 @@ export function SidePanel() {
                   className={`h-full rounded-full transition-all ${
                     node.quantity.current >= node.quantity.target ? 'bg-green-500' : 'bg-amber-500'
                   }`}
-                  style={{ width: `${Math.min(100, Math.round((node.quantity.current / node.quantity.target) * 100))}%` }}
+                  style={{
+                    width: `${Math.min(100, Math.round((node.quantity.current / node.quantity.target) * 100))}%`,
+                  }}
                 />
               </div>
               <button

@@ -1,5 +1,13 @@
 import { create } from 'zustand';
-import type { GraphNode, GraphEdge, NodeType, EdgeType, GraphData, SkillName, Quantity } from '../engine/types';
+import type {
+  GraphNode,
+  GraphEdge,
+  NodeType,
+  EdgeType,
+  GraphData,
+  SkillName,
+  Quantity,
+} from '../engine/types';
 import { generateId } from '../engine/types';
 
 export interface AddNodeParams {
@@ -79,9 +87,7 @@ export const useGraphStore = create<GraphState>()((set) => ({
 
   toggleNodeComplete: (id) => {
     set((state) => ({
-      nodes: state.nodes.map((n) =>
-        n.id === id ? { ...n, complete: !n.complete } : n,
-      ),
+      nodes: state.nodes.map((n) => (n.id === id ? { ...n, complete: !n.complete } : n)),
     }));
   },
 
@@ -107,17 +113,13 @@ export const useGraphStore = create<GraphState>()((set) => ({
 
   reverseEdge: (id) => {
     set((state) => ({
-      edges: state.edges.map((e) =>
-        e.id === id ? { ...e, from: e.to, to: e.from } : e,
-      ),
+      edges: state.edges.map((e) => (e.id === id ? { ...e, from: e.to, to: e.from } : e)),
     }));
   },
 
   setEdgeType: (id, type) => {
     set((state) => ({
-      edges: state.edges.map((e) =>
-        e.id === id ? { ...e, type } : e,
-      ),
+      edges: state.edges.map((e) => (e.id === id ? { ...e, type } : e)),
     }));
   },
 
@@ -130,7 +132,12 @@ export const useGraphStore = create<GraphState>()((set) => ({
   },
 
   loadGraph: (data) => {
-    set({ nodes: data.nodes, edges: data.edges, selectedNodeId: undefined, selectedEdgeId: undefined });
+    set({
+      nodes: data.nodes,
+      edges: data.edges,
+      selectedNodeId: undefined,
+      selectedEdgeId: undefined,
+    });
   },
 
   mergeGraph: ({ nodes: newNodes, edges: newEdges }) => {
@@ -138,14 +145,8 @@ export const useGraphStore = create<GraphState>()((set) => ({
       const existingNodeIds = new Set(state.nodes.map((n) => n.id));
       const existingEdgeIds = new Set(state.edges.map((e) => e.id));
       return {
-        nodes: [
-          ...state.nodes,
-          ...newNodes.filter((n) => !existingNodeIds.has(n.id)),
-        ],
-        edges: [
-          ...state.edges,
-          ...newEdges.filter((e) => !existingEdgeIds.has(e.id)),
-        ],
+        nodes: [...state.nodes, ...newNodes.filter((n) => !existingNodeIds.has(n.id))],
+        edges: [...state.edges, ...newEdges.filter((e) => !existingEdgeIds.has(e.id))],
       };
     });
   },

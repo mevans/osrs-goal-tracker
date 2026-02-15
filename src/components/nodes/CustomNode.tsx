@@ -64,9 +64,7 @@ export function CustomNode({ data, selected }: NodeProps<Node<CustomNodeData>>) 
         <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">
           {TYPE_LABELS[data.nodeType]}
         </span>
-        {data.complete && (
-          <span className="text-green-400 text-xs">&#10003;</span>
-        )}
+        {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
       </div>
 
       <div className="text-sm font-medium text-white truncate">{data.title}</div>

@@ -3,14 +3,32 @@ export type EdgeType = 'requires' | 'improves';
 export type DerivedStatus = 'complete' | 'available' | 'blocked';
 
 export const OSRS_SKILLS = [
-  'Attack', 'Strength', 'Defence', 'Ranged', 'Prayer',
-  'Magic', 'Runecraft', 'Hitpoints', 'Crafting', 'Mining',
-  'Smithing', 'Fishing', 'Cooking', 'Firemaking', 'Woodcutting',
-  'Agility', 'Herblore', 'Thieving', 'Fletching', 'Slayer',
-  'Farming', 'Construction', 'Hunter',
+  'Attack',
+  'Strength',
+  'Defence',
+  'Ranged',
+  'Prayer',
+  'Magic',
+  'Runecraft',
+  'Hitpoints',
+  'Crafting',
+  'Mining',
+  'Smithing',
+  'Fishing',
+  'Cooking',
+  'Firemaking',
+  'Woodcutting',
+  'Agility',
+  'Herblore',
+  'Thieving',
+  'Fletching',
+  'Slayer',
+  'Farming',
+  'Construction',
+  'Hunter',
 ] as const;
 
-export type SkillName = typeof OSRS_SKILLS[number];
+export type SkillName = (typeof OSRS_SKILLS)[number];
 
 export interface SkillData {
   skillName: SkillName;

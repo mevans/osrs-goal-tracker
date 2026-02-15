@@ -56,16 +56,20 @@ function buildRfNodes(
 export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const { moveNode, addNode, addEdge, removeNode, removeEdge, selectNode, selectEdge } = useGraphStore.getState();
+  const { moveNode, addNode, addEdge, removeNode, removeEdge, selectNode, selectEdge } =
+    useGraphStore.getState();
   const { screenToFlowPosition } = useReactFlow();
 
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
   // Pending connection: when a drag ends on empty space
-  const [pendingConnection, setPendingConnection] = useState<{
-    sourceId: string;
-    position: { x: number; y: number };
-  } | undefined>(undefined);
+  const [pendingConnection, setPendingConnection] = useState<
+    | {
+        sourceId: string;
+        position: { x: number; y: number };
+      }
+    | undefined
+  >(undefined);
 
   // Local RF state — React Flow owns positions and selection during interaction
   const [rfNodes, setRfNodes] = useState<Node<CustomNodeData>[]>(() =>
@@ -150,13 +154,22 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   );
 
   const onConnectEnd = useCallback(
-    (event: MouseEvent | TouchEvent, connectionState: { isValid: boolean | null; fromNode?: { id: string } | null }) => {
+    (
+      event: MouseEvent | TouchEvent,
+      connectionState: { isValid: boolean | null; fromNode?: { id: string } | null },
+    ) => {
       if (connectionState.isValid) return;
       const sourceId = connectionState.fromNode?.id;
       if (!sourceId) return;
 
-      const clientX = 'changedTouches' in event ? event.changedTouches[0]?.clientX : (event as MouseEvent).clientX;
-      const clientY = 'changedTouches' in event ? event.changedTouches[0]?.clientY : (event as MouseEvent).clientY;
+      const clientX =
+        'changedTouches' in event
+          ? event.changedTouches[0]?.clientX
+          : (event as MouseEvent).clientX;
+      const clientY =
+        'changedTouches' in event
+          ? event.changedTouches[0]?.clientY
+          : (event as MouseEvent).clientY;
       if (clientX === undefined || clientY === undefined) return;
 
       const position = screenToFlowPosition({ x: clientX, y: clientY });

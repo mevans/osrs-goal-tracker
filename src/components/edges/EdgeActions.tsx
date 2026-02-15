@@ -63,7 +63,9 @@ export function EdgeActionsLabel({
             setEdgeType(id, isRequires ? 'improves' : 'requires');
           }}
           className={`text-[11px] px-1.5 py-0.5 rounded hover:bg-gray-700 ${
-            isRequires ? 'text-purple-400 hover:text-purple-300' : 'text-slate-400 hover:text-slate-300'
+            isRequires
+              ? 'text-purple-400 hover:text-purple-300'
+              : 'text-slate-400 hover:text-slate-300'
           }`}
           title={`Switch to ${isRequires ? 'improves' : 'requires'}`}
         >

@@ -26,7 +26,7 @@ function findSinkNodes(nodeIds: string[], edges: LayoutEdge[]): string[] {
   for (const edge of edges) {
     hasOutgoing.add(edge.from);
   }
-  return nodeIds.filter(id => !hasOutgoing.has(id));
+  return nodeIds.filter((id) => !hasOutgoing.has(id));
 }
 
 /**
@@ -156,7 +156,7 @@ function layoutCluster(
       return 0;
     }
 
-    const maxParentDepth = Math.max(...parentIds.map(p => getDepth(p, visited)));
+    const maxParentDepth = Math.max(...parentIds.map((p) => getDepth(p, visited)));
     const d = maxParentDepth + 1;
     depth.set(id, d);
     return d;
@@ -197,10 +197,10 @@ function layoutCluster(
       });
     } else {
       // Sort by barycenter of parent positions
-      const withBarycenter = layerNodes.map(id => {
+      const withBarycenter = layerNodes.map((id) => {
         const parentIds = parents.get(id) ?? [];
         if (parentIds.length === 0) return { id, bc: 0 };
-        const parentXs = parentIds.map(p => layerXPos.get(p) ?? 0);
+        const parentXs = parentIds.map((p) => layerXPos.get(p) ?? 0);
         const bc = parentXs.reduce((a, b) => a + b, 0) / parentXs.length;
         return { id, bc };
       });
@@ -213,7 +213,8 @@ function layoutCluster(
   }
 
   // Final pass: center each layer and assign absolute positions
-  const maxWidth = Math.max(...sortedDepths.map(d => (layers.get(d)?.length ?? 1) - 1)) * NODE_GAP_X;
+  const maxWidth =
+    Math.max(...sortedDepths.map((d) => (layers.get(d)?.length ?? 1) - 1)) * NODE_GAP_X;
 
   for (const d of sortedDepths) {
     const layerNodes = layers.get(d)!;
@@ -257,11 +258,10 @@ export function computeLayeredLayout(
     if (clusterNodes.size === 0) continue;
 
     const clusterNodeList = [...clusterNodes];
-    const clusterPositions = layoutCluster(
-      clusterNodeList,
-      edges,
-      { x: clusterOffsetX, y: origin.y },
-    );
+    const clusterPositions = layoutCluster(clusterNodeList, edges, {
+      x: clusterOffsetX,
+      y: origin.y,
+    });
 
     // Find max X in this cluster to determine next cluster offset
     let maxX = clusterOffsetX;
@@ -288,12 +288,12 @@ export function applyLayout<T extends LayoutNode>(
   origin?: { x: number; y: number },
 ): T[] {
   const positions = computeLayeredLayout(
-    nodes.map(n => n.id),
+    nodes.map((n) => n.id),
     edges,
     origin,
   );
 
-  return nodes.map(n => {
+  return nodes.map((n) => {
     const pos = positions.get(n.id);
     return pos ? { ...n, position: pos } : n;
   });

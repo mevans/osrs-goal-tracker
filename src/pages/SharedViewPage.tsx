@@ -116,10 +116,7 @@ function SharedView({ data }: { data: GraphData }) {
         <span className="text-sm font-semibold mr-3">OSRS Planner</span>
         <span className="text-xs text-gray-400 bg-gray-700 px-2 py-0.5 rounded">Read-only</span>
         <div className="flex-1" />
-        <a
-          href="/"
-          className="text-sm text-blue-400 hover:text-blue-300"
-        >
+        <a href="/" className="text-sm text-blue-400 hover:text-blue-300">
           Open Editor
         </a>
       </div>

@@ -1,8 +1,4 @@
-import {
-  SmoothStepEdge,
-  type EdgeProps,
-  type Edge,
-} from '@xyflow/react';
+import { SmoothStepEdge, type EdgeProps, type Edge } from '@xyflow/react';
 import { EdgeActionsLabel } from './EdgeActions';
 
 export function RequiresEdge(props: EdgeProps<Edge>) {

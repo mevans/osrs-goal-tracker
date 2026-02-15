@@ -30,7 +30,10 @@ export interface TemplateDefinition {
 /** What the user decided for each soft node. */
 export type SoftDecision =
   | { action: 'keep' }
-  | { action: 'edit'; edits: Partial<Pick<TemplateNode, 'title' | 'notes' | 'skillData' | 'questData'>> }
+  | {
+      action: 'edit';
+      edits: Partial<Pick<TemplateNode, 'title' | 'notes' | 'skillData' | 'questData'>>;
+    }
   | { action: 'discard' };
 
 /** Result of applying decisions to a template. Ready to merge into the graph. */
