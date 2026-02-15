@@ -1,8 +1,13 @@
+import { Routes, Route } from 'react-router-dom'
+import { EditorPage } from './pages/EditorPage'
+import { SharedViewPage } from './pages/SharedViewPage'
+
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <h1 className="text-3xl font-bold p-8">OSRS Goal Tracker</h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<EditorPage />} />
+      <Route path="/shared" element={<SharedViewPage />} />
+    </Routes>
   )
 }
 
