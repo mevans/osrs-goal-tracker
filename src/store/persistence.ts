@@ -4,15 +4,10 @@ import { saveToLocalStorage, loadFromLocalStorage } from '../engine/serializatio
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function initPersistence(): void {
-  // Load saved graph on startup
+  // Load saved graph on startup (migrations handled in loadFromLocalStorage)
   const saved = loadFromLocalStorage();
   if (saved) {
-    // Migrate legacy data: add tags field if missing
-    const migratedNodes = saved.nodes.map((n) => ({
-      ...n,
-      tags: n.tags ?? [],
-    }));
-    useGraphStore.getState().loadGraph({ nodes: migratedNodes, edges: saved.edges });
+    useGraphStore.getState().loadGraph(saved);
     // Clear undo/redo history after loading — initial state shouldn't be undoable
     useGraphStore.temporal.getState().clear();
   }

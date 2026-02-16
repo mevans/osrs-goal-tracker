@@ -1,7 +1,7 @@
 import type { GraphData } from './types';
+import { CURRENT_VERSION, runMigrations } from './migrations';
 
 const STORAGE_KEY = 'osrs-goal-tracker-graph';
-const STORAGE_VERSION = 1;
 
 interface StorageEnvelope {
   version: number;
@@ -11,7 +11,7 @@ interface StorageEnvelope {
 // --- localStorage ---
 
 export function saveToLocalStorage(data: GraphData): void {
-  const envelope: StorageEnvelope = { version: STORAGE_VERSION, data };
+  const envelope: StorageEnvelope = { version: CURRENT_VERSION, data };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
 }
 
@@ -21,9 +21,15 @@ export function loadFromLocalStorage(): GraphData | undefined {
 
   try {
     const envelope = JSON.parse(raw) as StorageEnvelope;
-    if (envelope.version !== STORAGE_VERSION) return undefined;
-    return envelope.data;
-  } catch {
+
+    // Handle legacy data without version field
+    const version = envelope.version ?? 0;
+    const rawData = envelope.data ?? (envelope as any); // Legacy: entire object was GraphData
+
+    // Run migrations if needed
+    return runMigrations(rawData, version);
+  } catch (error) {
+    console.error('Failed to load from localStorage:', error);
     return undefined;
   }
 }
@@ -99,7 +105,8 @@ async function decompressString(encoded: string): Promise<string> {
 }
 
 export async function buildShareUrl(data: GraphData): Promise<string> {
-  const json = JSON.stringify(data);
+  const envelope: StorageEnvelope = { version: CURRENT_VERSION, data };
+  const json = JSON.stringify(envelope);
   const compressed = await compressString(json);
   const url = new URL('/shared', window.location.origin);
   url.searchParams.set('g', compressed);
@@ -109,8 +116,16 @@ export async function buildShareUrl(data: GraphData): Promise<string> {
 export async function parseShareParam(param: string): Promise<GraphData | undefined> {
   try {
     const json = await decompressString(param);
-    return JSON.parse(json) as GraphData;
-  } catch {
+    const envelope = JSON.parse(json) as StorageEnvelope;
+
+    // Handle legacy URLs without version field
+    const version = envelope.version ?? 0;
+    const rawData = envelope.data ?? (envelope as any); // Legacy: entire object was GraphData
+
+    // Run migrations if needed
+    return runMigrations(rawData, version);
+  } catch (error) {
+    console.error('Failed to parse share URL:', error);
     return undefined;
   }
 }
