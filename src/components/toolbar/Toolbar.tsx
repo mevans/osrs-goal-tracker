@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from 'zustand';
 import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
@@ -8,6 +8,7 @@ import { ShareDialog } from './ShareDialog';
 import { TemplateDialog } from './TemplateDialog';
 import { expandTemplate } from '../../templates/expand';
 import { applyLayout } from '../../engine/layout';
+import { exportToJson, importFromJson } from '../../engine/serialization';
 import type { TemplateDefinition, SoftDecision } from '../../templates/types';
 
 const UndoIcon = () => (
@@ -48,6 +49,7 @@ export function Toolbar() {
   const [showAddNode, setShowAddNode] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showTemplate, setShowTemplate] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const addNode = useGraphStore.getState().addNode;
   const getCenter = useViewportCenter();
   const { fitView } = useReactFlow();
@@ -105,6 +107,43 @@ export function Toolbar() {
     setTimeout(() => {
       fitView({ padding: 0.2, duration: 400 });
     }, 50);
+  };
+
+  const handleExport = () => {
+    const { nodes, edges } = useGraphStore.getState();
+    exportToJson({ nodes, edges });
+  };
+
+  const handleImport = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const data = await importFromJson(file);
+    if (data) {
+      if (
+        window.confirm(
+          'Import will replace your current graph. Continue?\n\n(Export first if you want to save your current work)',
+        )
+      ) {
+        useGraphStore.getState().loadGraph(data);
+        // Clear undo/redo history after import
+        useGraphStore.temporal.getState().clear();
+
+        // Fit view after import with a small delay
+        setTimeout(() => {
+          fitView({ padding: 0.2, duration: 400 });
+        }, 50);
+      }
+    } else {
+      alert('Failed to import file. Please check the file format.');
+    }
+
+    // Reset file input so the same file can be re-imported
+    event.target.value = '';
   };
 
   return (
@@ -165,12 +204,34 @@ export function Toolbar() {
         </button>
 
         <button
+          onClick={handleImport}
+          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+        >
+          Import JSON
+        </button>
+
+        <button
+          onClick={handleExport}
+          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+        >
+          Export JSON
+        </button>
+
+        <button
           onClick={() => setShowShare(true)}
           className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
         >
           Share
         </button>
       </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
       {showAddNode && (
         <AddNodeDialog onSubmit={handleAddNode} onClose={() => setShowAddNode(false)} />

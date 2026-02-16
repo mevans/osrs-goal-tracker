@@ -129,3 +129,40 @@ export async function parseShareParam(param: string): Promise<GraphData | undefi
     return undefined;
   }
 }
+
+// --- JSON Export/Import ---
+
+export function exportToJson(data: GraphData): void {
+  const envelope: StorageEnvelope = { version: CURRENT_VERSION, data };
+  const json = JSON.stringify(envelope, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const filename = `osrs-planner-${timestamp}.json`;
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+export async function importFromJson(file: File): Promise<GraphData | undefined> {
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+
+    // Handle both versioned and legacy formats
+    const envelope = parsed as StorageEnvelope;
+    const version = envelope.version ?? 0;
+    const rawData = envelope.data ?? parsed; // Legacy: entire object was GraphData
+
+    // Run migrations if needed
+    return runMigrations(rawData, version);
+  } catch (error) {
+    console.error('Failed to import JSON:', error);
+    return undefined;
+  }
+}
