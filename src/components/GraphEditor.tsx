@@ -83,9 +83,20 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
   // TODO: Quick-add suggestions currently only work with single selection
   const selectedNodeId = selectedNodeIds[0];
-  const { moveNode, addNode, addEdge, removeNode, removeEdge, selectNodes, selectEdges } =
-    useGraphStore.getState();
-  const { screenToFlowPosition } = useReactFlow();
+  const {
+    moveNode,
+    addNode,
+    addEdge,
+    removeNode,
+    removeEdge,
+    selectNodes,
+    selectEdges,
+    toggleNodesComplete,
+    duplicateNodes,
+    copySelection,
+    pasteClipboard,
+  } = useGraphStore.getState();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const { undo, redo } = useGraphStore.temporal.getState();
 
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -153,6 +164,48 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         selectEdges([]);
       }
 
+      // Space: toggle selected node(s) complete
+      if (event.key === ' ') {
+        event.preventDefault();
+        if (selectedNodeIds.length > 0) {
+          toggleNodesComplete(selectedNodeIds);
+        }
+      }
+
+      // Ctrl+A or Cmd+A: Select all nodes
+      if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+        event.preventDefault();
+        selectNodes(nodes.map((n) => n.id));
+      }
+
+      // Ctrl+D or Cmd+D: Duplicate selected nodes
+      if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+        event.preventDefault();
+        if (selectedNodeIds.length > 0) {
+          duplicateNodes(selectedNodeIds);
+        }
+      }
+
+      // Ctrl+C or Cmd+C: Copy selected nodes
+      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        event.preventDefault();
+        if (selectedNodeIds.length > 0) {
+          copySelection();
+        }
+      }
+
+      // Ctrl+V or Cmd+V: Paste copied nodes
+      if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+        event.preventDefault();
+        pasteClipboard({ x: 40, y: 40 });
+      }
+
+      // F: Fit view
+      if (event.key === 'f') {
+        event.preventDefault();
+        fitView({ padding: 0.2, duration: 300 });
+      }
+
       // Ctrl+Z or Cmd+Z: Undo
       if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
         event.preventDefault();
@@ -171,7 +224,19 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectNodes, selectEdges, undo, redo]);
+  }, [
+    selectedNodeIds,
+    nodes,
+    selectNodes,
+    selectEdges,
+    toggleNodesComplete,
+    duplicateNodes,
+    copySelection,
+    pasteClipboard,
+    fitView,
+    undo,
+    redo,
+  ]);
 
   // Pending connection: when a drag ends on empty space
   const [pendingConnection, setPendingConnection] = useState<
@@ -359,7 +424,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         snapToGrid
         snapGrid={[20, 20]}
         colorMode="dark"
-        deleteKeyCode="Delete"
+        deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode="Shift"
         selectionMode="partial"
         proOptions={{ hideAttribution: true }}

@@ -32,6 +32,8 @@ interface GraphState {
   removeNode: (id: string) => void;
   moveNode: (id: string, position: { x: number; y: number }) => void;
   toggleNodeComplete: (id: string) => void;
+  toggleNodesComplete: (ids: string[]) => void;
+  duplicateNodes: (ids: string[]) => string[];
   addTagToNode: (nodeId: string, tag: string) => void;
   removeTagFromNode: (nodeId: string, tag: string) => void;
   addEdge: (from: string, to: string, type: EdgeType) => string;
@@ -40,6 +42,8 @@ interface GraphState {
   setEdgeType: (id: string, type: EdgeType) => void;
   selectNodes: (ids: string[]) => void;
   selectEdges: (ids: string[]) => void;
+  copySelection: () => void;
+  pasteClipboard: (offset: { x: number; y: number }) => void;
   loadGraph: (data: GraphData) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
   clearGraph: () => void;
@@ -97,6 +101,54 @@ export const useGraphStore = create<GraphState>()(
         }));
       },
 
+      toggleNodesComplete: (ids) => {
+        set((state) => {
+          const idsSet = new Set(ids);
+          // If all selected are complete, mark all incomplete; otherwise mark all complete
+          const allComplete = ids.every((id) => state.nodes.find((n) => n.id === id)?.complete);
+          return {
+            nodes: state.nodes.map((n) =>
+              idsSet.has(n.id) ? { ...n, complete: !allComplete } : n,
+            ),
+          };
+        });
+      },
+
+      duplicateNodes: (ids) => {
+        const state = useGraphStore.getState();
+        const nodesToDupe = state.nodes.filter((n) => ids.includes(n.id));
+        const idMap = new Map<string, string>();
+
+        const newNodes = nodesToDupe.map((node) => {
+          const newId = generateId();
+          idMap.set(node.id, newId);
+          return {
+            ...node,
+            id: newId,
+            position: { x: node.position.x + 40, y: node.position.y + 40 },
+            complete: false,
+          };
+        });
+
+        // Copy internal edges (edges between duplicated nodes)
+        const idsSet = new Set(ids);
+        const edgesToDupe = state.edges.filter((e) => idsSet.has(e.from) && idsSet.has(e.to));
+        const newEdges = edgesToDupe.map((edge) => ({
+          ...edge,
+          id: generateId(),
+          from: idMap.get(edge.from)!,
+          to: idMap.get(edge.to)!,
+        }));
+
+        set((state) => ({
+          nodes: [...state.nodes, ...newNodes],
+          edges: [...state.edges, ...newEdges],
+          selectedNodeIds: newNodes.map((n) => n.id),
+        }));
+
+        return newNodes.map((n) => n.id);
+      },
+
       addTagToNode: (nodeId, tag) => {
         set((state) => ({
           nodes: state.nodes.map((n) =>
@@ -151,6 +203,60 @@ export const useGraphStore = create<GraphState>()(
 
       selectEdges: (ids) => {
         set({ selectedEdgeIds: ids, selectedNodeIds: [] });
+      },
+
+      copySelection: async () => {
+        const state = useGraphStore.getState();
+        const selectedSet = new Set(state.selectedNodeIds);
+        const nodesToCopy = state.nodes.filter((n) => selectedSet.has(n.id));
+        const edgesToCopy = state.edges.filter(
+          (e) => selectedSet.has(e.from) && selectedSet.has(e.to),
+        );
+
+        const clipboardData = JSON.stringify({ nodes: nodesToCopy, edges: edgesToCopy });
+        try {
+          await navigator.clipboard.writeText(clipboardData);
+        } catch (err) {
+          console.error('Failed to copy to clipboard:', err);
+        }
+      },
+
+      pasteClipboard: async (offset) => {
+        try {
+          const clipboardText = await navigator.clipboard.readText();
+          const clipboardData = JSON.parse(clipboardText) as {
+            nodes: GraphNode[];
+            edges: GraphEdge[];
+          };
+
+          const idMap = new Map<string, string>();
+          const newNodes = clipboardData.nodes.map((node) => {
+            const newId = generateId();
+            idMap.set(node.id, newId);
+            return {
+              ...node,
+              id: newId,
+              position: { x: node.position.x + offset.x, y: node.position.y + offset.y },
+              complete: false,
+            };
+          });
+
+          const newEdges = clipboardData.edges.map((edge) => ({
+            ...edge,
+            id: generateId(),
+            from: idMap.get(edge.from)!,
+            to: idMap.get(edge.to)!,
+          }));
+
+          set((state) => ({
+            nodes: [...state.nodes, ...newNodes],
+            edges: [...state.edges, ...newEdges],
+            selectedNodeIds: newNodes.map((n) => n.id),
+          }));
+        } catch (err) {
+          // Silently fail if clipboard is empty or invalid JSON
+          console.error('Failed to paste from clipboard:', err);
+        }
       },
 
       loadGraph: (data) => {
