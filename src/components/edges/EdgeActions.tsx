@@ -6,14 +6,15 @@ interface EdgeActionsProps {
 }
 
 export function EdgeActions({ clickX, clickY }: EdgeActionsProps) {
-  const selectedEdgeId = useGraphStore((s) => s.selectedEdgeId);
+  const selectedEdgeIds = useGraphStore((s) => s.selectedEdgeIds);
+  const selectedEdgeId = selectedEdgeIds[0];
   const edge = useGraphStore((s) =>
-    s.selectedEdgeId ? s.edges.find((e) => e.id === s.selectedEdgeId) : undefined,
+    selectedEdgeIds[0] ? s.edges.find((e) => e.id === selectedEdgeIds[0]) : undefined,
   );
 
   if (!selectedEdgeId || !edge) return null;
 
-  const { reverseEdge, setEdgeType, removeEdge, selectEdge } = useGraphStore.getState();
+  const { reverseEdge, setEdgeType, removeEdge, selectEdges } = useGraphStore.getState();
   const isRequires = edge.type === 'requires';
 
   return (
@@ -90,7 +91,7 @@ export function EdgeActions({ clickX, clickY }: EdgeActionsProps) {
         onClick={(e) => {
           e.stopPropagation();
           removeEdge(selectedEdgeId);
-          selectEdge(undefined);
+          selectEdges([]);
         }}
         className="flex items-center gap-1 text-[11px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-gray-700"
         title="Delete edge"

@@ -15,12 +15,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { useGraphStore } from '../store/graph-store';
-import {
-  computeAllStatuses,
-  getAllPrerequisites,
-  getAllDependents,
-  getImprovements,
-} from '../engine/graph-engine';
+import { computeAllStatuses, getAllPrerequisites, getAllDependents } from '../engine/graph-engine';
 import { CustomNode, type CustomNodeData } from './nodes/CustomNode';
 import { RequiresEdge, RequiresArrowDef } from './edges/RequiresEdge';
 import { ImprovesEdge, ImprovesArrowDef } from './edges/ImprovesEdge';
@@ -40,12 +35,14 @@ function buildRfNodes(
   nodes: ReturnType<typeof useGraphStore.getState>['nodes'],
   statuses: Map<string, import('../engine/types').DerivedStatus>,
   highlightedIds: Set<string> | null,
+  selectedNodeIds: string[],
 ): Node<CustomNodeData>[] {
   return nodes.map((n) => {
     const node: Node<CustomNodeData> = {
       id: n.id,
       type: 'custom' as const,
       position: n.position,
+      selected: selectedNodeIds.includes(n.id),
       className: highlightedIds && !highlightedIds.has(n.id) ? 'opacity-25' : '',
       data: {
         title: n.title,
@@ -67,11 +64,26 @@ function buildRfNodes(
   });
 }
 
+function buildRfEdges(
+  edges: ReturnType<typeof useGraphStore.getState>['edges'],
+  highlightedEdgeIds: Set<string> | null,
+): Edge[] {
+  return edges.map((e) => ({
+    id: e.id,
+    source: e.from,
+    target: e.to,
+    type: e.type,
+    className: highlightedEdgeIds && !highlightedEdgeIds.has(e.id) ? 'opacity-25' : '',
+  }));
+}
+
 export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
-  const { moveNode, addNode, addEdge, removeNode, removeEdge, selectNode, selectEdge } =
+  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
+  // TODO: Quick-add suggestions currently only work with single selection
+  const selectedNodeId = selectedNodeIds[0];
+  const { moveNode, addNode, addEdge, removeNode, removeEdge, selectNodes, selectEdges } =
     useGraphStore.getState();
   const { screenToFlowPosition } = useReactFlow();
   const { undo, redo } = useGraphStore.temporal.getState();
@@ -80,41 +92,37 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
-  // Compute highlight set: selected node + prerequisites + dependents + improvements + siblings
+  // Compute highlight set: selected nodes + all prerequisites + all dependents (requires edges only)
   const highlightedNodeIds = useMemo(() => {
-    if (!selectedNodeId) return null;
+    if (selectedNodeIds.length === 0) return null;
     const set = new Set<string>();
-    set.add(selectedNodeId);
 
-    // Add all prerequisites (requires edges going backward)
-    const prereqs = getAllPrerequisites(selectedNodeId, edges);
-    prereqs.forEach((id) => set.add(id));
-
-    // Add all dependents (requires edges going forward)
-    const deps = getAllDependents(selectedNodeId, edges);
-    deps.forEach((id) => set.add(id));
-
-    // Add improvements (improves edges in either direction)
-    const improvements = getImprovements(selectedNodeId, edges);
-    improvements.forEach((id) => set.add(id));
-
-    // For each prerequisite, add all its dependents (siblings that share same prereqs)
-    const siblings = new Set<string>();
-    prereqs.forEach((prereqId) => {
-      const sibs = getAllDependents(prereqId, edges);
-      sibs.forEach((id) => siblings.add(id));
-    });
-    siblings.forEach((id) => set.add(id));
-
-    // For each improvement, also include its prerequisites chain
-    improvements.forEach((impId) => {
-      set.add(impId);
-      const impPrereqs = getAllPrerequisites(impId, edges);
-      impPrereqs.forEach((id) => set.add(id));
-    });
+    for (const nodeId of selectedNodeIds) {
+      set.add(nodeId);
+      // Add all prerequisites (up the tree)
+      const prereqs = getAllPrerequisites(nodeId, edges);
+      prereqs.forEach((id) => set.add(id));
+      // Add all dependents (down the tree)
+      const deps = getAllDependents(nodeId, edges);
+      deps.forEach((id) => set.add(id));
+    }
 
     return set;
-  }, [selectedNodeId, edges]);
+  }, [selectedNodeIds, edges]);
+
+  // Compute highlighted edges: only edges between highlighted nodes
+  const highlightedEdgeIds = useMemo(() => {
+    if (!highlightedNodeIds) return null;
+    const set = new Set<string>();
+
+    for (const edge of edges) {
+      if (highlightedNodeIds.has(edge.from) && highlightedNodeIds.has(edge.to)) {
+        set.add(edge.id);
+      }
+    }
+
+    return set;
+  }, [highlightedNodeIds, edges]);
 
   // Selected node for quick-add suggestions
   const selectedNode = useMemo(
@@ -141,8 +149,8 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
       // Escape: deselect
       if (event.key === 'Escape') {
-        selectNode(undefined);
-        selectEdge(undefined);
+        selectNodes([]);
+        selectEdges([]);
       }
 
       // Ctrl+Z or Cmd+Z: Undo
@@ -163,7 +171,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectNode, selectEdge, undo, redo]);
+  }, [selectNodes, selectEdges, undo, redo]);
 
   // Pending connection: when a drag ends on empty space
   const [pendingConnection, setPendingConnection] = useState<
@@ -177,20 +185,18 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   // Local RF state — React Flow owns positions and selection during interaction
   const [rfNodes, setRfNodes] = useState<Node<CustomNodeData>[]>(() =>
-    buildRfNodes(nodes, statuses, highlightedNodeIds),
+    buildRfNodes(nodes, statuses, highlightedNodeIds, selectedNodeIds),
   );
-  const [rfEdges, setRfEdges] = useState<Edge[]>(() =>
-    edges.map((e) => ({ id: e.id, source: e.from, target: e.to, type: e.type })),
-  );
+  const [rfEdges, setRfEdges] = useState<Edge[]>(() => buildRfEdges(edges, highlightedEdgeIds));
 
-  // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting
+  // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
   useEffect(() => {
-    setRfNodes(buildRfNodes(nodes, statuses, highlightedNodeIds));
-  }, [nodes, statuses, highlightedNodeIds]);
+    setRfNodes(buildRfNodes(nodes, statuses, highlightedNodeIds, selectedNodeIds));
+  }, [nodes, statuses, highlightedNodeIds, selectedNodeIds]);
 
   useEffect(() => {
-    setRfEdges(edges.map((e) => ({ id: e.id, source: e.from, target: e.to, type: e.type })));
-  }, [edges]);
+    setRfEdges(buildRfEdges(edges, highlightedEdgeIds));
+  }, [edges, highlightedEdgeIds]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -220,21 +226,9 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         if (change.type === 'remove') {
           removeNode(change.id);
         }
-        // Sync selection to Zustand for the side panel
-        if (change.type === 'select') {
-          if (change.selected) {
-            selectNode(change.id);
-          } else {
-            // Only clear if this was the selected node
-            const current = useGraphStore.getState().selectedNodeId;
-            if (current === change.id) {
-              selectNode(undefined);
-            }
-          }
-        }
       }
     },
-    [moveNode, removeNode, selectNode, edges],
+    [moveNode, removeNode, edges],
   );
 
   const onEdgesChange = useCallback(
@@ -259,20 +253,38 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     [addEdge, edgeMode],
   );
 
+  const onSelectionChange = useCallback(
+    ({ nodes: selectedNodes, edges: selectedEdges }: { nodes: Node[]; edges: Edge[] }) => {
+      const nodeIds = selectedNodes.map((n) => n.id);
+      const edgeIds = selectedEdges.map((e) => e.id);
+
+      // Update selection state
+      if (nodeIds.length > 0) {
+        selectNodes(nodeIds);
+      } else if (edgeIds.length > 0) {
+        selectEdges(edgeIds);
+      } else {
+        selectNodes([]);
+        selectEdges([]);
+      }
+    },
+    [selectNodes, selectEdges],
+  );
+
   const onPaneClick = useCallback(() => {
-    selectNode(undefined);
-    selectEdge(undefined);
+    selectNodes([]);
+    selectEdges([]);
     setEdgeClickPos(undefined);
-  }, [selectNode, selectEdge]);
+  }, [selectNodes, selectEdges]);
 
   const [edgeClickPos, setEdgeClickPos] = useState<{ x: number; y: number } | undefined>(undefined);
 
   const onEdgeClick = useCallback(
     (event: React.MouseEvent, edge: Edge) => {
       setEdgeClickPos({ x: event.clientX, y: event.clientY });
-      selectEdge(edge.id);
+      selectEdges([edge.id]);
     },
-    [selectEdge],
+    [selectEdges],
   );
 
   const onConnectEnd = useCallback(
@@ -342,11 +354,14 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         onConnectEnd={onConnectEnd}
         onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
+        onSelectionChange={onSelectionChange}
         fitView
         snapToGrid
         snapGrid={[20, 20]}
         colorMode="dark"
         deleteKeyCode="Delete"
+        multiSelectionKeyCode="Shift"
+        selectionMode="partial"
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />

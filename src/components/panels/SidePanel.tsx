@@ -18,11 +18,11 @@ const STATUS_DOT: Record<DerivedStatus, string> = {
 export function SidePanel() {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
+  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
   const {
     toggleNodeComplete,
     removeNode,
-    selectNode,
+    selectNodes,
     updateNode,
     addTagToNode,
     removeTagFromNode,
@@ -30,7 +30,12 @@ export function SidePanel() {
 
   const [newTag, setNewTag] = useState('');
 
-  const node = useMemo(() => nodes.find((n) => n.id === selectedNodeId), [nodes, selectedNodeId]);
+  const selectedNodes = useMemo(
+    () => nodes.filter((n) => selectedNodeIds.includes(n.id)),
+    [nodes, selectedNodeIds],
+  );
+  // TODO: Single node detail view - could enhance to show common fields for multi-selection
+  const node = selectedNodes.length === 1 ? selectedNodes[0] : undefined;
 
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
@@ -52,6 +57,68 @@ export function SidePanel() {
     return map;
   }, [nodes]);
 
+  // Multi-selection view
+  if (selectedNodes.length > 1) {
+    const allComplete = selectedNodes.every((n) => n.complete);
+
+    return (
+      <div className="w-72 bg-gray-800 border-l border-gray-700 flex flex-col overflow-y-auto">
+        <div className="p-4 border-b border-gray-700">
+          <div className="text-lg font-semibold text-white mb-4">
+            {selectedNodes.length} nodes selected
+          </div>
+
+          <button
+            onClick={() => {
+              selectedNodeIds.forEach((id) => {
+                const n = nodes.find((node) => node.id === id);
+                if (n && n.complete === allComplete) {
+                  toggleNodeComplete(id);
+                }
+              });
+            }}
+            className={`w-full text-sm py-2 rounded font-medium mb-2 ${
+              allComplete
+                ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                : 'bg-green-600 text-white hover:bg-green-500'
+            }`}
+          >
+            {allComplete ? 'Mark All Incomplete' : 'Mark All Complete'}
+          </button>
+
+          <button
+            onClick={() => {
+              const confirmed = window.confirm(`Delete ${selectedNodes.length} selected nodes?`);
+              if (confirmed) {
+                selectedNodeIds.forEach((id) => removeNode(id));
+                selectNodes([]);
+              }
+            }}
+            className="w-full text-sm py-2 rounded font-medium bg-red-600 text-white hover:bg-red-500"
+          >
+            Delete All
+          </button>
+        </div>
+
+        <div className="p-4">
+          <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Selected Nodes</div>
+          <ul className="space-y-1">
+            {selectedNodes.map((n) => (
+              <li
+                key={n.id}
+                className="text-sm text-gray-200 px-2 py-1 bg-gray-700/50 rounded flex items-center justify-between"
+              >
+                <span className="truncate">{n.title}</span>
+                {n.complete && <span className="text-green-400 text-xs ml-2">✓</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  // Single node view
   if (!node) return null;
 
   const status = statuses.get(node.id) ?? 'available';
@@ -258,21 +325,21 @@ export function SidePanel() {
         ids={prereqIds}
         nodeMap={nodeMap}
         statuses={statuses}
-        onSelect={selectNode}
+        onSelect={(id) => selectNodes([id])}
       />
       <NodeList
         title="Dependents"
         ids={dependentIds}
         nodeMap={nodeMap}
         statuses={statuses}
-        onSelect={selectNode}
+        onSelect={(id) => selectNodes([id])}
       />
       <NodeList
         title="Improvements"
         ids={improvementIds}
         nodeMap={nodeMap}
         statuses={statuses}
-        onSelect={selectNode}
+        onSelect={(id) => selectNodes([id])}
       />
     </div>
   );

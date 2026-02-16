@@ -24,8 +24,8 @@ export interface AddNodeParams {
 interface GraphState {
   nodes: GraphNode[];
   edges: GraphEdge[];
-  selectedNodeId: string | undefined;
-  selectedEdgeId: string | undefined;
+  selectedNodeIds: string[];
+  selectedEdgeIds: string[];
 
   addNode: (params: AddNodeParams) => string;
   updateNode: (id: string, updates: Partial<Omit<GraphNode, 'id'>>) => void;
@@ -38,8 +38,8 @@ interface GraphState {
   removeEdge: (id: string) => void;
   reverseEdge: (id: string) => void;
   setEdgeType: (id: string, type: EdgeType) => void;
-  selectNode: (id: string | undefined) => void;
-  selectEdge: (id: string | undefined) => void;
+  selectNodes: (ids: string[]) => void;
+  selectEdges: (ids: string[]) => void;
   loadGraph: (data: GraphData) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
   clearGraph: () => void;
@@ -50,8 +50,8 @@ export const useGraphStore = create<GraphState>()(
     (set) => ({
       nodes: [],
       edges: [],
-      selectedNodeId: undefined,
-      selectedEdgeId: undefined,
+      selectedNodeIds: [],
+      selectedEdgeIds: [],
 
       addNode: (params) => {
         const id = generateId();
@@ -81,7 +81,7 @@ export const useGraphStore = create<GraphState>()(
         set((state) => ({
           nodes: state.nodes.filter((n) => n.id !== id),
           edges: state.edges.filter((e) => e.from !== id && e.to !== id),
-          selectedNodeId: state.selectedNodeId === id ? undefined : state.selectedNodeId,
+          selectedNodeIds: state.selectedNodeIds.filter((nid) => nid !== id),
         }));
       },
 
@@ -145,20 +145,20 @@ export const useGraphStore = create<GraphState>()(
         }));
       },
 
-      selectNode: (id) => {
-        set({ selectedNodeId: id, selectedEdgeId: undefined });
+      selectNodes: (ids) => {
+        set({ selectedNodeIds: ids, selectedEdgeIds: [] });
       },
 
-      selectEdge: (id) => {
-        set({ selectedEdgeId: id, selectedNodeId: undefined });
+      selectEdges: (ids) => {
+        set({ selectedEdgeIds: ids, selectedNodeIds: [] });
       },
 
       loadGraph: (data) => {
         set({
           nodes: data.nodes,
           edges: data.edges,
-          selectedNodeId: undefined,
-          selectedEdgeId: undefined,
+          selectedNodeIds: [],
+          selectedEdgeIds: [],
         });
       },
 
@@ -174,7 +174,7 @@ export const useGraphStore = create<GraphState>()(
       },
 
       clearGraph: () => {
-        set({ nodes: [], edges: [], selectedNodeId: undefined, selectedEdgeId: undefined });
+        set({ nodes: [], edges: [], selectedNodeIds: [], selectedEdgeIds: [] });
       },
     }),
     {

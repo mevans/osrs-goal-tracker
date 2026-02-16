@@ -9,7 +9,7 @@ import type { EdgeType } from '../engine/types';
 
 export function EditorPage() {
   const [edgeMode] = useState<EdgeType>('requires');
-  const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
+  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
 
   return (
     <ReactFlowProvider>
@@ -21,7 +21,7 @@ export function EditorPage() {
             <GraphEditor edgeMode={edgeMode} />
           </div>
 
-          {selectedNodeId !== undefined ? <SidePanel /> : <PlanningDrawer />}
+          {selectedNodeIds.length > 0 ? <SidePanel /> : <PlanningDrawer />}
         </div>
       </div>
     </ReactFlowProvider>

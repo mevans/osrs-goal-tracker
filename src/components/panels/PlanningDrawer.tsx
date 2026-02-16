@@ -16,7 +16,7 @@ export function PlanningDrawer() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const selectNode = useGraphStore.getState().selectNode;
+  const selectNodes = useGraphStore.getState().selectNodes;
 
   const available = useMemo(() => getAvailableNodes(nodes, edges), [nodes, edges]);
   const blocked = useMemo(() => getBlockedNodes(nodes, edges), [nodes, edges]);
@@ -111,16 +111,25 @@ export function PlanningDrawer() {
               type: n.type,
               skillData: n.skillData,
             }))}
-            onSelect={selectNode}
+            onSelect={(id) => selectNodes([id])}
           />
         )}
 
         {activeTab === 'blocked' && (
-          <BlockedList nodes={blocked} edges={edges} nodeMap={nodeMap} onSelect={selectNode} />
+          <BlockedList
+            nodes={blocked}
+            edges={edges}
+            nodeMap={nodeMap}
+            onSelect={(id) => selectNodes([id])}
+          />
         )}
 
         {activeTab === 'bottlenecks' && (
-          <BottleneckList entries={bottlenecks} nodeMap={nodeMap} onSelect={selectNode} />
+          <BottleneckList
+            entries={bottlenecks}
+            nodeMap={nodeMap}
+            onSelect={(id) => selectNodes(id ? [id] : [])}
+          />
         )}
       </div>
     </div>

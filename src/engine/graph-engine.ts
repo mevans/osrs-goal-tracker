@@ -17,6 +17,65 @@ export function getImprovements(nodeId: string, edges: GraphEdge[]): string[] {
     .map((e) => (e.from === nodeId ? e.to : e.from));
 }
 
+/** Get all nodes connected via "improves" edges transitively (entire improvement network). */
+export function getAllImprovements(nodeId: string, edges: GraphEdge[]): Set<string> {
+  const visited = new Set<string>();
+  const queue = [nodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const improvements = getImprovements(current, edges);
+    for (const imp of improvements) {
+      if (!visited.has(imp)) {
+        queue.push(imp);
+      }
+    }
+  }
+
+  // Remove the starting node itself
+  visited.delete(nodeId);
+  return visited;
+}
+
+/**
+ * Get all nodes connected to the given node(s) via any edge type in any direction.
+ * @param nodeIds - Starting node IDs
+ * @param edges - All edges in the graph
+ * @param maxDepth - Maximum depth to traverse (default: 3 levels)
+ */
+export function getAllConnectedNodes(
+  nodeIds: string[],
+  edges: GraphEdge[],
+  maxDepth: number = 3,
+): Set<string> {
+  const visited = new Set<string>();
+  const queue: Array<{ id: string; depth: number }> = nodeIds.map((id) => ({ id, depth: 0 }));
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (visited.has(current.id)) continue;
+    visited.add(current.id);
+
+    // Stop traversing if we've reached max depth
+    if (current.depth >= maxDepth) continue;
+
+    // Find all edges connected to this node (in either direction, any type)
+    const connectedEdges = edges.filter((e) => e.from === current.id || e.to === current.id);
+
+    for (const edge of connectedEdges) {
+      const connectedNode = edge.from === current.id ? edge.to : edge.from;
+      if (!visited.has(connectedNode)) {
+        queue.push({ id: connectedNode, depth: current.depth + 1 });
+      }
+    }
+  }
+
+  return visited;
+}
+
 /** Get all prerequisite IDs transitively (entire prerequisite tree). */
 export function getAllPrerequisites(nodeId: string, edges: GraphEdge[]): Set<string> {
   const visited = new Set<string>();
