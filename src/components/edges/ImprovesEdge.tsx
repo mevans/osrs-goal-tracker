@@ -1,28 +1,27 @@
-import { SmoothStepEdge, type EdgeProps, type Edge } from '@xyflow/react';
-import { EdgeActionsLabel } from './EdgeActions';
+import { BaseEdge, getSmoothStepPath, type EdgeProps, type Edge } from '@xyflow/react';
 
 export function ImprovesEdge(props: EdgeProps<Edge>) {
+  const [edgePath] = getSmoothStepPath({
+    sourceX: props.sourceX,
+    sourceY: props.sourceY,
+    targetX: props.targetX,
+    targetY: props.targetY,
+    sourcePosition: props.sourcePosition,
+    targetPosition: props.targetPosition,
+    borderRadius: 16,
+  });
+
   return (
-    <>
-      <SmoothStepEdge
-        {...props}
-        style={{
-          stroke: '#a78bfa',
-          strokeWidth: 2,
-          strokeDasharray: '6 3',
-        }}
-        markerEnd="url(#improves-arrow)"
-      />
-      <EdgeActionsLabel
-        id={props.id}
-        sourceX={props.sourceX}
-        sourceY={props.sourceY}
-        targetX={props.targetX}
-        targetY={props.targetY}
-        sourcePosition={props.sourcePosition}
-        targetPosition={props.targetPosition}
-      />
-    </>
+    <BaseEdge
+      path={edgePath}
+      markerEnd="url(#improves-arrow)"
+      style={{
+        stroke: '#a78bfa',
+        strokeWidth: 2,
+        strokeDasharray: '6 3',
+      }}
+      interactionWidth={20}
+    />
   );
 }
 

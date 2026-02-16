@@ -26,7 +26,7 @@ const SKILL_SUGGESTIONS: Partial<Record<SkillName, QuickAddSuggestion[]>> = {
     },
     {
       title: 'Unlock Gilded Altar',
-      type: 'unlock',
+      type: 'task',
       edgeType: 'improves',
       skillData: undefined,
       quantity: undefined,
@@ -62,7 +62,7 @@ const SKILL_SUGGESTIONS: Partial<Record<SkillName, QuickAddSuggestion[]>> = {
     },
     {
       title: 'Unlock Hosidius Kitchen',
-      type: 'unlock',
+      type: 'task',
       edgeType: 'improves',
       skillData: undefined,
       quantity: undefined,
@@ -222,7 +222,7 @@ const QUEST_SUGGESTIONS: Record<string, QuickAddSuggestion[]> = {
   'recipe for disaster': [
     {
       title: '175 Quest Points',
-      type: 'unlock',
+      type: 'task',
       edgeType: 'requires',
       skillData: undefined,
       quantity: undefined,
@@ -240,7 +240,7 @@ const QUEST_SUGGESTIONS: Record<string, QuickAddSuggestion[]> = {
   'dragon slayer i': [
     {
       title: '32 Quest Points',
-      type: 'unlock',
+      type: 'task',
       edgeType: 'requires',
       skillData: undefined,
       quantity: undefined,

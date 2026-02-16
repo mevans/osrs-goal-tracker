@@ -20,7 +20,7 @@ export const barrowsGlovesTemplate: TemplateDefinition = {
     },
     {
       key: '175-qp',
-      type: 'unlock',
+      type: 'task',
       title: '175 Quest Points',
       requirement: 'hard',
       rationale: 'Hard gate — cannot fight the Culinaromancer without 175 QP.',

@@ -17,6 +17,52 @@ export function getImprovements(nodeId: string, edges: GraphEdge[]): string[] {
     .map((e) => (e.from === nodeId ? e.to : e.from));
 }
 
+/** Get all prerequisite IDs transitively (entire prerequisite tree). */
+export function getAllPrerequisites(nodeId: string, edges: GraphEdge[]): Set<string> {
+  const visited = new Set<string>();
+  const queue = [nodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const prereqs = getRequiredPrerequisites(current, edges);
+    for (const prereq of prereqs) {
+      if (!visited.has(prereq)) {
+        queue.push(prereq);
+      }
+    }
+  }
+
+  // Remove the starting node itself
+  visited.delete(nodeId);
+  return visited;
+}
+
+/** Get all dependent IDs transitively (entire dependent tree). */
+export function getAllDependents(nodeId: string, edges: GraphEdge[]): Set<string> {
+  const visited = new Set<string>();
+  const queue = [nodeId];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const deps = getDependents(current, edges);
+    for (const dep of deps) {
+      if (!visited.has(dep)) {
+        queue.push(dep);
+      }
+    }
+  }
+
+  // Remove the starting node itself
+  visited.delete(nodeId);
+  return visited;
+}
+
 /** Compute derived status for every node. */
 export function computeAllStatuses(
   nodes: GraphNode[],

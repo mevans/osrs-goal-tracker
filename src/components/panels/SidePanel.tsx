@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useGraphStore } from '../../store/graph-store';
 import {
   getRequiredPrerequisites,
@@ -19,7 +19,16 @@ export function SidePanel() {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
   const selectedNodeId = useGraphStore((s) => s.selectedNodeId);
-  const { toggleNodeComplete, removeNode, selectNode, updateNode } = useGraphStore.getState();
+  const {
+    toggleNodeComplete,
+    removeNode,
+    selectNode,
+    updateNode,
+    addTagToNode,
+    removeTagFromNode,
+  } = useGraphStore.getState();
+
+  const [newTag, setNewTag] = useState('');
 
   const node = useMemo(() => nodes.find((n) => n.id === selectedNodeId), [nodes, selectedNodeId]);
 
@@ -115,7 +124,7 @@ export function SidePanel() {
         </div>
       )}
 
-      {(node.type === 'goal' || node.type === 'unlock') && (
+      {(node.type === 'goal' || node.type === 'task') && (
         <div className="p-4 border-b border-gray-700">
           <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Quantity</div>
           {node.quantity ? (
@@ -193,6 +202,55 @@ export function SidePanel() {
           placeholder="Add notes..."
           onChange={(e) => updateNode(node.id, { notes: e.target.value || undefined })}
         />
+      </div>
+
+      <div className="p-4 border-b border-gray-700">
+        <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Tags</div>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {node.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 bg-blue-600/30 text-blue-300 text-xs px-2 py-0.5 rounded border border-blue-500/30"
+            >
+              {tag}
+              <button
+                onClick={() => removeTagFromNode(node.id, tag)}
+                className="hover:text-blue-100"
+                title="Remove tag"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          {node.tags.length === 0 && <span className="text-xs text-gray-500">No tags</span>}
+        </div>
+        <div className="flex gap-1.5">
+          <input
+            type="text"
+            className="flex-1 bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newTag.trim()) {
+                addTagToNode(node.id, newTag.trim());
+                setNewTag('');
+              }
+            }}
+            placeholder="Add tag..."
+          />
+          <button
+            onClick={() => {
+              if (newTag.trim()) {
+                addTagToNode(node.id, newTag.trim());
+                setNewTag('');
+              }
+            }}
+            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!newTag.trim()}
+          >
+            Add
+          </button>
+        </div>
       </div>
 
       <NodeList

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { OSRS_SKILLS } from '../../engine/types';
+import { ALL_QUESTS } from '../../engine/quest-db';
 import type { NodeType, SkillName, Quantity } from '../../engine/types';
 import { SkillIcon } from '../SkillIcon';
 
@@ -7,7 +8,7 @@ const NODE_TYPES: { value: NodeType; label: string }[] = [
   { value: 'goal', label: 'Goal' },
   { value: 'quest', label: 'Quest' },
   { value: 'skill', label: 'Skill Target' },
-  { value: 'unlock', label: 'Unlock' },
+  { value: 'task', label: 'Task' },
 ];
 
 export interface AddNodeResult {
@@ -31,23 +32,40 @@ export function AddNodeDialog({ onSubmit, onClose }: AddNodeDialogProps) {
   const [skillName, setSkillName] = useState<SkillName>(OSRS_SKILLS[0]);
   const [targetLevel, setTargetLevel] = useState('');
   const [boost, setBoost] = useState('');
-  const [questId, setQuestId] = useState('');
+  const [questId, setQuestId] = useState(ALL_QUESTS[0]?.id ?? '');
   const [quantityTarget, setQuantityTarget] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+
+    // For skill/quest, title is derived from data, not user input
+    // For goal/task, title is required
+    if ((type === 'goal' || type === 'task') && !title.trim()) return;
+    if (type === 'skill' && !targetLevel) return;
+    if (type === 'quest' && !questId) return;
+
+    // Generate title for skill/quest nodes
+    let finalTitle = title.trim();
+    if (type === 'skill') {
+      const level = Number(targetLevel) || 1;
+      const boostVal = Number(boost) || 0;
+      finalTitle =
+        boostVal > 0 ? `${level - boostVal}+${boostVal} ${skillName}` : `${level} ${skillName}`;
+    } else if (type === 'quest') {
+      const quest = ALL_QUESTS.find((q) => q.id === questId);
+      finalTitle = quest?.name ?? questId;
+    }
 
     const qTarget = Number(quantityTarget);
     onSubmit({
       type,
-      title: title.trim(),
+      title: finalTitle,
       notes: notes.trim() || undefined,
       skillData:
         type === 'skill'
           ? { skillName, targetLevel: Number(targetLevel) || 1, boost: Number(boost) || undefined }
           : undefined,
-      questData: type === 'quest' && questId.trim() ? { questId: questId.trim() } : undefined,
+      questData: type === 'quest' && questId ? { questId } : undefined,
       quantity: qTarget > 0 ? { target: qTarget, current: 0 } : undefined,
     });
   };
@@ -80,16 +98,36 @@ export function AddNodeDialog({ onSubmit, onClose }: AddNodeDialogProps) {
           </div>
         </div>
 
-        <div className="mb-3">
-          <label className="block text-xs uppercase text-gray-400 mb-1">Title</label>
-          <input
-            autoFocus
-            className="w-full bg-gray-700 text-white rounded px-2 py-1.5 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Dragon Slayer II"
-          />
-        </div>
+        {(type === 'goal' || type === 'task') && (
+          <div className="mb-3">
+            <label className="block text-xs uppercase text-gray-400 mb-1">Title</label>
+            <input
+              autoFocus
+              className="w-full bg-gray-700 text-white rounded px-2 py-1.5 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={type === 'goal' ? 'e.g. Fire Cape' : 'e.g. Unlock Piety'}
+            />
+          </div>
+        )}
+
+        {type === 'quest' && (
+          <div className="mb-3">
+            <label className="block text-xs uppercase text-gray-400 mb-1">Quest</label>
+            <select
+              autoFocus
+              className="w-full bg-gray-700 text-white rounded px-2 py-1.5 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+              value={questId}
+              onChange={(e) => setQuestId(e.target.value)}
+            >
+              {ALL_QUESTS.map((quest) => (
+                <option key={quest.id} value={quest.id}>
+                  {quest.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {type === 'skill' && (
           <div className="flex gap-2 mb-3">
@@ -137,19 +175,7 @@ export function AddNodeDialog({ onSubmit, onClose }: AddNodeDialogProps) {
           </div>
         )}
 
-        {type === 'quest' && (
-          <div className="mb-3">
-            <label className="block text-xs uppercase text-gray-400 mb-1">Quest ID</label>
-            <input
-              className="w-full bg-gray-700 text-white rounded px-2 py-1.5 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
-              value={questId}
-              onChange={(e) => setQuestId(e.target.value)}
-              placeholder="Optional identifier"
-            />
-          </div>
-        )}
-
-        {(type === 'goal' || type === 'unlock') && (
+        {(type === 'goal' || type === 'task') && (
           <div className="mb-3">
             <label className="block text-xs uppercase text-gray-400 mb-1">Quantity Target</label>
             <input
@@ -184,7 +210,13 @@ export function AddNodeDialog({ onSubmit, onClose }: AddNodeDialogProps) {
           </button>
           <button
             type="submit"
-            disabled={!title.trim()}
+            disabled={
+              (type === 'goal' || type === 'task') && !title.trim()
+                ? true
+                : type === 'skill' && !targetLevel
+                  ? true
+                  : false
+            }
             className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-500 rounded disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Add Node

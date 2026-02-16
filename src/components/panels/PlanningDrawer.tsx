@@ -13,6 +13,7 @@ type Tab = 'available' | 'blocked' | 'bottlenecks';
 
 export function PlanningDrawer() {
   const [activeTab, setActiveTab] = useState<Tab>('available');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
   const selectNode = useGraphStore.getState().selectNode;
@@ -20,6 +21,23 @@ export function PlanningDrawer() {
   const available = useMemo(() => getAvailableNodes(nodes, edges), [nodes, edges]);
   const blocked = useMemo(() => getBlockedNodes(nodes, edges), [nodes, edges]);
   const bottlenecks = useMemo(() => computeBottlenecks(nodes, edges, 10), [nodes, edges]);
+
+  // Collect all unique tags from available nodes
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    for (const node of available) {
+      for (const tag of node.tags) {
+        tags.add(tag);
+      }
+    }
+    return Array.from(tags).sort();
+  }, [available]);
+
+  // Filter available nodes by selected tag
+  const filteredAvailable = useMemo(() => {
+    if (!selectedTag) return available;
+    return available.filter((n) => n.tags.includes(selectedTag));
+  }, [available, selectedTag]);
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -54,10 +72,40 @@ export function PlanningDrawer() {
         ))}
       </div>
 
+      {activeTab === 'available' && availableTags.length > 0 && (
+        <div className="border-b border-gray-700 p-2">
+          <div className="flex flex-wrap gap-1">
+            <button
+              onClick={() => setSelectedTag(null)}
+              className={`text-[10px] px-2 py-1 rounded transition-colors ${
+                selectedTag === null
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              All
+            </button>
+            {availableTags.map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag)}
+                className={`text-[10px] px-2 py-1 rounded transition-colors ${
+                  selectedTag === tag
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-3">
         {activeTab === 'available' && (
           <NodeItemList
-            items={available.map((n) => ({
+            items={filteredAvailable.map((n) => ({
               id: n.id,
               title: n.title,
               type: n.type,

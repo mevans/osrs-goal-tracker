@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useStore } from 'zustand';
+import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
 import { useViewportCenter } from '../GraphEditor';
 import { AddNodeDialog, type AddNodeResult } from './AddNodeDialog';
@@ -8,12 +10,52 @@ import { expandTemplate } from '../../templates/expand';
 import { applyLayout } from '../../engine/layout';
 import type { TemplateDefinition, SoftDecision } from '../../templates/types';
 
+const UndoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 7v6h6" />
+    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+  </svg>
+);
+
+const RedoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 7v6h-6" />
+    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+  </svg>
+);
+
 export function Toolbar() {
   const [showAddNode, setShowAddNode] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showTemplate, setShowTemplate] = useState(false);
   const addNode = useGraphStore.getState().addNode;
   const getCenter = useViewportCenter();
+  const { fitView } = useReactFlow();
+
+  // Undo/redo state
+  const { undo, redo } = useGraphStore.temporal.getState();
+  const canUndo = useStore(useGraphStore.temporal, (state) => state.pastStates.length > 0);
+  const canRedo = useStore(useGraphStore.temporal, (state) => state.futureStates.length > 0);
 
   const handleAddNode = (result: AddNodeResult) => {
     const position = getCenter();
@@ -46,6 +88,11 @@ export function Toolbar() {
     }
 
     setShowTemplate(false);
+
+    // Fit view after template expansion with a small delay to ensure rendering
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 50);
   };
 
   const handleTidyLayout = () => {
@@ -53,6 +100,11 @@ export function Toolbar() {
     if (nodes.length === 0) return;
     const laidOut = applyLayout(nodes, edges);
     useGraphStore.setState({ nodes: laidOut });
+
+    // Fit view after layout with a small delay to ensure rendering
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 50);
   };
 
   return (
@@ -79,6 +131,26 @@ export function Toolbar() {
           className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
         >
           Tidy Layout
+        </button>
+
+        <div className="h-6 w-px bg-gray-600" />
+
+        <button
+          onClick={() => undo()}
+          disabled={!canUndo}
+          title="Undo (Ctrl+Z)"
+          className="p-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+        >
+          <UndoIcon />
+        </button>
+
+        <button
+          onClick={() => redo()}
+          disabled={!canRedo}
+          title="Redo (Ctrl+Shift+Z)"
+          className="p-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+        >
+          <RedoIcon />
         </button>
 
         <div className="flex-1" />

@@ -52,7 +52,7 @@ export const fireCapeTemplate: TemplateDefinition = {
     },
     {
       key: 'blowpipe',
-      type: 'unlock',
+      type: 'task',
       title: 'Toxic Blowpipe',
       requirement: 'soft',
       rationale: 'Dramatically speeds up the caves and simplifies healers on Jad.',
@@ -83,7 +83,7 @@ export const fireCapeTemplate: TemplateDefinition = {
     },
     {
       key: 'avas',
-      type: 'unlock',
+      type: 'task',
       title: "Ava's Accumulator",
       requirement: 'soft',
       rationale: 'Saves significant ammo over a long Fight Caves run.',

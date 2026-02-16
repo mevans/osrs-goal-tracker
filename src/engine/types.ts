@@ -1,4 +1,4 @@
-export type NodeType = 'goal' | 'quest' | 'skill' | 'unlock';
+export type NodeType = 'goal' | 'quest' | 'skill' | 'task';
 export type EdgeType = 'requires' | 'improves';
 export type DerivedStatus = 'complete' | 'available' | 'blocked';
 
@@ -55,6 +55,7 @@ export interface GraphNode {
   skillData: SkillData | undefined;
   questData: QuestData | undefined;
   quantity: Quantity | undefined;
+  tags: string[];
 }
 
 export interface GraphEdge {

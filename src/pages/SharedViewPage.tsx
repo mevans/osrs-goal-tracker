@@ -93,7 +93,9 @@ function SharedView({ data }: { data: GraphData }) {
               : `${n.skillData.skillName} ${n.skillData.targetLevel}`
             : undefined,
           skillData: n.skillData,
+          questData: n.questData,
           quantity: n.quantity,
+          tags: n.tags,
         },
       })),
     [data.nodes, statuses],

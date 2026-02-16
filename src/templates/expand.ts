@@ -73,6 +73,7 @@ export function expandTemplate(
         skillData: finalNode.skillData,
         questData: finalNode.questData,
         quantity: undefined,
+        tags: [],
       });
     }
   }
