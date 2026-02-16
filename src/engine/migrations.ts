@@ -20,9 +20,9 @@ const migrations: Record<number, Migration> = {
   0: (data) => {
     return {
       ...data,
-      nodes: data.nodes.map((n) => ({
+      nodes: data.nodes.map((n: any) => ({
         ...n,
-        tags: (n as any).tags ?? [],
+        tags: n.tags ?? [],
       })),
     };
   },
