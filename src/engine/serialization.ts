@@ -108,8 +108,9 @@ export async function buildShareUrl(data: GraphData): Promise<string> {
   const envelope: StorageEnvelope = { version: CURRENT_VERSION, data };
   const json = JSON.stringify(envelope);
   const compressed = await compressString(json);
-  const url = new URL('/shared', window.location.origin);
-  url.searchParams.set('g', compressed);
+  const base = window.location.origin + import.meta.env.BASE_URL;
+  const url = new URL(base);
+  url.hash = '/shared?g=' + compressed;
   return url.toString();
 }
 
