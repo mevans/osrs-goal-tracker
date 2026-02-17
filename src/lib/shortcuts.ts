@@ -1,4 +1,4 @@
-const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
+const isMac = typeof navigator !== 'undefined' && /macintosh|mac os x/i.test(navigator.userAgent);
 
 export const MOD = isMac ? '⌘' : 'Ctrl';
 export const SHIFT = isMac ? '⇧' : 'Shift';

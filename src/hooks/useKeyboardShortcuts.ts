@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { GraphNode } from '../engine/types';
 import { useUIStore } from '../store/ui-store';
 
@@ -13,28 +13,19 @@ interface ShortcutOptions {
   toggleNodesComplete: (ids: string[]) => void;
   duplicateNodes: (ids: string[]) => void;
   copySelection: () => void;
-  pasteClipboard: (offset: { x: number; y: number }) => void;
+  pasteClipboard: () => void;
   fitView: (opts: { padding: number; duration: number }) => void;
   undo: () => void;
   redo: () => void;
 }
 
-export function useKeyboardShortcuts({
-  selectedNodeIds,
-  nodes,
-  editingNodeId,
-  setEditingNodeId,
-  setShowHelp,
-  selectNodes,
-  selectEdges,
-  toggleNodesComplete,
-  duplicateNodes,
-  copySelection,
-  pasteClipboard,
-  fitView,
-  undo,
-  redo,
-}: ShortcutOptions) {
+export function useKeyboardShortcuts(options: ShortcutOptions) {
+  // Keep a ref to the latest options so the stable listener always uses current values
+  const optionsRef = useRef(options);
+  useEffect(() => {
+    optionsRef.current = options;
+  });
+
   // Alt key hold — reveal shortcut hints throughout the UI
   useEffect(() => {
     const { setShowShortcutHints } = useUIStore.getState();
@@ -55,8 +46,26 @@ export function useKeyboardShortcuts({
     };
   }, []);
 
+  // Main shortcut listener — attached once, reads latest values via ref
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
+      const {
+        selectedNodeIds,
+        nodes,
+        editingNodeId,
+        setEditingNodeId,
+        setShowHelp,
+        selectNodes,
+        selectEdges,
+        toggleNodesComplete,
+        duplicateNodes,
+        copySelection,
+        pasteClipboard,
+        fitView,
+        undo,
+        redo,
+      } = optionsRef.current;
+
       const target = e.target as HTMLElement;
       const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
 
@@ -129,7 +138,7 @@ export function useKeyboardShortcuts({
         // Ctrl/Cmd+V — paste
         if (key === 'v') {
           e.preventDefault();
-          pasteClipboard({ x: 40, y: 40 });
+          pasteClipboard();
           return;
         }
         // Ctrl/Cmd+Z — undo / redo
@@ -150,20 +159,5 @@ export function useKeyboardShortcuts({
 
     window.addEventListener('keydown', handle);
     return () => window.removeEventListener('keydown', handle);
-  }, [
-    selectedNodeIds,
-    nodes,
-    editingNodeId,
-    setEditingNodeId,
-    setShowHelp,
-    selectNodes,
-    selectEdges,
-    toggleNodesComplete,
-    duplicateNodes,
-    copySelection,
-    pasteClipboard,
-    fitView,
-    undo,
-    redo,
-  ]);
+  }, []); // Empty dep array — listener attaches once, stays stable
 }

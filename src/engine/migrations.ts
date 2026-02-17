@@ -6,10 +6,11 @@ import type { GraphData } from './types';
 export const CURRENT_VERSION = 1;
 
 /**
- * Migration function type: takes data at version N, returns data at version N+1.
+ * Raw data shape from unknown (possibly old) saves. Typed as a loose record
+ * rather than `any` so property access still requires explicit handling.
  */
-type OldGraphData = any; // Use 'any' for old data shape since it may differ from current GraphData
-type Migration = (data: OldGraphData) => GraphData;
+type RawData = Record<string, unknown>;
+type Migration = (data: RawData) => RawData;
 
 /**
  * Migration registry. Each key is the version BEFORE the migration.
@@ -17,22 +18,20 @@ type Migration = (data: OldGraphData) => GraphData;
  */
 const migrations: Record<number, Migration> = {
   // v0 → v1: Add tags field to nodes (legacy data from before versioning)
-  0: (data) => {
-    return {
-      ...data,
-      nodes: data.nodes.map((n: any) => ({
-        ...n,
-        tags: n.tags ?? [],
-      })),
-    };
-  },
+  0: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({
+      ...n,
+      tags: Array.isArray(n['tags']) ? n['tags'] : [],
+    })),
+  }),
 };
 
 /**
  * Run all migrations from `fromVersion` to `CURRENT_VERSION`.
  * Returns migrated data or undefined if migration fails.
  */
-export function runMigrations(data: OldGraphData, fromVersion: number): GraphData | undefined {
+export function runMigrations(data: unknown, fromVersion: number): GraphData | undefined {
   if (fromVersion > CURRENT_VERSION) {
     // Future version — can't migrate backwards
     console.warn(
@@ -43,11 +42,11 @@ export function runMigrations(data: OldGraphData, fromVersion: number): GraphDat
 
   if (fromVersion === CURRENT_VERSION) {
     // Already current
-    return data;
+    return data as GraphData;
   }
 
-  // Run migrations sequentially: v1→v2→v3→...→current
-  let migrated = data;
+  // Run migrations sequentially: v0→v1→v2→...→current
+  let migrated: RawData = data as RawData;
   for (let v = fromVersion; v < CURRENT_VERSION; v++) {
     const migration = migrations[v];
     if (!migration) {
@@ -62,5 +61,5 @@ export function runMigrations(data: OldGraphData, fromVersion: number): GraphDat
     }
   }
 
-  return migrated;
+  return migrated as unknown as GraphData;
 }

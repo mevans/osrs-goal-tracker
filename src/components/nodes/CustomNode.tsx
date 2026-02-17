@@ -51,7 +51,8 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
   const ringClass = selected ? 'ring-2 ring-white/50' : '';
 
   const q = data.quantity;
-  const progressPct = q ? Math.min(100, Math.round((q.current / q.target) * 100)) : 0;
+  const progressPct =
+    q && q.target > 0 ? Math.min(100, Math.round((q.current / q.target) * 100)) : 0;
   const progressColor = q
     ? q.current >= q.target
       ? PROGRESS_COLORS['full']
@@ -171,7 +172,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         <Handle
           type="target"
           position={Position.Top}
-          className="!bg-blue-400 !w-3 !h-3 !border-2 !border-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="bg-blue-400! w-3! h-3! border-2! border-gray-900! opacity-0 group-hover:opacity-100 transition-opacity"
           title="Prerequisites connect here"
         />
         <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
@@ -190,7 +191,6 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         {data.skillData ? (
           <div className="flex items-center gap-1 mt-0.5">
             <SkillIcon skill={data.skillData.skillName} size={14} />
-            <span className="text-xs text-gray-400 truncate">{data.subtitle}</span>
           </div>
         ) : data.subtitle ? (
           <div className="text-xs text-gray-400 truncate mt-0.5">{data.subtitle}</div>
@@ -230,7 +230,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         <Handle
           type="source"
           position={Position.Bottom}
-          className="!bg-purple-400 !w-3 !h-3 !border-2 !border-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="bg-purple-400! w-3! h-3! border-2! border-gray-900! opacity-0 group-hover:opacity-100 transition-opacity"
           title="Dependents connect from here"
         />
         <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">

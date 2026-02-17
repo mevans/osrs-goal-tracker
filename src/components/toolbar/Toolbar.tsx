@@ -3,7 +3,7 @@ import { useStore } from 'zustand';
 import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
-import { useViewportCenter } from '../GraphEditor';
+import { useViewportCenter } from '../../hooks/useViewportCenter';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { ShareDialog } from './ShareDialog';
 import { TemplateDialog } from './TemplateDialog';

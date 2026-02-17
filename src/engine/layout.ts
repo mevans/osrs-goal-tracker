@@ -254,7 +254,7 @@ export function computeLayeredLayout(
 
   let clusterOffsetX = origin.x;
 
-  for (const [_sinkId, clusterNodes] of clusters) {
+  for (const [, clusterNodes] of clusters) {
     if (clusterNodes.size === 0) continue;
 
     const clusterNodeList = [...clusterNodes];

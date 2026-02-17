@@ -24,7 +24,7 @@ export function loadFromLocalStorage(): GraphData | undefined {
 
     // Handle legacy data without version field
     const version = envelope.version ?? 0;
-    const rawData = envelope.data ?? (envelope as any); // Legacy: entire object was GraphData
+    const rawData: unknown = envelope.data ?? envelope; // Legacy: entire object was GraphData
 
     // Run migrations if needed
     return runMigrations(rawData, version);
@@ -120,7 +120,7 @@ export async function parseShareParam(param: string): Promise<GraphData | undefi
 
     // Handle legacy URLs without version field
     const version = envelope.version ?? 0;
-    const rawData = envelope.data ?? (envelope as any); // Legacy: entire object was GraphData
+    const rawData: unknown = envelope.data ?? envelope; // Legacy: entire object was GraphData
 
     // Run migrations if needed
     return runMigrations(rawData, version);

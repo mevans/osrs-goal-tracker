@@ -16,31 +16,29 @@ import type { GraphData } from '../engine/types';
 import { CustomNode, type CustomNodeData } from '../components/nodes/CustomNode';
 import { RequiresEdge, RequiresArrowDef } from '../components/edges/RequiresEdge';
 import { ImprovesEdge, ImprovesArrowDef } from '../components/edges/ImprovesEdge';
+import { buildRfNodes, buildRfEdges } from '../components/rfHelpers';
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
 
 export function SharedViewPage() {
   const [searchParams] = useSearchParams();
+  const param = searchParams.get('g');
   const [graphData, setGraphData] = useState<GraphData | undefined>(undefined);
-  const [error, setError] = useState(false);
+  const [parseError, setParseError] = useState(false);
 
   useEffect(() => {
-    const param = searchParams.get('g');
-    if (!param) {
-      setError(true);
-      return;
-    }
+    if (!param) return;
     parseShareParam(param).then((data) => {
       if (data) {
         setGraphData(data);
       } else {
-        setError(true);
+        setParseError(true);
       }
     });
-  }, [searchParams]);
+  }, [param]);
 
-  if (error) {
+  if (!param || parseError) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
         <div className="text-center">
@@ -76,41 +74,11 @@ function SharedView({ data }: { data: GraphData }) {
   );
 
   const rfNodes: Node<CustomNodeData>[] = useMemo(
-    () =>
-      data.nodes.map((n) => ({
-        id: n.id,
-        type: 'custom',
-        position: n.position,
-        draggable: false,
-        data: {
-          title: n.title,
-          nodeType: n.type,
-          status: statuses.get(n.id) ?? 'available',
-          complete: n.complete,
-          subtitle: n.skillData
-            ? n.skillData.boost
-              ? `${n.skillData.skillName} ${n.skillData.targetLevel - n.skillData.boost}+${n.skillData.boost}`
-              : `${n.skillData.skillName} ${n.skillData.targetLevel}`
-            : undefined,
-          skillData: n.skillData,
-          questData: n.questData,
-          quantity: n.quantity,
-          tags: n.tags,
-        },
-      })),
+    () => buildRfNodes(data.nodes, statuses, { draggable: false }),
     [data.nodes, statuses],
   );
 
-  const rfEdges: Edge[] = useMemo(
-    () =>
-      data.edges.map((e) => ({
-        id: e.id,
-        source: e.from,
-        target: e.to,
-        type: e.type,
-      })),
-    [data.edges],
-  );
+  const rfEdges: Edge[] = useMemo(() => buildRfEdges(data.edges), [data.edges]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white">
@@ -138,9 +106,9 @@ function SharedView({ data }: { data: GraphData }) {
           proOptions={{ hideAttribution: true }}
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-          <Controls className="!bg-gray-800 !border-gray-700 !shadow-lg [&>button]:!bg-gray-800 [&>button]:!border-gray-700 [&>button]:!text-gray-300 [&>button:hover]:!bg-gray-700" />
+          <Controls className="bg-gray-800! border-gray-700! shadow-lg! [&>button]:bg-gray-800! [&>button]:border-gray-700! [&>button]:text-gray-300! [&>button:hover]:bg-gray-700!" />
           <MiniMap
-            className="!bg-gray-800 !border-gray-700"
+            className="bg-gray-800! border-gray-700!"
             nodeColor="#4b5563"
             maskColor="rgba(0,0,0,0.6)"
           />

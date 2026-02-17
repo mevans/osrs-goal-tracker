@@ -44,7 +44,7 @@ interface GraphState {
   selectNodes: (ids: string[]) => void;
   selectEdges: (ids: string[]) => void;
   copySelection: () => void;
-  pasteClipboard: (offset: { x: number; y: number }) => void;
+  pasteClipboard: (center: { x: number; y: number }) => void;
   loadGraph: (data: GraphData) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
   clearGraph: () => void;
@@ -106,7 +106,19 @@ export const useGraphStore = create<GraphState>()(
 
       toggleNodeComplete: (id) => {
         set((state) => ({
-          nodes: state.nodes.map((n) => (n.id === id ? { ...n, complete: !n.complete } : n)),
+          nodes: state.nodes.map((n) => {
+            if (n.id !== id) return n;
+            const newComplete = !n.complete;
+            // When marking complete, sync quantity.current to target for consistency
+            if (newComplete && n.quantity) {
+              return {
+                ...n,
+                complete: true,
+                quantity: { ...n.quantity, current: n.quantity.target },
+              };
+            }
+            return { ...n, complete: newComplete };
+          }),
         }));
       },
 
@@ -116,9 +128,18 @@ export const useGraphStore = create<GraphState>()(
           // If all selected are complete, mark all incomplete; otherwise mark all complete
           const allComplete = ids.every((id) => state.nodes.find((n) => n.id === id)?.complete);
           return {
-            nodes: state.nodes.map((n) =>
-              idsSet.has(n.id) ? { ...n, complete: !allComplete } : n,
-            ),
+            nodes: state.nodes.map((n) => {
+              if (!idsSet.has(n.id)) return n;
+              const newComplete = !allComplete;
+              if (newComplete && n.quantity) {
+                return {
+                  ...n,
+                  complete: true,
+                  quantity: { ...n.quantity, current: n.quantity.target },
+                };
+              }
+              return { ...n, complete: newComplete };
+            }),
           };
         });
       },
@@ -230,13 +251,23 @@ export const useGraphStore = create<GraphState>()(
         }
       },
 
-      pasteClipboard: async (offset) => {
+      pasteClipboard: async (center) => {
         try {
           const clipboardText = await navigator.clipboard.readText();
           const clipboardData = JSON.parse(clipboardText) as {
             nodes: GraphNode[];
             edges: GraphEdge[];
           };
+
+          if (clipboardData.nodes.length === 0) return;
+
+          // Compute bounding center of clipboard nodes so we can center them at the target
+          const xs = clipboardData.nodes.map((n) => n.position.x);
+          const ys = clipboardData.nodes.map((n) => n.position.y);
+          const clipCenterX = (Math.min(...xs) + Math.max(...xs)) / 2;
+          const clipCenterY = (Math.min(...ys) + Math.max(...ys)) / 2;
+          const dx = center.x - clipCenterX;
+          const dy = center.y - clipCenterY;
 
           const idMap = new Map<string, string>();
           const newNodes = clipboardData.nodes.map((node) => {
@@ -245,7 +276,7 @@ export const useGraphStore = create<GraphState>()(
             return {
               ...node,
               id: newId,
-              position: { x: node.position.x + offset.x, y: node.position.y + offset.y },
+              position: { x: node.position.x + dx, y: node.position.y + dy },
               complete: false,
             };
           });

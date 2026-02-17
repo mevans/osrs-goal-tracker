@@ -40,9 +40,9 @@ export function PlanningDrawer() {
   }, [available, selectedTag]);
 
   const nodeMap = useMemo(() => {
-    const map = new Map<string, string>();
+    const map = new Map<string, { title: string; complete: boolean }>();
     for (const n of nodes) {
-      map.set(n.id, n.title);
+      map.set(n.id, { title: n.title, complete: n.complete });
     }
     return map;
   }, [nodes]);
@@ -173,7 +173,7 @@ function BlockedList({
 }: {
   nodes: { id: string; title: string; type: string }[];
   edges: { id: string; from: string; to: string; type: 'requires' | 'improves' }[];
-  nodeMap: Map<string, string>;
+  nodeMap: Map<string, { title: string; complete: boolean }>;
   onSelect: (id: string) => void;
 }) {
   if (blockedNodes.length === 0) {
@@ -184,8 +184,8 @@ function BlockedList({
     <ul className="space-y-2">
       {blockedNodes.map((node) => {
         const blockers = getRequiredPrerequisites(node.id, edges).filter((id) => {
-          // Show only incomplete blockers
-          return !nodeMap.has(id) || true; // always show — status handled visually
+          const info = nodeMap.get(id);
+          return info ? !info.complete : false;
         });
         return (
           <li key={node.id} className="bg-gray-750 rounded px-2 py-1.5">
@@ -197,7 +197,7 @@ function BlockedList({
             </button>
             {blockers.length > 0 && (
               <div className="text-xs text-gray-500 mt-0.5">
-                Needs: {blockers.map((id) => nodeMap.get(id) ?? id).join(', ')}
+                Needs: {blockers.map((id) => nodeMap.get(id)?.title ?? id).join(', ')}
               </div>
             )}
           </li>
@@ -213,7 +213,7 @@ function BottleneckList({
   onSelect,
 }: {
   entries: { nodeId: string; blockedCount: number }[];
-  nodeMap: Map<string, string>;
+  nodeMap: Map<string, { title: string; complete: boolean }>;
   onSelect: (id: string | undefined) => void;
 }) {
   if (entries.length === 0) {
@@ -228,7 +228,7 @@ function BottleneckList({
             onClick={() => onSelect(entry.nodeId)}
             className="w-full text-left text-sm text-gray-200 hover:text-white hover:bg-gray-700 rounded px-2 py-1.5 flex items-center justify-between"
           >
-            <span className="truncate">{nodeMap.get(entry.nodeId) ?? entry.nodeId}</span>
+            <span className="truncate">{nodeMap.get(entry.nodeId)?.title ?? entry.nodeId}</span>
             <span className="text-xs text-amber-400 shrink-0 ml-2">
               blocks {entry.blockedCount}
             </span>

@@ -13,14 +13,24 @@ export function ShareDialog({ onClose }: ShareDialogProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    buildShareUrl({ nodes, edges }).then(setUrl);
+    let cancelled = false;
+    buildShareUrl({ nodes, edges }).then((result) => {
+      if (!cancelled) setUrl(result);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [nodes, edges]);
 
   const handleCopy = async () => {
     if (!url) return;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard write failed (e.g. permissions denied in non-HTTPS context)
+    }
   };
 
   return (

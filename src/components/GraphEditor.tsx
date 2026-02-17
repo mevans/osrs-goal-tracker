@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useViewportCenter } from '../hooks/useViewportCenter';
 import {
   ReactFlow,
   MiniMap,
   Controls,
   Background,
   BackgroundVariant,
+  SelectionMode,
   useReactFlow,
   applyNodeChanges,
   applyEdgeChanges,
@@ -24,58 +26,13 @@ import { NodeDialog, type NodeFormResult } from './NodeDialog';
 import { MultiSelectActions } from './MultiSelectActions';
 import { useUIStore } from '../store/ui-store';
 import type { EdgeType } from '../engine/types';
+import { buildRfNodes, buildRfEdges } from './rfHelpers';
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
 
 interface GraphEditorProps {
   edgeMode: EdgeType;
-}
-
-function buildRfNodes(
-  nodes: ReturnType<typeof useGraphStore.getState>['nodes'],
-  statuses: Map<string, import('../engine/types').DerivedStatus>,
-  highlightedIds: Set<string> | null,
-  selectedNodeIds: string[],
-): Node<CustomNodeData>[] {
-  return nodes.map((n) => {
-    const node: Node<CustomNodeData> = {
-      id: n.id,
-      type: 'custom' as const,
-      position: n.position,
-      selected: selectedNodeIds.includes(n.id),
-      className: highlightedIds && !highlightedIds.has(n.id) ? 'opacity-25' : '',
-      data: {
-        title: n.title,
-        nodeType: n.type,
-        status: statuses.get(n.id) ?? 'available',
-        complete: n.complete,
-        subtitle: n.skillData
-          ? n.skillData.boost
-            ? `${n.skillData.skillName} ${n.skillData.targetLevel - n.skillData.boost}+${n.skillData.boost}`
-            : `${n.skillData.skillName} ${n.skillData.targetLevel}`
-          : undefined,
-        skillData: n.skillData,
-        questData: n.questData,
-        quantity: n.quantity,
-        tags: n.tags,
-      },
-    };
-    return node;
-  });
-}
-
-function buildRfEdges(
-  edges: ReturnType<typeof useGraphStore.getState>['edges'],
-  highlightedEdgeIds: Set<string> | null,
-): Edge[] {
-  return edges.map((e) => ({
-    id: e.id,
-    source: e.from,
-    target: e.to,
-    type: e.type,
-    className: highlightedEdgeIds && !highlightedEdgeIds.has(e.id) ? 'opacity-25' : '',
-  }));
 }
 
 export function GraphEditor({ edgeMode }: GraphEditorProps) {
@@ -97,9 +54,15 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     pasteClipboard,
   } = useGraphStore.getState();
   const { screenToFlowPosition, fitView } = useReactFlow();
+  const getViewportCenter = useViewportCenter();
   const { undo, redo } = useGraphStore.temporal.getState();
 
   const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
+
+  // Paste at viewport center rather than a fixed offset
+  const pasteAtViewportCenter = useCallback(() => {
+    pasteClipboard(getViewportCenter());
+  }, [pasteClipboard, getViewportCenter]);
 
   // Get node being edited for edit dialog
   const editingNode = useMemo(
@@ -146,7 +109,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     if (editingNodeId && !selectedNodeIds.includes(editingNodeId)) {
       setEditingNodeId(undefined);
     }
-  }, [selectedNodeIds, editingNodeId]);
+  }, [selectedNodeIds, editingNodeId, setEditingNodeId]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -160,7 +123,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     toggleNodesComplete,
     duplicateNodes,
     copySelection,
-    pasteClipboard,
+    pasteClipboard: pasteAtViewportCenter,
     fitView,
     undo,
     redo,
@@ -178,13 +141,15 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   // Local RF state — React Flow owns positions and selection during interaction
   const [rfNodes, setRfNodes] = useState<Node<CustomNodeData>[]>(() =>
-    buildRfNodes(nodes, statuses, highlightedNodeIds, selectedNodeIds),
+    buildRfNodes(nodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
   );
   const [rfEdges, setRfEdges] = useState<Edge[]>(() => buildRfEdges(edges, highlightedEdgeIds));
 
   // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
   useEffect(() => {
-    setRfNodes(buildRfNodes(nodes, statuses, highlightedNodeIds, selectedNodeIds));
+    setRfNodes(
+      buildRfNodes(nodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
+    );
   }, [nodes, statuses, highlightedNodeIds, selectedNodeIds]);
 
   useEffect(() => {
@@ -342,13 +307,13 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         colorMode="dark"
         deleteKeyCode={['Delete', 'Backspace']}
         multiSelectionKeyCode="Shift"
-        selectionMode="partial"
+        selectionMode={SelectionMode.Partial}
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-        <Controls className="!bg-gray-800 !border-gray-700 !shadow-lg [&>button]:!bg-gray-800 [&>button]:!border-gray-700 [&>button]:!text-gray-300 [&>button:hover]:!bg-gray-700" />
+        <Controls className="bg-gray-800! border-gray-700! shadow-lg! [&>button]:bg-gray-800! [&>button]:border-gray-700! [&>button]:text-gray-300! [&>button:hover]:bg-gray-700!" />
         <MiniMap
-          className="!bg-gray-800 !border-gray-700"
+          className="bg-gray-800! border-gray-700!"
           nodeColor="#4b5563"
           maskColor="rgba(0,0,0,0.6)"
         />
@@ -375,16 +340,4 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
       )}
     </div>
   );
-}
-
-/** Hook to get viewport center for placing new nodes. */
-export function useViewportCenter(): () => { x: number; y: number } {
-  const { getViewport } = useReactFlow();
-
-  return useCallback(() => {
-    const { x, y, zoom } = getViewport();
-    const centerX = (-x + window.innerWidth / 2) / zoom;
-    const centerY = (-y + window.innerHeight / 2) / zoom;
-    return { x: centerX, y: centerY };
-  }, [getViewport]);
 }
