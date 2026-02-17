@@ -53,7 +53,7 @@ interface GraphState {
 
 export const useGraphStore = create<GraphState>()(
   temporal(
-    (set) => ({
+    (set, get) => ({
       nodes: [],
       edges: [],
       selectedNodeIds: [],
@@ -156,7 +156,7 @@ export const useGraphStore = create<GraphState>()(
       },
 
       duplicateNodes: (ids) => {
-        const state = useGraphStore.getState();
+        const state = get();
         const nodesToDupe = state.nodes.filter((n) => ids.includes(n.id));
         const idMap = new Map<string, string>();
 
@@ -208,7 +208,7 @@ export const useGraphStore = create<GraphState>()(
 
       addEdge: (from, to, type) => {
         // Prevent duplicate edges (same from/to pair in either direction)
-        const { edges: existing } = useGraphStore.getState();
+        const { edges: existing } = get();
         const duplicate = existing.some(
           (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from),
         );
@@ -247,7 +247,7 @@ export const useGraphStore = create<GraphState>()(
       },
 
       copySelection: async () => {
-        const state = useGraphStore.getState();
+        const state = get();
         const selectedSet = new Set(state.selectedNodeIds);
         const nodesToCopy = state.nodes.filter((n) => selectedSet.has(n.id));
         const edgesToCopy = state.edges.filter(

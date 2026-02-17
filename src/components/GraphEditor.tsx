@@ -178,19 +178,19 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
       setRfNodes((nds) => applyNodeChanges(changes, nds) as Node<CustomNodeData>[]);
 
       // Sync specific changes back to Zustand
-      const positionUpdates = changes
-        .filter((c) => c.type === 'position' && c.position && !c.dragging)
-        .map((c) => ({ id: c.id, position: c.position! }));
+      const positionUpdates: { id: string; position: { x: number; y: number } }[] = [];
+      for (const change of changes) {
+        if (change.type === 'position' && change.position && !change.dragging) {
+          positionUpdates.push({ id: change.id, position: change.position });
+        }
+        if (change.type === 'remove') {
+          removeNode(change.id);
+        }
+      }
       if (positionUpdates.length === 1) {
         moveNode(positionUpdates[0]!.id, positionUpdates[0]!.position);
       } else if (positionUpdates.length > 1) {
         moveNodes(positionUpdates);
-      }
-
-      for (const change of changes) {
-        if (change.type === 'remove') {
-          removeNode(change.id);
-        }
       }
     },
     [moveNode, moveNodes, removeNode, edges],

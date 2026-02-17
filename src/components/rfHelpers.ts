@@ -17,8 +17,8 @@ export function buildRfNodes(
       id: n.id,
       type: 'custom' as const,
       position: n.position,
-      selected: selectedNodeIds ? selectedNodeIds.includes(n.id) : undefined,
-      draggable,
+      ...(selectedNodeIds !== undefined && { selected: selectedNodeIds.includes(n.id) }),
+      ...(draggable !== undefined && { draggable }),
       className: highlightedIds && !highlightedIds.has(n.id) ? 'opacity-25' : '',
       data: {
         title: n.title,
