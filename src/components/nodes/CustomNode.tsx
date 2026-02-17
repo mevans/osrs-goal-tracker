@@ -1,7 +1,9 @@
-import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
+import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflow/react';
 import type { NodeType, DerivedStatus, Quantity, SkillData, QuestData } from '../../engine/types';
 import { getQuestName } from '../../engine/quest-db';
 import { SkillIcon } from '../SkillIcon';
+import { useGraphStore } from '../../store/graph-store';
+import { useUIStore } from '../../store/ui-store';
 
 export interface CustomNodeData {
   title: string;
@@ -42,7 +44,7 @@ const PROGRESS_COLORS: Record<string, string> = {
   full: 'bg-green-500',
 };
 
-export function CustomNode({ data, selected }: NodeProps<Node<CustomNodeData>>) {
+export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData>>) {
   const bgColor = TYPE_COLORS[data.nodeType];
   const borderColor = STATUS_BORDERS[data.status];
   const ringClass = selected ? 'ring-2 ring-white/50' : '';
@@ -57,7 +59,6 @@ export function CustomNode({ data, selected }: NodeProps<Node<CustomNodeData>>) 
         : PROGRESS_COLORS['empty']
     : '';
 
-  // Derive display title based on node type
   const displayTitle =
     data.nodeType === 'skill' && data.skillData
       ? data.skillData.boost
@@ -67,79 +68,157 @@ export function CustomNode({ data, selected }: NodeProps<Node<CustomNodeData>>) 
         ? getQuestName(data.questData.questId)
         : data.title;
 
+  const canEdit = data.nodeType === 'goal' || data.nodeType === 'task';
+  const { updateNode, toggleNodeComplete } = useGraphStore.getState();
+  const { setEditingNodeId } = useUIStore.getState();
+
   return (
-    <div
-      className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 min-w-[140px] max-w-[200px] shadow-lg relative group transition-opacity duration-300`}
-    >
-      {/* Top handle - Prerequisites flow IN here */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        className="!bg-blue-400 !w-3 !h-3 !border-2 !border-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Prerequisites connect here"
-      />
-      <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-        ↓ needs
-      </div>
+    <>
+      <NodeToolbar isVisible={selected === true} position={Position.Right} offset={8}>
+        <div
+          className="flex flex-col gap-1.5 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 min-w-[160px]"
+          onClick={(e) => e.stopPropagation()}
+          onDoubleClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => toggleNodeComplete(id)}
+            className={`text-xs py-1.5 px-2 rounded font-medium ${
+              data.complete
+                ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+                : 'bg-green-600 text-white hover:bg-green-500'
+            }`}
+          >
+            {data.complete ? '✓ Completed' : 'Mark Complete'}
+          </button>
 
-      <div className="flex items-center gap-1.5 mb-0.5">
-        <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">
-          {TYPE_LABELS[data.nodeType]}
-        </span>
-        {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
-      </div>
+          {q && (
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => {
+                    const step = e.shiftKey ? (e.ctrlKey || e.metaKey ? 100 : 10) : 1;
+                    updateNode(id, { quantity: { ...q, current: Math.max(0, q.current - step) } });
+                  }}
+                  disabled={q.current === 0}
+                  className="text-xs w-7 h-7 rounded bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-50 shrink-0"
+                  title="−1  (shift: −10,  ctrl+shift: −100)"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min={0}
+                  max={q.target}
+                  value={q.current}
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(q.target, Number(e.target.value) || 0));
+                    updateNode(id, { quantity: { ...q, current: val } });
+                  }}
+                  className="min-w-0 flex-1 text-center text-xs bg-gray-700 text-gray-200 rounded border border-gray-600 focus:border-blue-400 focus:outline-none py-1 [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                />
+                <span className="text-xs text-gray-400 shrink-0">/ {q.target}</span>
+                <button
+                  onClick={(e) => {
+                    const step = e.shiftKey ? (e.ctrlKey || e.metaKey ? 100 : 10) : 1;
+                    updateNode(id, {
+                      quantity: { ...q, current: Math.min(q.target, q.current + step) },
+                    });
+                  }}
+                  disabled={q.current >= q.target}
+                  className="text-xs w-7 h-7 rounded bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-50 shrink-0"
+                  title="+1  (shift: +10,  ctrl+shift: +100)"
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500 text-center">shift ×10 · ctrl ×100</p>
+            </div>
+          )}
 
-      <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
-
-      {data.skillData ? (
-        <div className="flex items-center gap-1 mt-0.5">
-          <SkillIcon skill={data.skillData.skillName} size={14} />
-          <span className="text-xs text-gray-400 truncate">{data.subtitle}</span>
-        </div>
-      ) : data.subtitle ? (
-        <div className="text-xs text-gray-400 truncate mt-0.5">{data.subtitle}</div>
-      ) : null}
-
-      {q && (
-        <div className="mt-1.5">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[10px] text-gray-400">
-              {q.current} / {q.target}
-            </span>
-            <span className="text-[10px] text-gray-500">{progressPct}%</span>
-          </div>
-          <div className="w-full h-1.5 bg-gray-600/80 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all ${progressColor}`}
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {data.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          {data.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-[9px] px-1.5 py-0.5 rounded bg-blue-600/40 text-blue-200 border border-blue-500/40"
+          {canEdit && (
+            <button
+              onClick={() => setEditingNodeId(id)}
+              className="text-xs py-1.5 px-2 rounded bg-blue-600/40 text-blue-200 hover:bg-blue-600/60 border border-blue-500/40"
             >
-              {tag}
-            </span>
-          ))}
+              Edit Details
+            </button>
+          )}
         </div>
-      )}
+      </NodeToolbar>
 
-      {/* Bottom handle - Dependents flow OUT from here */}
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className="!bg-purple-400 !w-3 !h-3 !border-2 !border-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Dependents connect from here"
-      />
-      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-        ↓ unlocks
+      <div
+        className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 min-w-[140px] max-w-[200px] shadow-lg relative group transition-opacity duration-300`}
+      >
+        {/* Top handle - Prerequisites flow IN here */}
+        <Handle
+          type="target"
+          position={Position.Top}
+          className="!bg-blue-400 !w-3 !h-3 !border-2 !border-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Prerequisites connect here"
+        />
+        <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+          ↓ needs
+        </div>
+
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">
+            {TYPE_LABELS[data.nodeType]}
+          </span>
+          {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
+        </div>
+
+        <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
+
+        {data.skillData ? (
+          <div className="flex items-center gap-1 mt-0.5">
+            <SkillIcon skill={data.skillData.skillName} size={14} />
+            <span className="text-xs text-gray-400 truncate">{data.subtitle}</span>
+          </div>
+        ) : data.subtitle ? (
+          <div className="text-xs text-gray-400 truncate mt-0.5">{data.subtitle}</div>
+        ) : null}
+
+        {q && (
+          <div className="mt-1.5">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-[10px] text-gray-400">
+                {q.current} / {q.target}
+              </span>
+              <span className="text-[10px] text-gray-500">{progressPct}%</span>
+            </div>
+            <div className="w-full h-1.5 bg-gray-600/80 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${progressColor}`}
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {data.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {data.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-[9px] px-1.5 py-0.5 rounded bg-blue-600/40 text-blue-200 border border-blue-500/40"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Bottom handle - Dependents flow OUT from here */}
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className="!bg-purple-400 !w-3 !h-3 !border-2 !border-gray-900 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Dependents connect from here"
+        />
+        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+          ↓ unlocks
+        </div>
       </div>
-    </div>
+    </>
   );
 }

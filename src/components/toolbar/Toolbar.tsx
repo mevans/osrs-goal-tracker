@@ -3,7 +3,7 @@ import { useStore } from 'zustand';
 import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
 import { useViewportCenter } from '../GraphEditor';
-import { AddNodeDialog, type AddNodeResult } from './AddNodeDialog';
+import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { ShareDialog } from './ShareDialog';
 import { TemplateDialog } from './TemplateDialog';
 import { expandTemplate } from '../../templates/expand';
@@ -59,7 +59,7 @@ export function Toolbar() {
   const canUndo = useStore(useGraphStore.temporal, (state) => state.pastStates.length > 0);
   const canRedo = useStore(useGraphStore.temporal, (state) => state.futureStates.length > 0);
 
-  const handleAddNode = (result: AddNodeResult) => {
+  const handleAddNode = (result: NodeFormResult) => {
     const position = getCenter();
     addNode({ ...result, position });
     setShowAddNode(false);
@@ -233,9 +233,7 @@ export function Toolbar() {
         className="hidden"
       />
 
-      {showAddNode && (
-        <AddNodeDialog onSubmit={handleAddNode} onClose={() => setShowAddNode(false)} />
-      )}
+      {showAddNode && <NodeDialog onSubmit={handleAddNode} onClose={() => setShowAddNode(false)} />}
       {showShare && <ShareDialog onClose={() => setShowShare(false)} />}
       {showTemplate && (
         <TemplateDialog onApply={handleApplyTemplate} onClose={() => setShowTemplate(false)} />

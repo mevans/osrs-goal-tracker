@@ -21,7 +21,8 @@ export function EditorPage() {
             <GraphEditor edgeMode={edgeMode} />
           </div>
 
-          {selectedNodeIds.length > 0 ? <SidePanel /> : <PlanningDrawer />}
+          {/* Only show side panel for multi-select, otherwise show planning drawer */}
+          {selectedNodeIds.length > 1 ? <SidePanel /> : <PlanningDrawer />}
         </div>
       </div>
     </ReactFlowProvider>

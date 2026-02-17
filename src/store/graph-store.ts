@@ -19,6 +19,7 @@ export interface AddNodeParams {
   skillData: { skillName: SkillName; targetLevel: number; boost: number | undefined } | undefined;
   questData: { questId: string } | undefined;
   quantity: Quantity | undefined;
+  tags: string[] | undefined;
 }
 
 interface GraphState {
@@ -69,7 +70,7 @@ export const useGraphStore = create<GraphState>()(
           skillData: params.skillData ?? undefined,
           questData: params.questData ?? undefined,
           quantity: params.quantity ?? undefined,
-          tags: [],
+          tags: params.tags ?? [],
         };
         set((state) => ({ nodes: [...state.nodes, node] }));
         return id;

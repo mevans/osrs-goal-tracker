@@ -19,8 +19,8 @@ import { computeAllStatuses, getAllPrerequisites, getAllDependents } from '../en
 import { CustomNode, type CustomNodeData } from './nodes/CustomNode';
 import { RequiresEdge, RequiresArrowDef } from './edges/RequiresEdge';
 import { ImprovesEdge, ImprovesArrowDef } from './edges/ImprovesEdge';
-import { EdgeActions } from './edges/EdgeActions';
-import { AddNodeDialog, type AddNodeResult } from './toolbar/AddNodeDialog';
+import { NodeDialog, type NodeFormResult } from './NodeDialog';
+import { useUIStore } from '../store/ui-store';
 import { QuickAddBar } from './QuickAddBar';
 import type { EdgeType } from '../engine/types';
 
@@ -86,6 +86,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const {
     moveNode,
     addNode,
+    updateNode,
     addEdge,
     removeNode,
     removeEdge,
@@ -100,6 +101,13 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const { undo, redo } = useGraphStore.temporal.getState();
 
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const { editingNodeId, setEditingNodeId } = useUIStore();
+
+  // Get node being edited for edit dialog
+  const editingNode = useMemo(
+    () => (editingNodeId ? nodes.find((n) => n.id === editingNodeId) : undefined),
+    [editingNodeId, nodes],
+  );
 
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
@@ -135,8 +143,8 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     return set;
   }, [highlightedNodeIds, edges]);
 
-  // Selected node for quick-add suggestions
-  const selectedNode = useMemo(
+  // Selected node for quick-add suggestions (uses first selected)
+  const selectedNodeForSuggestions = useMemo(
     () => nodes.find((n) => n.id === selectedNodeId),
     [nodes, selectedNodeId],
   );
@@ -149,6 +157,13 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     setShowSuggestions(true);
   }, [selectedNodeId]);
 
+  // Close edit dialog when selection changes
+  useEffect(() => {
+    if (editingNodeId && !selectedNodeIds.includes(editingNodeId)) {
+      setEditingNodeId(undefined);
+    }
+  }, [selectedNodeIds, editingNodeId]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -158,10 +173,14 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         return;
       }
 
-      // Escape: deselect
+      // Escape: close edit dialog or deselect
       if (event.key === 'Escape') {
-        selectNodes([]);
-        selectEdges([]);
+        if (editingNodeId) {
+          setEditingNodeId(undefined);
+        } else {
+          selectNodes([]);
+          selectEdges([]);
+        }
       }
 
       // Space: toggle selected node(s) complete
@@ -227,6 +246,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   }, [
     selectedNodeIds,
     nodes,
+    editingNodeId,
     selectNodes,
     selectEdges,
     toggleNodesComplete,
@@ -339,18 +359,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const onPaneClick = useCallback(() => {
     selectNodes([]);
     selectEdges([]);
-    setEdgeClickPos(undefined);
   }, [selectNodes, selectEdges]);
-
-  const [edgeClickPos, setEdgeClickPos] = useState<{ x: number; y: number } | undefined>(undefined);
-
-  const onEdgeClick = useCallback(
-    (event: React.MouseEvent, edge: Edge) => {
-      setEdgeClickPos({ x: event.clientX, y: event.clientY });
-      selectEdges([edge.id]);
-    },
-    [selectEdges],
-  );
 
   const onConnectEnd = useCallback(
     (
@@ -387,7 +396,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   );
 
   const handlePendingNodeAdd = useCallback(
-    (result: AddNodeResult) => {
+    (result: NodeFormResult) => {
       if (!pendingConnection) return;
       const newId = addNode({ ...result, position: pendingConnection.position });
 
@@ -417,7 +426,6 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onConnectEnd={onConnectEnd}
-        onEdgeClick={onEdgeClick}
         onPaneClick={onPaneClick}
         onSelectionChange={onSelectionChange}
         fitView
@@ -438,20 +446,29 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         />
       </ReactFlow>
 
-      {edgeClickPos && <EdgeActions clickX={edgeClickPos.x} clickY={edgeClickPos.y} />}
-
       {pendingConnection && (
-        <AddNodeDialog
+        <NodeDialog
           onSubmit={handlePendingNodeAdd}
           onClose={() => setPendingConnection(undefined)}
         />
       )}
 
-      {selectedNode && showSuggestions && (
+      {selectedNodeForSuggestions && showSuggestions && (
         <QuickAddBar
-          selectedNode={selectedNode}
+          selectedNode={selectedNodeForSuggestions}
           existingTitles={existingTitles}
           onClose={() => setShowSuggestions(false)}
+        />
+      )}
+
+      {editingNode && (
+        <NodeDialog
+          initialNode={editingNode}
+          onSubmit={(result) => {
+            updateNode(editingNode.id, result);
+            setEditingNodeId(undefined);
+          }}
+          onClose={() => setEditingNodeId(undefined)}
         />
       )}
     </div>
