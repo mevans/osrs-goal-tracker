@@ -78,7 +78,15 @@ export const useGraphStore = create<GraphState>()(
 
       updateNode: (id, updates) => {
         set((state) => ({
-          nodes: state.nodes.map((n) => (n.id === id ? { ...n, ...updates } : n)),
+          nodes: state.nodes.map((n) => {
+            if (n.id !== id) return n;
+            const merged = { ...n, ...updates };
+            // Sync complete status with quantity when quantity is being updated
+            if (updates.quantity !== undefined && merged.quantity) {
+              merged.complete = merged.quantity.current >= merged.quantity.target;
+            }
+            return merged;
+          }),
         }));
       },
 

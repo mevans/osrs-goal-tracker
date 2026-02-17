@@ -59,49 +59,12 @@ export function SidePanel() {
 
   // Multi-selection view
   if (selectedNodes.length > 1) {
-    const allComplete = selectedNodes.every((n) => n.complete);
-
     return (
       <div className="w-72 bg-gray-800 border-l border-gray-700 flex flex-col overflow-y-auto">
-        <div className="p-4 border-b border-gray-700">
-          <div className="text-lg font-semibold text-white mb-4">
+        <div className="p-4">
+          <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">
             {selectedNodes.length} nodes selected
           </div>
-
-          <button
-            onClick={() => {
-              selectedNodeIds.forEach((id) => {
-                const n = nodes.find((node) => node.id === id);
-                if (n && n.complete === allComplete) {
-                  toggleNodeComplete(id);
-                }
-              });
-            }}
-            className={`w-full text-sm py-2 rounded font-medium mb-2 ${
-              allComplete
-                ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                : 'bg-green-600 text-white hover:bg-green-500'
-            }`}
-          >
-            {allComplete ? 'Mark All Incomplete' : 'Mark All Complete'}
-          </button>
-
-          <button
-            onClick={() => {
-              const confirmed = window.confirm(`Delete ${selectedNodes.length} selected nodes?`);
-              if (confirmed) {
-                selectedNodeIds.forEach((id) => removeNode(id));
-                selectNodes([]);
-              }
-            }}
-            className="w-full text-sm py-2 rounded font-medium bg-red-600 text-white hover:bg-red-500"
-          >
-            Delete All
-          </button>
-        </div>
-
-        <div className="p-4">
-          <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Selected Nodes</div>
           <ul className="space-y-1">
             {selectedNodes.map((n) => (
               <li

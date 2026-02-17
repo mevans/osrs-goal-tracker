@@ -4,6 +4,7 @@ import { GraphEditor } from '../components/GraphEditor';
 import { Toolbar } from '../components/toolbar/Toolbar';
 import { SidePanel } from '../components/panels/SidePanel';
 import { PlanningDrawer } from '../components/panels/PlanningDrawer';
+import { KeyboardHelp } from '../components/KeyboardHelp';
 import { useGraphStore } from '../store/graph-store';
 import type { EdgeType } from '../engine/types';
 
@@ -13,6 +14,7 @@ export function EditorPage() {
 
   return (
     <ReactFlowProvider>
+      <KeyboardHelp />
       <div className="h-screen flex flex-col bg-gray-900 text-white">
         <Toolbar />
 

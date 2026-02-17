@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import {
   ReactFlow,
   MiniMap,
@@ -20,8 +21,8 @@ import { CustomNode, type CustomNodeData } from './nodes/CustomNode';
 import { RequiresEdge, RequiresArrowDef } from './edges/RequiresEdge';
 import { ImprovesEdge, ImprovesArrowDef } from './edges/ImprovesEdge';
 import { NodeDialog, type NodeFormResult } from './NodeDialog';
+import { MultiSelectActions } from './MultiSelectActions';
 import { useUIStore } from '../store/ui-store';
-import { QuickAddBar } from './QuickAddBar';
 import type { EdgeType } from '../engine/types';
 
 const nodeTypes = { custom: CustomNode };
@@ -81,8 +82,6 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
-  // TODO: Quick-add suggestions currently only work with single selection
-  const selectedNodeId = selectedNodeIds[0];
   const {
     moveNode,
     addNode,
@@ -100,8 +99,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const { screenToFlowPosition, fitView } = useReactFlow();
   const { undo, redo } = useGraphStore.temporal.getState();
 
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const { editingNodeId, setEditingNodeId } = useUIStore();
+  const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
 
   // Get node being edited for edit dialog
   const editingNode = useMemo(
@@ -143,20 +141,6 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     return set;
   }, [highlightedNodeIds, edges]);
 
-  // Selected node for quick-add suggestions (uses first selected)
-  const selectedNodeForSuggestions = useMemo(
-    () => nodes.find((n) => n.id === selectedNodeId),
-    [nodes, selectedNodeId],
-  );
-
-  // Existing node titles for filtering suggestions
-  const existingTitles = useMemo(() => new Set(nodes.map((n) => n.title.toLowerCase())), [nodes]);
-
-  // Reset suggestions when selection changes
-  useEffect(() => {
-    setShowSuggestions(true);
-  }, [selectedNodeId]);
-
   // Close edit dialog when selection changes
   useEffect(() => {
     if (editingNodeId && !selectedNodeIds.includes(editingNodeId)) {
@@ -165,88 +149,12 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   }, [selectedNodeIds, editingNodeId]);
 
   // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Prevent shortcuts when typing in input fields
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        return;
-      }
-
-      // Escape: close edit dialog or deselect
-      if (event.key === 'Escape') {
-        if (editingNodeId) {
-          setEditingNodeId(undefined);
-        } else {
-          selectNodes([]);
-          selectEdges([]);
-        }
-      }
-
-      // Space: toggle selected node(s) complete
-      if (event.key === ' ') {
-        event.preventDefault();
-        if (selectedNodeIds.length > 0) {
-          toggleNodesComplete(selectedNodeIds);
-        }
-      }
-
-      // Ctrl+A or Cmd+A: Select all nodes
-      if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
-        event.preventDefault();
-        selectNodes(nodes.map((n) => n.id));
-      }
-
-      // Ctrl+D or Cmd+D: Duplicate selected nodes
-      if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
-        event.preventDefault();
-        if (selectedNodeIds.length > 0) {
-          duplicateNodes(selectedNodeIds);
-        }
-      }
-
-      // Ctrl+C or Cmd+C: Copy selected nodes
-      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
-        event.preventDefault();
-        if (selectedNodeIds.length > 0) {
-          copySelection();
-        }
-      }
-
-      // Ctrl+V or Cmd+V: Paste copied nodes
-      if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
-        event.preventDefault();
-        pasteClipboard({ x: 40, y: 40 });
-      }
-
-      // F: Fit view
-      if (event.key === 'f') {
-        event.preventDefault();
-        fitView({ padding: 0.2, duration: 300 });
-      }
-
-      // Ctrl+Z or Cmd+Z: Undo
-      if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
-        event.preventDefault();
-        undo();
-      }
-
-      // Ctrl+Shift+Z or Cmd+Shift+Z or Ctrl+Y: Redo
-      if (
-        ((event.ctrlKey || event.metaKey) && event.key === 'z' && event.shiftKey) ||
-        (event.ctrlKey && event.key === 'y')
-      ) {
-        event.preventDefault();
-        redo();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
+  useKeyboardShortcuts({
     selectedNodeIds,
     nodes,
     editingNodeId,
+    setEditingNodeId,
+    setShowHelp,
     selectNodes,
     selectEdges,
     toggleNodesComplete,
@@ -256,7 +164,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     fitView,
     undo,
     redo,
-  ]);
+  });
 
   // Pending connection: when a drag ends on empty space
   const [pendingConnection, setPendingConnection] = useState<
@@ -453,13 +361,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         />
       )}
 
-      {selectedNodeForSuggestions && showSuggestions && (
-        <QuickAddBar
-          selectedNode={selectedNodeForSuggestions}
-          existingTitles={existingTitles}
-          onClose={() => setShowSuggestions(false)}
-        />
-      )}
+      <MultiSelectActions />
 
       {editingNode && (
         <NodeDialog

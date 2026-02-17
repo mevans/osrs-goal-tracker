@@ -2,6 +2,7 @@ import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflo
 import type { NodeType, DerivedStatus, Quantity, SkillData, QuestData } from '../../engine/types';
 import { getQuestName } from '../../engine/quest-db';
 import { SkillIcon } from '../SkillIcon';
+import { ShortcutHint } from '../Kbd';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
 
@@ -69,12 +70,17 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         : data.title;
 
   const canEdit = data.nodeType === 'goal' || data.nodeType === 'task';
-  const { updateNode, toggleNodeComplete } = useGraphStore.getState();
+  const isMultiSelect = useGraphStore((s) => s.selectedNodeIds.length > 1);
+  const { updateNode, toggleNodeComplete, removeNode } = useGraphStore.getState();
   const { setEditingNodeId } = useUIStore.getState();
 
   return (
     <>
-      <NodeToolbar isVisible={selected === true} position={Position.Right} offset={8}>
+      <NodeToolbar
+        isVisible={selected === true && !isMultiSelect}
+        position={Position.Right}
+        offset={8}
+      >
         <div
           className="flex flex-col gap-1.5 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-2 min-w-[160px]"
           onClick={(e) => e.stopPropagation()}
@@ -82,13 +88,14 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         >
           <button
             onClick={() => toggleNodeComplete(id)}
-            className={`text-xs py-1.5 px-2 rounded font-medium ${
+            className={`text-xs py-1.5 px-2 rounded font-medium flex items-center justify-between gap-2 ${
               data.complete
                 ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
                 : 'bg-green-600 text-white hover:bg-green-500'
             }`}
           >
-            {data.complete ? '✓ Completed' : 'Mark Complete'}
+            <span>{data.complete ? '✓ Completed' : 'Mark Complete'}</span>
+            <ShortcutHint id="toggleComplete" />
           </button>
 
           {q && (
@@ -138,11 +145,22 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
           {canEdit && (
             <button
               onClick={() => setEditingNodeId(id)}
-              className="text-xs py-1.5 px-2 rounded bg-blue-600/40 text-blue-200 hover:bg-blue-600/60 border border-blue-500/40"
+              className="text-xs py-1.5 px-2 rounded bg-blue-600/40 text-blue-200 hover:bg-blue-600/60 border border-blue-500/40 flex items-center justify-between gap-2"
             >
-              Edit Details
+              <span>Edit Details</span>
+              <ShortcutHint id="editNode" />
             </button>
           )}
+
+          <div className="h-px bg-gray-700 -mx-0.5" />
+
+          <button
+            onClick={() => removeNode(id)}
+            className="text-xs py-1.5 px-2 rounded text-red-400 hover:text-red-300 hover:bg-gray-700 flex items-center justify-between gap-2"
+          >
+            <span>Delete</span>
+            <ShortcutHint id="delete" />
+          </button>
         </div>
       </NodeToolbar>
 

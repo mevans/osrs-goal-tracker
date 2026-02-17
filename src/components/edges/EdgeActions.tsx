@@ -1,5 +1,6 @@
 import { EdgeLabelRenderer } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
+import { ShortcutHint } from '../Kbd';
 import type { EdgeType } from '../../engine/types';
 
 interface EdgeActionBarProps {
@@ -95,6 +96,7 @@ export function EdgeActionBar({ edgeId, edgeType, labelX, labelY }: EdgeActionBa
               <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
             </svg>
             Delete
+            <ShortcutHint id="delete" />
           </button>
         </div>
       </div>

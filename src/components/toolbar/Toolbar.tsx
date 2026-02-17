@@ -1,15 +1,17 @@
-import { useState, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
+import { useUIStore } from '../../store/ui-store';
 import { useViewportCenter } from '../GraphEditor';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { ShareDialog } from './ShareDialog';
 import { TemplateDialog } from './TemplateDialog';
+import { ShortcutHint } from '../Kbd';
 import { expandTemplate } from '../../templates/expand';
 import { applyLayout } from '../../engine/layout';
 import { exportToJson, importFromJson } from '../../engine/serialization';
-import type { TemplateDefinition, SoftDecision } from '../../templates/types';
+import type { SoftDecision, TemplateDefinition } from '../../templates/types';
 
 const UndoIcon = () => (
   <svg
@@ -58,6 +60,7 @@ export function Toolbar() {
   const { undo, redo } = useGraphStore.temporal.getState();
   const canUndo = useStore(useGraphStore.temporal, (state) => state.pastStates.length > 0);
   const canRedo = useStore(useGraphStore.temporal, (state) => state.futureStates.length > 0);
+  const setShowHelp = useUIStore.getState().setShowHelp;
 
   const handleAddNode = (result: NodeFormResult) => {
     const position = getCenter();
@@ -177,19 +180,27 @@ export function Toolbar() {
         <button
           onClick={() => undo()}
           disabled={!canUndo}
-          title="Undo (Ctrl+Z)"
-          className="p-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
         >
           <UndoIcon />
+          <ShortcutHint id="undo" />
         </button>
 
         <button
           onClick={() => redo()}
           disabled={!canRedo}
-          title="Redo (Ctrl+Shift+Z)"
-          className="p-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
         >
           <RedoIcon />
+          <ShortcutHint id="redo" />
+        </button>
+
+        <button
+          onClick={() => setShowHelp(true)}
+          title="Keyboard shortcuts (?)"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded text-sm"
+        >
+          <span className="text-sm">Keyboard Shortcuts</span>
         </button>
 
         <div className="flex-1" />
