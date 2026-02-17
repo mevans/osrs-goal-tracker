@@ -179,22 +179,33 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
           ↓ needs
         </div>
 
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">
-            {TYPE_LABELS[data.nodeType]}
-          </span>
-          {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
-        </div>
-
-        <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
-
         {data.skillData ? (
-          <div className="flex items-center gap-1 mt-0.5">
-            <SkillIcon skill={data.skillData.skillName} size={14} />
+          <div className="flex items-center gap-2.5">
+            <SkillIcon skill={data.skillData.skillName} size={36} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">
+                  {TYPE_LABELS[data.nodeType]}
+                </span>
+                {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
+              </div>
+              <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
+            </div>
           </div>
-        ) : data.subtitle ? (
-          <div className="text-xs text-gray-400 truncate mt-0.5">{data.subtitle}</div>
-        ) : null}
+        ) : (
+          <>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[10px] uppercase tracking-wide text-gray-400 font-medium">
+                {TYPE_LABELS[data.nodeType]}
+              </span>
+              {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
+            </div>
+            <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
+            {data.subtitle && (
+              <div className="text-xs text-gray-400 truncate mt-0.5">{data.subtitle}</div>
+            )}
+          </>
+        )}
 
         {q && (
           <div className="mt-1.5">
