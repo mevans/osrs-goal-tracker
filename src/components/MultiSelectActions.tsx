@@ -94,7 +94,7 @@ function AlignButton({
 export function MultiSelectActions() {
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
   const nodes = useGraphStore((s) => s.nodes);
-  const { toggleNodesComplete, removeNode, selectNodes, moveNode } = useGraphStore.getState();
+  const { toggleNodesComplete, removeNode, selectNodes, moveNodes } = useGraphStore.getState();
   const { getNodes } = useReactFlow();
   const { x: vpX, y: vpY, zoom } = useViewport();
 
@@ -109,7 +109,7 @@ export function MultiSelectActions() {
   let maxX = -Infinity;
   let maxY = -Infinity;
   for (const node of rfNodes) {
-    const w = node.width ?? 170;
+    const w = node.width ?? 180;
     const h = node.height ?? 60;
     minX = Math.min(minX, node.position.x);
     minY = Math.min(minY, node.position.y);
@@ -134,15 +134,17 @@ export function MultiSelectActions() {
     }) => { x: number; y: number },
   ) => {
     const current = getNodes().filter((n) => selectedNodeIds.includes(n.id));
-    for (const node of current) {
-      const pos = fn({
+    moveNodes(
+      current.map((node) => ({
         id: node.id,
-        position: node.position,
-        width: node.width ?? 170,
-        height: node.height ?? 60,
-      });
-      moveNode(node.id, pos);
-    }
+        position: fn({
+          id: node.id,
+          position: node.position,
+          width: node.width ?? 180,
+          height: node.height ?? 60,
+        }),
+      })),
+    );
   };
 
   const alignLeft = () => {
@@ -151,7 +153,7 @@ export function MultiSelectActions() {
   };
 
   const alignRight = () => {
-    const ref = Math.max(...rfNodes.map((n) => n.position.x + (n.width ?? 170)));
+    const ref = Math.max(...rfNodes.map((n) => n.position.x + (n.width ?? 180)));
     align((n) => ({ x: ref - n.width, y: n.position.y }));
   };
 
@@ -180,15 +182,18 @@ export function MultiSelectActions() {
     const sorted = [...rfNodes].sort((a, b) => a.position.x - b.position.x);
     const first = sorted[0]!;
     const last = sorted[sorted.length - 1]!;
-    const totalSpan = last.position.x + (last.width ?? 170) - first.position.x;
-    const totalNodeWidth = sorted.reduce((sum, n) => sum + (n.width ?? 170), 0);
+    const totalSpan = last.position.x + (last.width ?? 180) - first.position.x;
+    const totalNodeWidth = sorted.reduce((sum, n) => sum + (n.width ?? 180), 0);
     const gap = (totalSpan - totalNodeWidth) / (sorted.length - 1);
     let cursor = first.position.x;
-    for (const node of sorted) {
-      const w = node.width ?? 170;
-      moveNode(node.id, { x: cursor, y: node.position.y });
-      cursor += w + gap;
-    }
+    moveNodes(
+      sorted.map((node) => {
+        const w = node.width ?? 180;
+        const pos = { id: node.id, position: { x: cursor, y: node.position.y } };
+        cursor += w + gap;
+        return pos;
+      }),
+    );
   };
 
   const distributeV = () => {
@@ -200,11 +205,14 @@ export function MultiSelectActions() {
     const totalNodeHeight = sorted.reduce((sum, n) => sum + (n.height ?? 60), 0);
     const gap = (totalSpan - totalNodeHeight) / (sorted.length - 1);
     let cursor = first.position.y;
-    for (const node of sorted) {
-      const h = node.height ?? 60;
-      moveNode(node.id, { x: node.position.x, y: cursor });
-      cursor += h + gap;
-    }
+    moveNodes(
+      sorted.map((node) => {
+        const h = node.height ?? 60;
+        const pos = { id: node.id, position: { x: node.position.x, y: cursor } };
+        cursor += h + gap;
+        return pos;
+      }),
+    );
   };
 
   return (

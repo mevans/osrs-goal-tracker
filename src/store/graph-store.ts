@@ -32,6 +32,7 @@ interface GraphState {
   updateNode: (id: string, updates: Partial<Omit<GraphNode, 'id'>>) => void;
   removeNode: (id: string) => void;
   moveNode: (id: string, position: { x: number; y: number }) => void;
+  moveNodes: (positions: { id: string; position: { x: number; y: number } }[]) => void;
   toggleNodeComplete: (id: string) => void;
   toggleNodesComplete: (ids: string[]) => void;
   duplicateNodes: (ids: string[]) => string[];
@@ -101,6 +102,16 @@ export const useGraphStore = create<GraphState>()(
       moveNode: (id, position) => {
         set((state) => ({
           nodes: state.nodes.map((n) => (n.id === id ? { ...n, position } : n)),
+        }));
+      },
+
+      moveNodes: (positions) => {
+        const posMap = new Map(positions.map((p) => [p.id, p.position]));
+        set((state) => ({
+          nodes: state.nodes.map((n) => {
+            const pos = posMap.get(n.id);
+            return pos ? { ...n, position: pos } : n;
+          }),
         }));
       },
 

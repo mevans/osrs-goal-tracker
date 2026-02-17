@@ -166,7 +166,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
       </NodeToolbar>
 
       <div
-        className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 min-w-[140px] max-w-[200px] shadow-lg relative group transition-opacity duration-300`}
+        className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 w-[180px] shadow-lg relative group transition-opacity duration-300`}
       >
         {/* Top handle - Prerequisites flow IN here */}
         <Handle

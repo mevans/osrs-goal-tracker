@@ -41,6 +41,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
   const {
     moveNode,
+    moveNodes,
     addNode,
     updateNode,
     addEdge,
@@ -177,16 +178,22 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
       setRfNodes((nds) => applyNodeChanges(changes, nds) as Node<CustomNodeData>[]);
 
       // Sync specific changes back to Zustand
+      const positionUpdates = changes
+        .filter((c) => c.type === 'position' && c.position && !c.dragging)
+        .map((c) => ({ id: c.id, position: c.position! }));
+      if (positionUpdates.length === 1) {
+        moveNode(positionUpdates[0]!.id, positionUpdates[0]!.position);
+      } else if (positionUpdates.length > 1) {
+        moveNodes(positionUpdates);
+      }
+
       for (const change of changes) {
-        if (change.type === 'position' && change.position && !change.dragging) {
-          moveNode(change.id, change.position);
-        }
         if (change.type === 'remove') {
           removeNode(change.id);
         }
       }
     },
-    [moveNode, removeNode, edges],
+    [moveNode, moveNodes, removeNode, edges],
   );
 
   const onEdgesChange = useCallback(
