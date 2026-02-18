@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { OSRS_SKILLS } from '../engine/types';
 import { ALL_QUESTS } from '../engine/quest-db';
 import type { GraphNode, NodeType, SkillName, Quantity } from '../engine/types';
@@ -99,7 +99,7 @@ type TypeConfig = {
   value: NodeType;
   label: string;
   description: string;
-  Icon: () => JSX.Element;
+  Icon: () => React.ReactElement;
   formBorder: string;
   cardBorder: string;
   cardBg: string;
