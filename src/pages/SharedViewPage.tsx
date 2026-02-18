@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -11,7 +12,8 @@ import {
   type Node,
   type Edge,
 } from '@xyflow/react';
-import { parseShareParam, saveToLocalStorage, loadFromLocalStorage } from '../engine/serialization';
+import { parseShareParam } from '../engine/serialization';
+import { useGraphStore } from '../store/graph-store';
 import { computeAllStatuses } from '../engine/graph-engine';
 import type { GraphData } from '../engine/types';
 import { CustomNode, type CustomNodeData } from '../components/nodes/CustomNode';
@@ -69,6 +71,8 @@ export function SharedViewPage() {
 }
 
 function SharedView({ data }: { data: GraphData }) {
+  const navigate = useNavigate();
+
   const statuses = useMemo(
     () => computeAllStatuses(data.nodes, data.edges),
     [data.nodes, data.edges],
@@ -82,15 +86,16 @@ function SharedView({ data }: { data: GraphData }) {
   const rfEdges: Edge[] = useMemo(() => buildRfEdges(data.edges), [data.edges]);
 
   const handleOpenInEditor = () => {
-    const existing = loadFromLocalStorage();
-    if (existing && existing.nodes.length > 0) {
+    const { nodes: existingNodes } = useGraphStore.getState();
+    if (existingNodes.length > 0) {
       const confirmed = window.confirm(
         'This will replace your current plan in the editor. Continue?\n\n(Export your current plan first if you want to save it)',
       );
       if (!confirmed) return;
     }
-    saveToLocalStorage(data);
-    window.location.href = '/';
+    useGraphStore.getState().loadGraph(data);
+    useGraphStore.temporal.getState().clear();
+    navigate('/');
   };
 
   return (
