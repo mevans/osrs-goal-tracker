@@ -7,10 +7,11 @@ import {
   Controls,
   Background,
   BackgroundVariant,
+  Panel,
   type Node,
   type Edge,
 } from '@xyflow/react';
-import { parseShareParam } from '../engine/serialization';
+import { parseShareParam, saveToLocalStorage, loadFromLocalStorage } from '../engine/serialization';
 import { computeAllStatuses } from '../engine/graph-engine';
 import type { GraphData } from '../engine/types';
 import { CustomNode, type CustomNodeData } from '../components/nodes/CustomNode';
@@ -80,15 +81,33 @@ function SharedView({ data }: { data: GraphData }) {
 
   const rfEdges: Edge[] = useMemo(() => buildRfEdges(data.edges), [data.edges]);
 
+  const handleOpenInEditor = () => {
+    const existing = loadFromLocalStorage();
+    if (existing && existing.nodes.length > 0) {
+      const confirmed = window.confirm(
+        'This will replace your current plan in the editor. Continue?\n\n(Export your current plan first if you want to save it)',
+      );
+      if (!confirmed) return;
+    }
+    saveToLocalStorage(data);
+    window.location.href = '/';
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white">
-      <div className="flex items-center px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <span className="text-sm font-semibold mr-3">OSRS Planner</span>
+      <div className="flex items-center px-4 py-2 bg-gray-800 border-b border-gray-700 gap-3">
+        <span className="text-sm font-semibold">OSRS Planner</span>
         <span className="text-xs text-gray-400 bg-gray-700 px-2 py-0.5 rounded">Read-only</span>
+        <span className="text-xs text-gray-500">
+          {data.nodes.length} nodes · {data.edges.length} edges
+        </span>
         <div className="flex-1" />
-        <a href="/" className="text-sm text-blue-400 hover:text-blue-300">
-          Open Editor
-        </a>
+        <button
+          onClick={handleOpenInEditor}
+          className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-500 rounded font-medium transition-colors"
+        >
+          Open in Editor
+        </button>
       </div>
       <div className="flex-1">
         <RequiresArrowDef />
@@ -112,7 +131,48 @@ function SharedView({ data }: { data: GraphData }) {
             nodeColor="#4b5563"
             maskColor="rgba(0,0,0,0.6)"
           />
+          <Panel position="top-right">
+            <SharedLegend />
+          </Panel>
         </ReactFlow>
+      </div>
+    </div>
+  );
+}
+
+function SharedLegend() {
+  return (
+    <div className="bg-gray-800/90 border border-gray-700 rounded-lg p-3 text-xs backdrop-blur-sm">
+      <div className="space-y-1 mb-3">
+        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+          Node type
+        </div>
+        {[
+          { color: 'bg-amber-500', label: 'Goal' },
+          { color: 'bg-blue-500', label: 'Quest' },
+          { color: 'bg-green-600', label: 'Skill' },
+          { color: 'bg-purple-600', label: 'Task' },
+        ].map(({ color, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${color}`} />
+            <span className="text-gray-300">{label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-1">
+        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+          Status
+        </div>
+        {[
+          { border: 'border-green-500', label: 'Complete' },
+          { border: 'border-blue-400', label: 'Available' },
+          { border: 'border-gray-600', label: 'Blocked' },
+        ].map(({ border, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-sm shrink-0 border-2 ${border}`} />
+            <span className="text-gray-300">{label}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
