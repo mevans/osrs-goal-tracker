@@ -4,16 +4,23 @@ import {
   getAvailableNodes,
   getBlockedNodes,
   computeBottlenecks,
+  computeAllStatuses,
   getRequiredPrerequisites,
 } from '../../engine/graph-engine';
-import type { SkillData } from '../../engine/types';
 import { SkillIcon } from '../SkillIcon';
 
-type Tab = 'available' | 'blocked' | 'bottlenecks';
+type StatusFilter = 'available' | 'blocked' | 'bottlenecks';
+
+const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
+  { key: 'available', label: 'Available' },
+  { key: 'blocked', label: 'Blocked' },
+  { key: 'bottlenecks', label: 'Bottlenecks' },
+];
 
 export function PlanningDrawer() {
-  const [activeTab, setActiveTab] = useState<Tab>('available');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('available');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
   const selectNodes = useGraphStore.getState().selectNodes;
@@ -21,220 +28,147 @@ export function PlanningDrawer() {
   const available = useMemo(() => getAvailableNodes(nodes, edges), [nodes, edges]);
   const blocked = useMemo(() => getBlockedNodes(nodes, edges), [nodes, edges]);
   const bottlenecks = useMemo(() => computeBottlenecks(nodes, edges, 10), [nodes, edges]);
+  const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
-  // Collect all unique tags from available nodes
-  const availableTags = useMemo(() => {
-    const tags = new Set<string>();
-    for (const node of available) {
-      for (const tag of node.tags) {
-        tags.add(tag);
-      }
-    }
-    return Array.from(tags).sort();
-  }, [available]);
-
-  // Filter available nodes by selected tag
-  const filteredAvailable = useMemo(() => {
-    if (!selectedTag) return available;
-    return available.filter((n) => n.tags.includes(selectedTag));
-  }, [available, selectedTag]);
+  const bottleneckMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const { nodeId, blockedCount } of bottlenecks) map.set(nodeId, blockedCount);
+    return map;
+  }, [bottlenecks]);
 
   const nodeMap = useMemo(() => {
-    const map = new Map<string, { title: string; complete: boolean }>();
-    for (const n of nodes) {
-      map.set(n.id, { title: n.title, complete: n.complete });
-    }
+    const map = new Map<string, string>();
+    for (const n of nodes) map.set(n.id, n.title);
     return map;
   }, [nodes]);
 
-  const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: 'available', label: 'Available', count: available.length },
-    { key: 'blocked', label: 'Blocked', count: blocked.length },
-    { key: 'bottlenecks', label: 'Bottlenecks', count: bottlenecks.length },
-  ];
+  // Base list for the current status filter
+  const baseNodes = useMemo(() => {
+    if (statusFilter === 'available') return available;
+    if (statusFilter === 'blocked') return blocked;
+    const ids = new Set(bottlenecks.map((b) => b.nodeId));
+    return nodes.filter((n) => ids.has(n.id));
+  }, [statusFilter, available, blocked, bottlenecks, nodes]);
+
+  // Tags always collected from all non-complete nodes
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    for (const n of nodes) {
+      if (!n.complete) for (const t of n.tags) tags.add(t);
+    }
+    return [...tags].sort();
+  }, [nodes]);
+
+  const filteredNodes = useMemo(() => {
+    if (!selectedTag) return baseNodes;
+    return baseNodes.filter((n) => n.tags.includes(selectedTag));
+  }, [baseNodes, selectedTag]);
+
+  const counts = {
+    available: available.length,
+    blocked: blocked.length,
+    bottlenecks: bottlenecks.length,
+  };
+
+  const toggleStatus = (key: StatusFilter) => setStatusFilter(key);
 
   return (
     <div className="w-72 bg-gray-800 border-l border-gray-700 flex flex-col overflow-hidden">
-      <div className="flex border-b border-gray-700">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-2 py-2.5 text-xs font-medium transition-colors ${
-              activeTab === tab.key
-                ? 'text-white border-b-2 border-blue-400'
-                : 'text-gray-400 hover:text-gray-300'
-            }`}
-          >
-            {tab.label}
-            <span className="ml-1 text-gray-500">({tab.count})</span>
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'available' && availableTags.length > 0 && (
-        <div className="border-b border-gray-700 p-2">
-          <div className="flex flex-wrap gap-1">
+      {/* Filters */}
+      <div className="p-3 border-b border-gray-700 space-y-2">
+        <div className="flex flex-wrap gap-1">
+          {STATUS_FILTERS.map(({ key, label }) => (
             <button
-              onClick={() => setSelectedTag(null)}
-              className={`text-[10px] px-2 py-1 rounded transition-colors ${
-                selectedTag === null
+              key={key}
+              onClick={() => toggleStatus(key)}
+              className={`text-xs px-2.5 py-1 rounded transition-colors ${
+                statusFilter === key
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
               }`}
             >
-              All
+              {label}
+              <span className={`ml-1 ${statusFilter === key ? 'text-blue-200' : 'text-gray-500'}`}>
+                {counts[key]}
+              </span>
             </button>
+          ))}
+        </div>
+
+        {availableTags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
             {availableTags.map((tag) => (
               <button
                 key={tag}
-                onClick={() => setSelectedTag(tag)}
-                className={`text-[10px] px-2 py-1 rounded transition-colors ${
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
                   selectedTag === tag
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                 }`}
               >
                 {tag}
               </button>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
+      {/* List */}
       <div className="flex-1 overflow-y-auto p-3">
-        {activeTab === 'available' && (
-          <NodeItemList
-            items={filteredAvailable.map((n) => ({
-              id: n.id,
-              title: n.title,
-              type: n.type,
-              skillData: n.skillData,
-            }))}
-            onSelect={(id) => selectNodes([id])}
-          />
-        )}
+        {filteredNodes.length === 0 ? (
+          <div className="text-sm text-gray-500 text-center mt-6">Nothing to show</div>
+        ) : (
+          <ul className="space-y-1">
+            {filteredNodes.map((node) => {
+              const status = statuses.get(node.id) ?? 'available';
+              const blockedCount = bottleneckMap.get(node.id);
+              const blockers =
+                status === 'blocked'
+                  ? getRequiredPrerequisites(node.id, edges)
+                      .map((id) => nodeMap.get(id))
+                      .filter((t): t is string => t !== undefined)
+                  : [];
 
-        {activeTab === 'blocked' && (
-          <BlockedList
-            nodes={blocked}
-            edges={edges}
-            nodeMap={nodeMap}
-            onSelect={(id) => selectNodes([id])}
-          />
-        )}
-
-        {activeTab === 'bottlenecks' && (
-          <BottleneckList
-            entries={bottlenecks}
-            nodeMap={nodeMap}
-            onSelect={(id) => selectNodes(id ? [id] : [])}
-          />
+              return (
+                <li key={node.id}>
+                  <button
+                    onClick={() => selectNodes([node.id])}
+                    className="w-full text-left rounded px-2 py-1.5 hover:bg-gray-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                          status === 'complete'
+                            ? 'bg-green-400'
+                            : status === 'available'
+                              ? 'bg-blue-400'
+                              : 'bg-gray-500'
+                        }`}
+                      />
+                      <span className="text-[10px] uppercase text-gray-500 w-9 shrink-0">
+                        {node.type}
+                      </span>
+                      {node.skillData && <SkillIcon skill={node.skillData.skillName} size={13} />}
+                      <span className="text-sm text-gray-200 truncate flex-1">{node.title}</span>
+                      {blockedCount !== undefined && (
+                        <span className="text-[10px] text-amber-400 shrink-0">
+                          blocks {blockedCount}
+                        </span>
+                      )}
+                    </div>
+                    {blockers.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-0.5 ml-[calc(0.375rem+0.75rem+2.25rem)] truncate">
+                        Needs: {blockers.join(', ')}
+                      </div>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
     </div>
-  );
-}
-
-function NodeItemList({
-  items,
-  onSelect,
-}: {
-  items: { id: string; title: string; type: string; skillData: SkillData | undefined }[];
-  onSelect: (id: string) => void;
-}) {
-  if (items.length === 0) {
-    return <div className="text-sm text-gray-500 text-center mt-4">No nodes</div>;
-  }
-
-  return (
-    <ul className="space-y-1">
-      {items.map((item) => (
-        <li key={item.id}>
-          <button
-            onClick={() => onSelect(item.id)}
-            className="w-full text-left text-sm text-gray-200 hover:text-white hover:bg-gray-700 rounded px-2 py-1.5 flex items-center gap-2"
-          >
-            <span className="text-[10px] uppercase text-gray-500 w-10 shrink-0">{item.type}</span>
-            {item.skillData && <SkillIcon skill={item.skillData.skillName} size={14} />}
-            <span className="truncate">{item.title}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function BlockedList({
-  nodes: blockedNodes,
-  edges,
-  nodeMap,
-  onSelect,
-}: {
-  nodes: { id: string; title: string; type: string }[];
-  edges: { id: string; from: string; to: string; type: 'requires' | 'improves' }[];
-  nodeMap: Map<string, { title: string; complete: boolean }>;
-  onSelect: (id: string) => void;
-}) {
-  if (blockedNodes.length === 0) {
-    return <div className="text-sm text-gray-500 text-center mt-4">Nothing blocked</div>;
-  }
-
-  return (
-    <ul className="space-y-2">
-      {blockedNodes.map((node) => {
-        const blockers = getRequiredPrerequisites(node.id, edges).filter((id) => {
-          const info = nodeMap.get(id);
-          return info ? !info.complete : false;
-        });
-        return (
-          <li key={node.id} className="bg-gray-750 rounded px-2 py-1.5">
-            <button
-              onClick={() => onSelect(node.id)}
-              className="w-full text-left text-sm text-gray-200 hover:text-white truncate"
-            >
-              {node.title}
-            </button>
-            {blockers.length > 0 && (
-              <div className="text-xs text-gray-500 mt-0.5">
-                Needs: {blockers.map((id) => nodeMap.get(id)?.title ?? id).join(', ')}
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function BottleneckList({
-  entries,
-  nodeMap,
-  onSelect,
-}: {
-  entries: { nodeId: string; blockedCount: number }[];
-  nodeMap: Map<string, { title: string; complete: boolean }>;
-  onSelect: (id: string | undefined) => void;
-}) {
-  if (entries.length === 0) {
-    return <div className="text-sm text-gray-500 text-center mt-4">No bottlenecks</div>;
-  }
-
-  return (
-    <ul className="space-y-1">
-      {entries.map((entry) => (
-        <li key={entry.nodeId}>
-          <button
-            onClick={() => onSelect(entry.nodeId)}
-            className="w-full text-left text-sm text-gray-200 hover:text-white hover:bg-gray-700 rounded px-2 py-1.5 flex items-center justify-between"
-          >
-            <span className="truncate">{nodeMap.get(entry.nodeId)?.title ?? entry.nodeId}</span>
-            <span className="text-xs text-amber-400 shrink-0 ml-2">
-              blocks {entry.blockedCount}
-            </span>
-          </button>
-        </li>
-      ))}
-    </ul>
   );
 }

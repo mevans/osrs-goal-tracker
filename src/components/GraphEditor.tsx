@@ -7,6 +7,7 @@ import {
   Controls,
   Background,
   BackgroundVariant,
+  Panel,
   SelectionMode,
   useReactFlow,
   applyNodeChanges,
@@ -324,7 +325,12 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
           nodeColor="#4b5563"
           maskColor="rgba(0,0,0,0.6)"
         />
+        <Panel position="top-right">
+          <Legend />
+        </Panel>
       </ReactFlow>
+
+      {nodes.length === 0 && <EmptyState />}
 
       {pendingConnection && (
         <NodeDialog
@@ -345,6 +351,66 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
           onClose={() => setEditingNodeId(undefined)}
         />
       )}
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="pointer-events-auto bg-gray-800 border border-gray-700 rounded-xl p-8 max-w-sm w-full text-center shadow-xl mx-4">
+        <h2 className="text-base font-semibold text-white mb-2">OSRS Planner</h2>
+        <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+          Build a visual dependency graph of your goals — quests, skill targets, and unlocks. See
+          what you can do <span className="text-white">now</span>, what's{' '}
+          <span className="text-gray-500">blocked</span>, and where the biggest{' '}
+          <span className="text-amber-400">bottlenecks</span> are.
+        </p>
+        <button
+          onClick={() => useUIStore.getState().setShowAddNode(true)}
+          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded transition-colors"
+        >
+          + Start planning
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Legend() {
+  return (
+    <div className="bg-gray-800/90 border border-gray-700 rounded-lg p-3 text-xs backdrop-blur-sm">
+      <div className="space-y-1 mb-3">
+        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+          Node type
+        </div>
+        {[
+          { color: 'bg-amber-500', label: 'Goal' },
+          { color: 'bg-blue-500', label: 'Quest' },
+          { color: 'bg-green-600', label: 'Skill' },
+          { color: 'bg-purple-600', label: 'Task' },
+        ].map(({ color, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${color}`} />
+            <span className="text-gray-300">{label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-1">
+        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+          Status
+        </div>
+        {[
+          { border: 'border-green-500', label: 'Complete' },
+          { border: 'border-blue-400', label: 'Available' },
+          { border: 'border-gray-600', label: 'Blocked' },
+        ].map(({ border, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-sm shrink-0 border-2 ${border}`} />
+            <span className="text-gray-300">{label}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

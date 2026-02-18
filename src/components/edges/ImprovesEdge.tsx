@@ -34,13 +34,20 @@ export function ImprovesArrowDef() {
         <marker
           id="improves-arrow"
           viewBox="0 0 10 10"
-          refX="10"
+          refX="9"
           refY="5"
-          markerWidth="8"
-          markerHeight="8"
+          markerWidth="5"
+          markerHeight="5"
           orient="auto-start-reverse"
         >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa" />
+          <path
+            d="M 1 1 L 9 5 L 1 9"
+            fill="none"
+            stroke="#a78bfa"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </marker>
       </defs>
     </svg>

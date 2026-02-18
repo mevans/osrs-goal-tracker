@@ -7,6 +7,8 @@ interface UIState {
   setShowHelp: (show: boolean) => void;
   showShortcutHints: boolean;
   setShowShortcutHints: (show: boolean) => void;
+  showAddNode: boolean;
+  setShowAddNode: (show: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()((set) => ({
@@ -16,4 +18,6 @@ export const useUIStore = create<UIState>()((set) => ({
   setShowHelp: (show) => set({ showHelp: show }),
   showShortcutHints: false,
   setShowShortcutHints: (show) => set({ showShortcutHints: show }),
+  showAddNode: false,
+  setShowAddNode: (show) => set({ showAddNode: show }),
 }));

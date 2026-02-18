@@ -70,7 +70,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         ? getQuestName(data.questData.questId)
         : data.title;
 
-  const canEdit = data.nodeType === 'goal' || data.nodeType === 'task';
+  const canEdit = true;
   const isMultiSelect = useGraphStore((s) => s.selectedNodeIds.length > 1);
   const { updateNode, toggleNodeComplete, removeNode } = useGraphStore.getState();
   const { setEditingNodeId } = useUIStore.getState();

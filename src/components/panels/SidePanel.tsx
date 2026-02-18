@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useGraphStore } from '../../store/graph-store';
 import {
   getRequiredPrerequisites,
@@ -15,26 +15,23 @@ const STATUS_DOT: Record<DerivedStatus, string> = {
   blocked: 'bg-gray-500',
 };
 
+const STATUS_LABEL: Record<DerivedStatus, string> = {
+  complete: 'Complete',
+  available: 'Available',
+  blocked: 'Blocked',
+};
+
 export function SidePanel() {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
-  const {
-    toggleNodeComplete,
-    removeNode,
-    selectNodes,
-    updateNode,
-    addTagToNode,
-    removeTagFromNode,
-  } = useGraphStore.getState();
-
-  const [newTag, setNewTag] = useState('');
+  const selectNodes = useGraphStore.getState().selectNodes;
 
   const selectedNodes = useMemo(
     () => nodes.filter((n) => selectedNodeIds.includes(n.id)),
     [nodes, selectedNodeIds],
   );
-  // TODO: Single node detail view - could enhance to show common fields for multi-selection
+
   const node = selectedNodes.length === 1 ? selectedNodes[0] : undefined;
 
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
@@ -51,9 +48,7 @@ export function SidePanel() {
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, string>();
-    for (const n of nodes) {
-      map.set(n.id, n.title);
-    }
+    for (const n of nodes) map.set(n.id, n.title);
     return map;
   }, [nodes]);
 
@@ -63,7 +58,7 @@ export function SidePanel() {
       <div className="w-72 bg-gray-800 border-l border-gray-700 flex flex-col overflow-y-auto">
         <div className="p-4">
           <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">
-            {selectedNodes.length} nodes selected
+            {selectedNodes.length} selected
           </div>
           <ul className="space-y-1">
             {selectedNodes.map((n) => (
@@ -81,208 +76,87 @@ export function SidePanel() {
     );
   }
 
-  // Single node view
   if (!node) return null;
 
   const status = statuses.get(node.id) ?? 'available';
+  const q = node.quantity;
+  const progressPct =
+    q && q.target > 0 ? Math.min(100, Math.round((q.current / q.target) * 100)) : 0;
 
   return (
     <div className="w-72 bg-gray-800 border-l border-gray-700 flex flex-col overflow-y-auto">
+      {/* Header */}
       <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs uppercase tracking-wide text-gray-400">{node.type}</span>
-          <button
-            onClick={() => removeNode(node.id)}
-            className="text-xs text-red-400 hover:text-red-300"
-          >
-            Delete
-          </button>
+        <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">{node.type}</div>
+        <div className="text-white text-base font-semibold leading-snug">{node.title}</div>
+        <div className="flex items-center gap-1.5 mt-2">
+          <div className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[status]}`} />
+          <span className="text-xs text-gray-400">{STATUS_LABEL[status]}</span>
         </div>
-
-        <input
-          className="w-full bg-gray-700 text-white text-lg font-semibold rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
-          value={node.title}
-          onChange={(e) => updateNode(node.id, { title: e.target.value })}
-        />
-
-        <div className="flex items-center gap-2 mt-3">
-          <div className={`w-2.5 h-2.5 rounded-full ${STATUS_DOT[status]}`} />
-          <span className="text-sm text-gray-300 capitalize">{status}</span>
-        </div>
-
-        <button
-          onClick={() => toggleNodeComplete(node.id)}
-          className={`mt-3 w-full text-sm py-1.5 rounded font-medium ${
-            node.complete
-              ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-              : 'bg-green-600 text-white hover:bg-green-500'
-          }`}
-        >
-          {node.complete ? 'Mark Incomplete' : 'Mark Complete'}
-        </button>
       </div>
 
+      {/* Skill data */}
       {node.skillData && (
         <div className="p-4 border-b border-gray-700">
-          <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Skill Target</div>
-          <div className="text-sm text-gray-200 flex items-center gap-1.5">
+          <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Skill Target</div>
+          <div className="flex items-center gap-2 text-sm text-gray-200">
             <SkillIcon skill={node.skillData.skillName} size={18} />
-            {node.skillData.skillName} — Level {node.skillData.targetLevel}
-            {node.skillData.boost ? (
-              <span className="text-blue-400 ml-1">
-                (train to {node.skillData.targetLevel - node.skillData.boost} +{' '}
-                {node.skillData.boost} boost)
-              </span>
-            ) : null}
+            <span>{node.skillData.skillName}</span>
+            <span className="text-gray-500">—</span>
+            <span>Level {node.skillData.targetLevel}</span>
           </div>
-          <div className="flex items-center gap-2 mt-2">
-            <label className="text-xs text-gray-400">Boost</label>
-            <input
-              type="number"
-              min={0}
-              max={25}
-              className="w-16 bg-gray-700 text-white text-sm rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
-              value={node.skillData.boost ?? 0}
-              onChange={(e) => {
-                const val = Number(e.target.value) || 0;
-                updateNode(node.id, {
-                  skillData: { ...node.skillData!, boost: val || undefined },
-                });
-              }}
+          {node.skillData.boost ? (
+            <div className="text-xs text-blue-400 mt-1">
+              Train to {node.skillData.targetLevel - node.skillData.boost} with +
+              {node.skillData.boost} boost
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* Quantity */}
+      {q && (
+        <div className="p-4 border-b border-gray-700">
+          <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Progress</div>
+          <div className="text-sm text-gray-200 mb-2">
+            {q.current} / {q.target}
+            <span className="text-gray-500 ml-2 text-xs">{progressPct}%</span>
+          </div>
+          <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${q.current >= q.target ? 'bg-green-500' : 'bg-amber-500'}`}
+              style={{ width: `${progressPct}%` }}
             />
           </div>
         </div>
       )}
 
-      {(node.type === 'goal' || node.type === 'task') && (
+      {/* Notes */}
+      {node.notes && (
         <div className="p-4 border-b border-gray-700">
-          <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Quantity</div>
-          {node.quantity ? (
-            <>
-              <div className="flex items-center gap-2 mb-2">
-                <button
-                  onClick={() => {
-                    const cur = node.quantity!.current;
-                    if (cur > 0)
-                      updateNode(node.id, { quantity: { ...node.quantity!, current: cur - 1 } });
-                  }}
-                  className="w-7 h-7 text-sm font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min={0}
-                  max={node.quantity.target}
-                  className="w-16 bg-gray-700 text-white text-sm text-center rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
-                  value={node.quantity.current}
-                  onChange={(e) => {
-                    const val = Math.max(
-                      0,
-                      Math.min(node.quantity!.target, Number(e.target.value) || 0),
-                    );
-                    updateNode(node.id, { quantity: { ...node.quantity!, current: val } });
-                  }}
-                />
-                <button
-                  onClick={() => {
-                    const cur = node.quantity!.current;
-                    if (cur < node.quantity!.target)
-                      updateNode(node.id, { quantity: { ...node.quantity!, current: cur + 1 } });
-                  }}
-                  className="w-7 h-7 text-sm font-bold rounded bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
-                >
-                  +
-                </button>
-                <span className="text-sm text-gray-400">/ {node.quantity.target}</span>
-              </div>
-              <div className="w-full h-2 bg-gray-600 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    node.quantity.current >= node.quantity.target ? 'bg-green-500' : 'bg-amber-500'
-                  }`}
-                  style={{
-                    width: `${Math.min(100, Math.round((node.quantity.current / node.quantity.target) * 100))}%`,
-                  }}
-                />
-              </div>
-              <button
-                onClick={() => updateNode(node.id, { quantity: undefined })}
-                className="text-xs text-gray-500 hover:text-gray-300 mt-1.5"
-              >
-                Remove quantity tracking
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => updateNode(node.id, { quantity: { target: 1, current: 0 } })}
-              className="text-xs text-blue-400 hover:text-blue-300"
-            >
-              + Add quantity tracking
-            </button>
-          )}
+          <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">Notes</div>
+          <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{node.notes}</p>
         </div>
       )}
 
-      <div className="p-4 border-b border-gray-700">
-        <div className="text-xs uppercase tracking-wide text-gray-400 mb-1">Notes</div>
-        <textarea
-          className="w-full bg-gray-700 text-sm text-gray-200 rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none resize-y min-h-[60px]"
-          value={node.notes ?? ''}
-          placeholder="Add notes..."
-          onChange={(e) => updateNode(node.id, { notes: e.target.value || undefined })}
-        />
-      </div>
-
-      <div className="p-4 border-b border-gray-700">
-        <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Tags</div>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {node.tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 bg-blue-600/30 text-blue-300 text-xs px-2 py-0.5 rounded border border-blue-500/30"
-            >
-              {tag}
-              <button
-                onClick={() => removeTagFromNode(node.id, tag)}
-                className="hover:text-blue-100"
-                title="Remove tag"
+      {/* Tags */}
+      {node.tags.length > 0 && (
+        <div className="p-4 border-b border-gray-700">
+          <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Tags</div>
+          <div className="flex flex-wrap gap-1.5">
+            {node.tags.map((tag) => (
+              <span
+                key={tag}
+                className="text-xs px-2 py-0.5 rounded bg-blue-600/30 text-blue-300 border border-blue-500/30"
               >
-                ×
-              </button>
-            </span>
-          ))}
-          {node.tags.length === 0 && <span className="text-xs text-gray-500">No tags</span>}
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-1.5">
-          <input
-            type="text"
-            className="flex-1 bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && newTag.trim()) {
-                addTagToNode(node.id, newTag.trim());
-                setNewTag('');
-              }
-            }}
-            placeholder="Add tag..."
-          />
-          <button
-            onClick={() => {
-              if (newTag.trim()) {
-                addTagToNode(node.id, newTag.trim());
-                setNewTag('');
-              }
-            }}
-            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!newTag.trim()}
-          >
-            Add
-          </button>
-        </div>
-      </div>
+      )}
 
+      {/* Relationships */}
       <NodeList
         title="Prerequisites"
         ids={prereqIds}
@@ -291,7 +165,7 @@ export function SidePanel() {
         onSelect={(id) => selectNodes([id])}
       />
       <NodeList
-        title="Dependents"
+        title="Unlocks"
         ids={dependentIds}
         nodeMap={nodeMap}
         statuses={statuses}
@@ -325,7 +199,7 @@ function NodeList({
 
   return (
     <div className="p-4 border-b border-gray-700">
-      <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">{title}</div>
+      <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">{title}</div>
       <ul className="space-y-1">
         {ids.map((id) => {
           const status = statuses.get(id) ?? 'available';
@@ -333,9 +207,9 @@ function NodeList({
             <li key={id}>
               <button
                 onClick={() => onSelect(id)}
-                className="w-full text-left text-sm text-gray-200 hover:text-white flex items-center gap-2 py-0.5"
+                className="w-full text-left text-sm text-gray-300 hover:text-white flex items-center gap-2 py-0.5"
               >
-                <span className={`w-2 h-2 rounded-full ${STATUS_DOT[status]} shrink-0`} />
+                <span className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[status]}`} />
                 <span className="truncate">{nodeMap.get(id) ?? id}</span>
               </button>
             </li>
