@@ -40,6 +40,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
+  const selectedEdgeIds = useGraphStore((s) => s.selectedEdgeIds);
   const {
     moveNode,
     moveNodes,
@@ -75,27 +76,37 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
   // Compute highlight set: selected nodes + all prerequisites + all dependents (requires edges only)
+  // OR just the two endpoints when an edge is selected
   const highlightedNodeIds = useMemo(() => {
-    if (selectedNodeIds.length === 0) return null;
-    const set = new Set<string>();
-
-    for (const nodeId of selectedNodeIds) {
-      set.add(nodeId);
-      // Add all prerequisites (up the tree)
-      const prereqs = getAllPrerequisites(nodeId, edges);
-      prereqs.forEach((id) => set.add(id));
-      // Add all dependents (down the tree)
-      const deps = getAllDependents(nodeId, edges);
-      deps.forEach((id) => set.add(id));
+    if (selectedNodeIds.length > 0) {
+      const set = new Set<string>();
+      for (const nodeId of selectedNodeIds) {
+        set.add(nodeId);
+        getAllPrerequisites(nodeId, edges).forEach((id) => set.add(id));
+        getAllDependents(nodeId, edges).forEach((id) => set.add(id));
+      }
+      return set;
     }
 
-    return set;
-  }, [selectedNodeIds, edges]);
+    if (selectedEdgeIds.length > 0) {
+      const set = new Set<string>();
+      for (const edgeId of selectedEdgeIds) {
+        const edge = edges.find((e) => e.id === edgeId);
+        if (edge) {
+          set.add(edge.from);
+          set.add(edge.to);
+        }
+      }
+      return set;
+    }
 
-  // Compute highlighted edges: only edges between highlighted nodes
+    return null;
+  }, [selectedNodeIds, selectedEdgeIds, edges]);
+
+  // Compute highlighted edges: selected edges + edges between highlighted nodes
   const highlightedEdgeIds = useMemo(() => {
     if (!highlightedNodeIds) return null;
-    const set = new Set<string>();
+    const set = new Set<string>(selectedEdgeIds);
 
     for (const edge of edges) {
       if (highlightedNodeIds.has(edge.from) && highlightedNodeIds.has(edge.to)) {
@@ -104,7 +115,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     }
 
     return set;
-  }, [highlightedNodeIds, edges]);
+  }, [highlightedNodeIds, selectedEdgeIds, edges]);
 
   // Close edit dialog when selection changes
   useEffect(() => {
@@ -145,7 +156,9 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const [rfNodes, setRfNodes] = useState<Node<CustomNodeData>[]>(() =>
     buildRfNodes(nodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
   );
-  const [rfEdges, setRfEdges] = useState<Edge[]>(() => buildRfEdges(edges, highlightedEdgeIds));
+  const [rfEdges, setRfEdges] = useState<Edge[]>(() =>
+    buildRfEdges(edges, highlightedEdgeIds, selectedEdgeIds),
+  );
 
   // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
   useEffect(() => {
@@ -155,8 +168,8 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   }, [nodes, statuses, highlightedNodeIds, selectedNodeIds]);
 
   useEffect(() => {
-    setRfEdges(buildRfEdges(edges, highlightedEdgeIds));
-  }, [edges, highlightedEdgeIds]);
+    setRfEdges(buildRfEdges(edges, highlightedEdgeIds, selectedEdgeIds));
+  }, [edges, highlightedEdgeIds, selectedEdgeIds]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {

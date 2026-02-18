@@ -36,12 +36,17 @@ export function buildRfNodes(
   });
 }
 
-export function buildRfEdges(edges: GraphEdge[], highlightedEdgeIds?: Set<string> | null): Edge[] {
+export function buildRfEdges(
+  edges: GraphEdge[],
+  highlightedEdgeIds?: Set<string> | null,
+  selectedEdgeIds?: string[],
+): Edge[] {
   return edges.map((e) => ({
     id: e.id,
     source: e.from,
     target: e.to,
     type: e.type,
+    selected: selectedEdgeIds?.includes(e.id) ?? false,
     className: highlightedEdgeIds && !highlightedEdgeIds.has(e.id) ? 'opacity-25' : '',
   }));
 }
