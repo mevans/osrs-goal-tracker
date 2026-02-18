@@ -2,15 +2,12 @@ import { useState } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { GraphEditor } from '../components/GraphEditor';
 import { Toolbar } from '../components/toolbar/Toolbar';
-import { SidePanel } from '../components/panels/SidePanel';
 import { PlanningDrawer } from '../components/panels/PlanningDrawer';
 import { KeyboardHelp } from '../components/KeyboardHelp';
-import { useGraphStore } from '../store/graph-store';
 import type { EdgeType } from '../engine/types';
 
 export function EditorPage() {
   const [edgeMode] = useState<EdgeType>('requires');
-  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
 
   return (
     <ReactFlowProvider>
@@ -24,7 +21,7 @@ export function EditorPage() {
           </div>
 
           {/* Only show side panel for multi-select, otherwise show planning drawer */}
-          {selectedNodeIds.length > 1 ? <SidePanel /> : <PlanningDrawer />}
+          <PlanningDrawer />
         </div>
       </div>
     </ReactFlowProvider>
