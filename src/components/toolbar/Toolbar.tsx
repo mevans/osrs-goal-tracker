@@ -6,12 +6,9 @@ import { useUIStore } from '../../store/ui-store';
 import { useViewportCenter } from '../../hooks/useViewportCenter';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { ShareDialog } from './ShareDialog';
-import { TemplateDialog } from './TemplateDialog';
 import { ShortcutHint } from '../Kbd';
-import { expandTemplate } from '../../templates/expand';
 import { applyLayout } from '../../engine/layout';
 import { exportToJson, importFromJson } from '../../engine/serialization';
-import type { SoftDecision, TemplateDefinition } from '../../templates/types';
 
 const GitHubIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -57,7 +54,6 @@ export function Toolbar() {
   const showAddNode = useUIStore((s) => s.showAddNode);
   const setShowAddNode = useUIStore.getState().setShowAddNode;
   const [showShare, setShowShare] = useState(false);
-  const [showTemplate, setShowTemplate] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addNode = useGraphStore.getState().addNode;
   const getCenter = useViewportCenter();
@@ -73,38 +69,6 @@ export function Toolbar() {
     const position = getCenter();
     addNode({ ...result, position });
     setShowAddNode(false);
-  };
-
-  const handleApplyTemplate = (
-    template: TemplateDefinition,
-    decisions: Map<string, SoftDecision>,
-  ) => {
-    const { nodes, edges } = useGraphStore.getState();
-    const result = expandTemplate(template, decisions, nodes, edges);
-
-    const store = useGraphStore.getState();
-
-    // Add new nodes
-    for (const node of result.nodesToAdd) {
-      store.mergeGraph({ nodes: [node], edges: [] });
-    }
-
-    // Update existing nodes (e.g. skill level bumps)
-    for (const update of result.nodesToUpdate) {
-      store.updateNode(update.id, update.updates);
-    }
-
-    // Add new edges
-    if (result.edgesToAdd.length > 0) {
-      store.mergeGraph({ nodes: [], edges: result.edgesToAdd });
-    }
-
-    setShowTemplate(false);
-
-    // Fit view after template expansion with a small delay to ensure rendering
-    setTimeout(() => {
-      fitView({ padding: 0.2, duration: 400 });
-    }, 50);
   };
 
   const handleTidyLayout = () => {
@@ -258,9 +222,6 @@ export function Toolbar() {
 
       {showAddNode && <NodeDialog onSubmit={handleAddNode} onClose={() => setShowAddNode(false)} />}
       {showShare && <ShareDialog onClose={() => setShowShare(false)} />}
-      {showTemplate && (
-        <TemplateDialog onApply={handleApplyTemplate} onClose={() => setShowTemplate(false)} />
-      )}
     </>
   );
 }
