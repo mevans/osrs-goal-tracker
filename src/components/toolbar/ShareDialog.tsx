@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGraphStore } from '../../store/graph-store';
 import { buildShareUrl } from '../../engine/serialization';
+import { analytics } from '../../analytics';
 
 interface ShareDialogProps {
   onClose: () => void;
@@ -28,6 +29,7 @@ export function ShareDialog({ onClose }: ShareDialogProps) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      analytics.shareGenerated();
     } catch {
       // clipboard write failed (e.g. permissions denied in non-HTTPS context)
     }

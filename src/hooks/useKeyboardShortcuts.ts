@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { GraphNode } from '../engine/types';
 import { useUIStore } from '../store/ui-store';
+import { analytics } from '../analytics';
 
 interface ShortcutOptions {
   selectedNodeIds: string[];
@@ -144,14 +145,20 @@ export function useKeyboardShortcuts(options: ShortcutOptions) {
         // Ctrl/Cmd+Z — undo / redo
         if (key === 'z') {
           e.preventDefault();
-          if (e.shiftKey) redo();
-          else undo();
+          if (e.shiftKey) {
+            redo();
+            analytics.redoUsed();
+          } else {
+            undo();
+            analytics.undoUsed();
+          }
           return;
         }
         // Ctrl+Y — redo
         if (key === 'y' && e.ctrlKey) {
           e.preventDefault();
           redo();
+          analytics.redoUsed();
           return;
         }
       }

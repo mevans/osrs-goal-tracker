@@ -10,6 +10,7 @@ import type {
   Quantity,
 } from '../engine/types';
 import { generateId } from '../engine/types';
+import { analytics } from '../analytics';
 
 export interface AddNodeParams {
   type: NodeType;
@@ -120,6 +121,7 @@ export const useGraphStore = create<GraphState>()(
           nodes: state.nodes.map((n) => {
             if (n.id !== id) return n;
             const newComplete = !n.complete;
+            if (newComplete) analytics.nodeCompleted(n.type);
             // When marking complete, sync quantity.current to target for consistency
             if (newComplete && n.quantity) {
               return {
@@ -217,6 +219,7 @@ export const useGraphStore = create<GraphState>()(
         const id = generateId();
         const edge: GraphEdge = { id, from, to, type };
         set((state) => ({ edges: [...state.edges, edge] }));
+        analytics.edgeCreated();
         return id;
       },
 

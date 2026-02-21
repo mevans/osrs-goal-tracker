@@ -9,6 +9,7 @@ import { ShareDialog } from './ShareDialog';
 import { ShortcutHint } from '../Kbd';
 import { applyLayout } from '../../engine/layout';
 import { exportToJson, importFromJson } from '../../engine/serialization';
+import { analytics } from '../../analytics';
 
 const GitHubIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -68,6 +69,7 @@ export function Toolbar() {
   const handleAddNode = (result: NodeFormResult) => {
     const position = getCenter();
     addNode({ ...result, position });
+    analytics.nodeCreated(result.type);
     setShowAddNode(false);
   };
 
@@ -76,6 +78,7 @@ export function Toolbar() {
     if (nodes.length === 0) return;
     const laidOut = applyLayout(nodes, edges);
     useGraphStore.setState({ nodes: laidOut });
+    analytics.tidyLayout();
 
     // Fit view after layout with a small delay to ensure rendering
     setTimeout(() => {
@@ -86,6 +89,7 @@ export function Toolbar() {
   const handleExport = () => {
     const { nodes, edges } = useGraphStore.getState();
     exportToJson({ nodes, edges });
+    analytics.exportJson();
   };
 
   const handleImport = () => {
@@ -106,6 +110,7 @@ export function Toolbar() {
         useGraphStore.getState().loadGraph(data);
         // Clear undo/redo history after import
         useGraphStore.temporal.getState().clear();
+        analytics.importJson();
 
         // Fit view after import with a small delay
         setTimeout(() => {
@@ -142,7 +147,10 @@ export function Toolbar() {
         <div className="h-6 w-px bg-gray-600" />
 
         <button
-          onClick={() => undo()}
+          onClick={() => {
+            undo();
+            analytics.undoUsed();
+          }}
           disabled={!canUndo}
           className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
         >
@@ -151,7 +159,10 @@ export function Toolbar() {
         </button>
 
         <button
-          onClick={() => redo()}
+          onClick={() => {
+            redo();
+            analytics.redoUsed();
+          }}
           disabled={!canRedo}
           className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
         >

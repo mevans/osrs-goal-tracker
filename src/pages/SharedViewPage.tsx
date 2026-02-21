@@ -13,6 +13,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { parseShareParam } from '../engine/serialization';
+import { analytics } from '../analytics';
 import { useGraphStore } from '../store/graph-store';
 import { computeAllStatuses } from '../engine/graph-engine';
 import type { GraphData } from '../engine/types';
@@ -95,6 +96,7 @@ function SharedView({ data }: { data: GraphData }) {
     }
     useGraphStore.getState().loadGraph(data);
     useGraphStore.temporal.getState().clear();
+    analytics.openInEditor();
     navigate('/');
   };
 
