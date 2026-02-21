@@ -128,7 +128,7 @@ export function Toolbar() {
   return (
     <>
       <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <span className="text-sm font-semibold text-white mr-2">OSRS Planner</span>
+        <span className="text-sm font-semibold text-white mr-2">Planscape</span>
 
         <button
           onClick={() => setShowAddNode(true)}

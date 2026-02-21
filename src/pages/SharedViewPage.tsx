@@ -103,7 +103,7 @@ function SharedView({ data }: { data: GraphData }) {
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white">
       <div className="flex items-center px-4 py-2 bg-gray-800 border-b border-gray-700 gap-3">
-        <span className="text-sm font-semibold">OSRS Planner</span>
+        <span className="text-sm font-semibold">Planscape</span>
         <span className="text-xs text-gray-400 bg-gray-700 px-2 py-0.5 rounded">Read-only</span>
         <span className="text-xs text-gray-500">
           {data.nodes.length} nodes · {data.edges.length} edges
