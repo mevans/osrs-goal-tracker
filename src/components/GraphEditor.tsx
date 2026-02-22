@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from 'zustand';
+import { toast } from 'sonner';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useViewportCenter } from '../hooks/useViewportCenter';
 import {
@@ -118,9 +119,26 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
 
   // Paste at viewport center rather than a fixed offset
-  const pasteAtViewportCenter = useCallback(() => {
-    pasteClipboard(getViewportCenter());
+  const pasteAtViewportCenter = useCallback(async () => {
+    const count = await pasteClipboard(getViewportCenter());
+    if (count > 0) toast.success(`Pasted ${count} node${count !== 1 ? 's' : ''}`);
+    else if (count === 0) toast.info('Nothing to paste');
+    else toast.error('Failed to paste — clipboard may be empty or invalid');
   }, [pasteClipboard, getViewportCenter]);
+
+  const copySelectionWithToast = useCallback(async () => {
+    const count = await copySelection();
+    if (count > 0) toast.success(`Copied ${count} node${count !== 1 ? 's' : ''}`);
+    else if (count === -1) toast.error('Failed to copy — clipboard access denied');
+  }, [copySelection]);
+
+  const duplicateNodesWithToast = useCallback(
+    (ids: string[]) => {
+      const newIds = duplicateNodes(ids);
+      toast.success(`Duplicated ${newIds.length} node${newIds.length !== 1 ? 's' : ''}`);
+    },
+    [duplicateNodes],
+  );
 
   // Get node being edited for edit dialog
   const editingNode = useMemo(
@@ -189,8 +207,8 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     selectNodes,
     selectEdges,
     toggleNodesComplete,
-    duplicateNodes,
-    copySelection,
+    duplicateNodes: duplicateNodesWithToast,
+    copySelection: copySelectionWithToast,
     pasteClipboard: pasteAtViewportCenter,
     fitView,
     undo: () => useGraphStore.temporal.getState().undo(),
@@ -240,6 +258,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
               return; // Cancel all changes if user declines
             }
           }
+          toast.success('Node deleted');
         }
       }
 
@@ -281,7 +300,8 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const onConnect: OnConnect = useCallback(
     (connection) => {
       if (connection.source && connection.target) {
-        addEdge(connection.source, connection.target, edgeMode);
+        const id = addEdge(connection.source, connection.target, edgeMode);
+        if (!id) toast.warning('A connection already exists between these nodes');
       }
     },
     [addEdge, edgeMode],

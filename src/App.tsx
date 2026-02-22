@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
+import { Toaster } from 'sonner';
 import { EditorPage } from './pages/EditorPage';
 import { SharedViewPage } from './pages/SharedViewPage';
 
@@ -25,6 +26,7 @@ function ErrorFallback({ error }: { error: unknown }) {
 function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Toaster theme="dark" richColors position="bottom-right" />
       <Routes>
         <Route path="/" element={<EditorPage />} />
         <Route path="/shared" element={<SharedViewPage />} />

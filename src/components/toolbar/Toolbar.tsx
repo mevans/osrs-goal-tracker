@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useReactFlow } from '@xyflow/react';
+import { toast } from 'sonner';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
 import { useViewportCenter } from '../../hooks/useViewportCenter';
@@ -49,6 +50,7 @@ export function Toolbar() {
     const { nodes, edges } = useGraphStore.getState();
     exportToJson({ nodes, edges });
     analytics.exportJson();
+    toast.success('Graph exported');
   };
 
   const handleImport = () => {
@@ -75,9 +77,11 @@ export function Toolbar() {
         setTimeout(() => {
           fitView({ padding: 0.2, duration: 400 });
         }, 50);
+
+        toast.success(`Graph imported — ${data.nodes.length} nodes, ${data.edges.length} edges`);
       }
     } else {
-      alert('Failed to import file. Please check the file format.');
+      toast.error('Failed to import file. Please check the file format.');
     }
 
     // Reset file input so the same file can be re-imported

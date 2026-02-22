@@ -1,4 +1,5 @@
 import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflow/react';
+import { toast } from 'sonner';
 import type { NodeType, DerivedStatus, Quantity, SkillData, QuestData } from '../../engine/types';
 import { getQuestName } from '../../engine/quest-db';
 import { SkillIcon } from '../SkillIcon';
@@ -156,7 +157,10 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
           <div className="h-px bg-surface-border -mx-0.5" />
 
           <button
-            onClick={() => removeNode(id)}
+            onClick={() => {
+              removeNode(id);
+              toast.success('Node deleted');
+            }}
             className="text-xs py-1.5 px-2 rounded text-red-400 hover:text-red-300 hover:bg-surface-700 flex items-center justify-between gap-2"
           >
             <span>Delete</span>

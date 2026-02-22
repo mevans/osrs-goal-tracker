@@ -1,4 +1,5 @@
 import { useReactFlow, useViewport } from '@xyflow/react';
+import { toast } from 'sonner';
 import { useGraphStore } from '../store/graph-store';
 import { ShortcutHint } from './Kbd';
 
@@ -294,9 +295,11 @@ export function MultiSelectActions() {
 
       <button
         onClick={() => {
-          if (window.confirm(`Delete ${selectedNodeIds.length} selected nodes?`)) {
+          const count = selectedNodeIds.length;
+          if (window.confirm(`Delete ${count} selected nodes?`)) {
             selectedNodeIds.forEach((id) => removeNode(id));
             selectNodes([]);
+            toast.success(`Deleted ${count} node${count !== 1 ? 's' : ''}`);
           }
         }}
         className="text-xs py-1 px-2 rounded bg-red-600/40 text-red-300 hover:bg-red-600/60 border border-red-500/40 flex items-center gap-1.5 shrink-0"

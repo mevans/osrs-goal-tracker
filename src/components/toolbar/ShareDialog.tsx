@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useGraphStore } from '../../store/graph-store';
 import { buildShareUrl } from '../../engine/serialization';
 import { analytics } from '../../analytics';
@@ -30,8 +31,9 @@ export function ShareDialog({ onClose }: ShareDialogProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       analytics.shareGenerated();
+      toast.success('Link copied to clipboard');
     } catch {
-      // clipboard write failed (e.g. permissions denied in non-HTTPS context)
+      toast.error('Failed to copy link — check clipboard permissions');
     }
   };
 

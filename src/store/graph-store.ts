@@ -45,8 +45,8 @@ interface GraphState {
   setEdgeType: (id: string, type: EdgeType) => void;
   selectNodes: (ids: string[]) => void;
   selectEdges: (ids: string[]) => void;
-  copySelection: () => void;
-  pasteClipboard: (center: { x: number; y: number }) => void;
+  copySelection: () => Promise<number>;
+  pasteClipboard: (center: { x: number; y: number }) => Promise<number>;
   loadGraph: (data: GraphData) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
   clearGraph: () => void;
@@ -260,8 +260,10 @@ export const useGraphStore = create<GraphState>()(
         const clipboardData = JSON.stringify({ nodes: nodesToCopy, edges: edgesToCopy });
         try {
           await navigator.clipboard.writeText(clipboardData);
+          return nodesToCopy.length;
         } catch (err) {
           console.error('Failed to copy to clipboard:', err);
+          return -1;
         }
       },
 
@@ -273,7 +275,7 @@ export const useGraphStore = create<GraphState>()(
             edges: GraphEdge[];
           };
 
-          if (clipboardData.nodes.length === 0) return;
+          if (clipboardData.nodes.length === 0) return 0;
 
           // Compute bounding center of clipboard nodes so we can center them at the target
           const xs = clipboardData.nodes.map((n) => n.position.x);
@@ -307,9 +309,12 @@ export const useGraphStore = create<GraphState>()(
             edges: [...state.edges, ...newEdges],
             selectedNodeIds: newNodes.map((n) => n.id),
           }));
+
+          return newNodes.length;
         } catch (err) {
           // Silently fail if clipboard is empty or invalid JSON
           console.error('Failed to paste from clipboard:', err);
+          return -1;
         }
       },
 
