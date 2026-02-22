@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react';
-import { useStore } from 'zustand';
+import { useEffect, useRef, useState } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
@@ -7,8 +6,6 @@ import { useViewportCenter } from '../../hooks/useViewportCenter';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { CompassIcon } from '../CompassIcon';
 import { ShareDialog } from './ShareDialog';
-import { ShortcutHint } from '../Kbd';
-import { applyLayout } from '../../engine/layout';
 import { exportToJson, importFromJson } from '../../engine/serialization';
 import { analytics } from '../../analytics';
 
@@ -18,53 +15,27 @@ const GitHubIcon = () => (
   </svg>
 );
 
-const UndoIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 7v6h6" />
-    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-  </svg>
-);
-
-const RedoIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 7v6h-6" />
-    <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
-  </svg>
-);
-
 export function Toolbar() {
   const showAddNode = useUIStore((s) => s.showAddNode);
   const setShowAddNode = useUIStore.getState().setShowAddNode;
   const [showShare, setShowShare] = useState(false);
+  const [showBackup, setShowBackup] = useState(false);
+  const backupRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!showBackup) return;
+    const handler = (e: MouseEvent) => {
+      if (backupRef.current && !backupRef.current.contains(e.target as Node)) {
+        setShowBackup(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showBackup]);
   const addNode = useGraphStore.getState().addNode;
   const getCenter = useViewportCenter();
   const { fitView } = useReactFlow();
-
-  // Undo/redo state
-  const { undo, redo } = useGraphStore.temporal.getState();
-  const canUndo = useStore(useGraphStore.temporal, (state) => state.pastStates.length > 0);
-  const canRedo = useStore(useGraphStore.temporal, (state) => state.futureStates.length > 0);
   const setShowHelp = useUIStore.getState().setShowHelp;
 
   const handleAddNode = (result: NodeFormResult) => {
@@ -72,19 +43,6 @@ export function Toolbar() {
     addNode({ ...result, position });
     analytics.nodeCreated(result.type);
     setShowAddNode(false);
-  };
-
-  const handleTidyLayout = () => {
-    const { nodes, edges } = useGraphStore.getState();
-    if (nodes.length === 0) return;
-    const laidOut = applyLayout(nodes, edges);
-    useGraphStore.setState({ nodes: laidOut });
-    analytics.tidyLayout();
-
-    // Fit view after layout with a small delay to ensure rendering
-    setTimeout(() => {
-      fitView({ padding: 0.2, duration: 400 });
-    }, 50);
   };
 
   const handleExport = () => {
@@ -142,39 +100,6 @@ export function Toolbar() {
         </button>
 
         <button
-          onClick={handleTidyLayout}
-          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
-        >
-          Tidy Layout
-        </button>
-
-        <div className="h-6 w-px bg-surface-border" />
-
-        <button
-          onClick={() => {
-            undo();
-            analytics.undoUsed();
-          }}
-          disabled={!canUndo}
-          className="flex items-center gap-1.5 px-2 py-1.5 text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-surface-700"
-        >
-          <UndoIcon />
-          <ShortcutHint id="undo" />
-        </button>
-
-        <button
-          onClick={() => {
-            redo();
-            analytics.redoUsed();
-          }}
-          disabled={!canRedo}
-          className="flex items-center gap-1.5 px-2 py-1.5 text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-surface-700"
-        >
-          <RedoIcon />
-          <ShortcutHint id="redo" />
-        </button>
-
-        <button
           onClick={() => setShowHelp(true)}
           title="Keyboard shortcuts (?)"
           className="flex items-center gap-1.5 px-2 py-1.5 text-stone-400 hover:text-white bg-surface-700 hover:bg-surface-600 rounded text-sm"
@@ -205,19 +130,36 @@ export function Toolbar() {
 
         <div className="h-6 w-px bg-surface-border" />
 
-        <button
-          onClick={handleImport}
-          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
-        >
-          Import JSON
-        </button>
-
-        <button
-          onClick={handleExport}
-          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
-        >
-          Export JSON
-        </button>
+        <div ref={backupRef} className="relative">
+          <button
+            onClick={() => setShowBackup((v) => !v)}
+            className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
+          >
+            Backup
+          </button>
+          {showBackup && (
+            <div className="absolute right-0 top-full mt-1 w-36 bg-surface-800 border border-surface-border rounded shadow-lg z-50 overflow-hidden">
+              <button
+                onClick={() => {
+                  handleExport();
+                  setShowBackup(false);
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-stone-300 hover:text-white hover:bg-surface-700"
+              >
+                Export JSON
+              </button>
+              <button
+                onClick={() => {
+                  handleImport();
+                  setShowBackup(false);
+                }}
+                className="w-full text-left px-3 py-2 text-sm text-stone-300 hover:text-white hover:bg-surface-700"
+              >
+                Import JSON
+              </button>
+            </div>
+          )}
+        </div>
 
         <button
           onClick={() => setShowShare(true)}

@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useStore } from 'zustand';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useViewportCenter } from '../hooks/useViewportCenter';
 import {
   ReactFlow,
   MiniMap,
   Controls,
+  ControlButton,
   Background,
   BackgroundVariant,
   Panel,
@@ -18,6 +20,8 @@ import {
   type Node,
   type Edge,
 } from '@xyflow/react';
+import { applyLayout } from '../engine/layout';
+import { analytics } from '../analytics';
 import { useGraphStore } from '../store/graph-store';
 import { computeAllStatuses, getAllPrerequisites, getAllDependents } from '../engine/graph-engine';
 import { CustomNode, type CustomNodeData } from './nodes/CustomNode';
@@ -29,9 +33,47 @@ import { useUIStore } from '../store/ui-store';
 import type { EdgeType } from '../engine/types';
 import { buildRfNodes, buildRfEdges } from './rfHelpers';
 import { CompassIcon } from './CompassIcon';
+import { GraphLegend } from './GraphLegend';
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
+
+// SVG icons for React Flow ControlButton (must use fill="currentColor" to respect RF color theming)
+const TidyIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z" opacity="0.85" />
+  </svg>
+);
+
+const UndoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
+  </svg>
+);
+
+const RedoIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
+  </svg>
+);
 
 interface GraphEditorProps {
   edgeMode: EdgeType;
@@ -59,7 +101,19 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   } = useGraphStore.getState();
   const { screenToFlowPosition, fitView } = useReactFlow();
   const getViewportCenter = useViewportCenter();
-  const { undo, redo } = useGraphStore.temporal.getState();
+  const canUndo = useStore(useGraphStore.temporal, (state) => state.pastStates.length > 0);
+  const canRedo = useStore(useGraphStore.temporal, (state) => state.futureStates.length > 0);
+
+  const handleTidyLayout = useCallback(() => {
+    const { nodes: storeNodes, edges: storeEdges } = useGraphStore.getState();
+    if (storeNodes.length === 0) return;
+    const laidOut = applyLayout(storeNodes, storeEdges);
+    useGraphStore.setState({ nodes: laidOut });
+    analytics.tidyLayout();
+    setTimeout(() => {
+      fitView({ padding: 0.2, duration: 400 });
+    }, 50);
+  }, [fitView]);
 
   const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
 
@@ -139,8 +193,8 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     copySelection,
     pasteClipboard: pasteAtViewportCenter,
     fitView,
-    undo,
-    redo,
+    undo: () => useGraphStore.temporal.getState().undo(),
+    redo: () => useGraphStore.temporal.getState().redo(),
   });
 
   // Pending connection: when a drag ends on empty space
@@ -333,15 +387,41 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Cross} gap={40} size={1.5} color="#2a2420" />
-        <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!" />
+        <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!">
+          <ControlButton onClick={handleTidyLayout} title="Tidy Layout">
+            <TidyIcon />
+          </ControlButton>
+          <ControlButton
+            onClick={() => {
+              useGraphStore.temporal.getState().undo();
+              analytics.undoUsed();
+            }}
+            title="Undo (Ctrl+Z)"
+            style={{ opacity: canUndo ? 1 : 0.3, cursor: canUndo ? 'pointer' : 'not-allowed' }}
+          >
+            <UndoIcon />
+          </ControlButton>
+          <ControlButton
+            onClick={() => {
+              useGraphStore.temporal.getState().redo();
+              analytics.redoUsed();
+            }}
+            title="Redo (Ctrl+Shift+Z)"
+            style={{ opacity: canRedo ? 1 : 0.3, cursor: canRedo ? 'pointer' : 'not-allowed' }}
+          >
+            <RedoIcon />
+          </ControlButton>
+        </Controls>
         <MiniMap
           className="bg-surface-800! border-surface-border!"
           nodeColor="#3a3028"
           maskColor="rgba(0,0,0,0.6)"
         />
-        <Panel position="top-right">
-          <Legend />
-        </Panel>
+        {nodes.length > 0 && (
+          <Panel position="top-right">
+            <GraphLegend />
+          </Panel>
+        )}
       </ReactFlow>
 
       {nodes.length === 0 && <EmptyState />}
@@ -389,44 +469,6 @@ function EmptyState() {
         >
           + Start your grind
         </button>
-      </div>
-    </div>
-  );
-}
-
-function Legend() {
-  return (
-    <div className="bg-surface-800/90 border border-surface-border rounded-lg p-3 text-xs backdrop-blur-sm">
-      <div className="space-y-1 mb-3">
-        <div className="text-stone-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
-          Node type
-        </div>
-        {[
-          { color: 'bg-amber-500', label: 'Goal' },
-          { color: 'bg-blue-500', label: 'Quest' },
-          { color: 'bg-green-600', label: 'Skill' },
-          { color: 'bg-purple-600', label: 'Task' },
-        ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${color}`} />
-            <span className="text-stone-300">{label}</span>
-          </div>
-        ))}
-      </div>
-      <div className="space-y-1">
-        <div className="text-stone-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
-          Status
-        </div>
-        {[
-          { border: 'border-green-500', label: 'Complete' },
-          { border: 'border-blue-400', label: 'Available' },
-          { border: 'border-surface-border', label: 'Blocked' },
-        ].map(({ border, label }) => (
-          <div key={label} className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-sm shrink-0 border-2 ${border}`} />
-            <span className="text-stone-300">{label}</span>
-          </div>
-        ))}
       </div>
     </div>
   );
