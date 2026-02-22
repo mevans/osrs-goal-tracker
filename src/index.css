@@ -1,7 +1,31 @@
 @import 'tailwindcss';
 @import '@xyflow/react/dist/style.css';
 
+@theme {
+  /* Warm surface scale — replaces cold Tailwind grays */
+  --color-surface-900: #111009;
+  --color-surface-800: #1e1b18;
+  --color-surface-700: #2a2520;
+  --color-surface-600: #3a3028;
+  --color-surface-border: #2e2a26;
+
+  /* Brand — amber gold */
+  --color-brand: #d97706;
+  --color-brand-bright: #f59e0b;
+  --color-brand-dim: #b45309;
+  --color-brand-text: #fef3c7;
+}
+
 /* Smooth opacity transitions for node dimming */
 .react-flow__node {
   transition: opacity 300ms ease-in-out;
+}
+
+/* Warm map-style canvas background */
+.react-flow__pane {
+  background-color: #1a1714;
+}
+
+.react-flow__renderer {
+  background-color: #1a1714;
 }

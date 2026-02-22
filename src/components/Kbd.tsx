@@ -3,7 +3,7 @@ import { SHORTCUT_KEYS, type ShortcutId } from '../lib/shortcuts';
 
 export function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="inline-flex items-center justify-center px-1 min-w-[18px] h-[18px] text-[10px] font-mono bg-gray-900 border border-gray-600 rounded text-gray-400 leading-none">
+    <kbd className="inline-flex items-center justify-center px-1 min-w-[18px] h-[18px] text-[10px] font-mono bg-surface-900 border border-surface-border rounded text-stone-400 leading-none">
       {children}
     </kbd>
   );

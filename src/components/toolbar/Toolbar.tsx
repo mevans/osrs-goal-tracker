@@ -5,6 +5,7 @@ import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
 import { useViewportCenter } from '../../hooks/useViewportCenter';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
+import { CompassIcon } from '../CompassIcon';
 import { ShareDialog } from './ShareDialog';
 import { ShortcutHint } from '../Kbd';
 import { applyLayout } from '../../engine/layout';
@@ -127,24 +128,27 @@ export function Toolbar() {
 
   return (
     <>
-      <div className="flex items-center gap-2 px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <span className="text-sm font-semibold text-white mr-2">Planscape</span>
+      <div className="flex items-center gap-2 px-4 py-2 bg-surface-800 border-b border-surface-border">
+        <div className="flex items-center gap-2 mr-2">
+          <CompassIcon size={44} />
+          <span className="text-sm font-semibold text-amber-100 tracking-wide">Planscape</span>
+        </div>
 
         <button
           onClick={() => setShowAddNode(true)}
-          className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-500 rounded font-medium"
+          className="px-3 py-1.5 text-sm text-white bg-brand hover:bg-brand-bright rounded font-medium"
         >
           + Add
         </button>
 
         <button
           onClick={handleTidyLayout}
-          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
           Tidy Layout
         </button>
 
-        <div className="h-6 w-px bg-gray-600" />
+        <div className="h-6 w-px bg-surface-border" />
 
         <button
           onClick={() => {
@@ -152,7 +156,7 @@ export function Toolbar() {
             analytics.undoUsed();
           }}
           disabled={!canUndo}
-          className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-surface-700"
         >
           <UndoIcon />
           <ShortcutHint id="undo" />
@@ -164,7 +168,7 @@ export function Toolbar() {
             analytics.redoUsed();
           }}
           disabled={!canRedo}
-          className="flex items-center gap-1.5 px-2 py-1.5 text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-700"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-surface-700"
         >
           <RedoIcon />
           <ShortcutHint id="redo" />
@@ -173,7 +177,7 @@ export function Toolbar() {
         <button
           onClick={() => setShowHelp(true)}
           title="Keyboard shortcuts (?)"
-          className="flex items-center gap-1.5 px-2 py-1.5 text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded text-sm"
+          className="flex items-center gap-1.5 px-2 py-1.5 text-stone-400 hover:text-white bg-surface-700 hover:bg-surface-600 rounded text-sm"
         >
           <span className="text-sm">Keyboard Shortcuts</span>
         </button>
@@ -184,7 +188,7 @@ export function Toolbar() {
           href="https://github.com/mevans/osrs-goal-tracker/issues/new"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
           Feedback
         </a>
@@ -194,30 +198,30 @@ export function Toolbar() {
           target="_blank"
           rel="noopener noreferrer"
           title="View on GitHub"
-          className="flex items-center px-2 py-1.5 text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+          className="flex items-center px-2 py-1.5 text-stone-400 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
           <GitHubIcon />
         </a>
 
-        <div className="h-6 w-px bg-gray-600" />
+        <div className="h-6 w-px bg-surface-border" />
 
         <button
           onClick={handleImport}
-          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
           Import JSON
         </button>
 
         <button
           onClick={handleExport}
-          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
           Export JSON
         </button>
 
         <button
           onClick={() => setShowShare(true)}
-          className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
           Share
         </button>

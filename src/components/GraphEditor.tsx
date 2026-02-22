@@ -28,6 +28,7 @@ import { MultiSelectActions } from './MultiSelectActions';
 import { useUIStore } from '../store/ui-store';
 import type { EdgeType } from '../engine/types';
 import { buildRfNodes, buildRfEdges } from './rfHelpers';
+import { CompassIcon } from './CompassIcon';
 
 const nodeTypes = { custom: CustomNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
@@ -331,11 +332,11 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         selectionMode={SelectionMode.Partial}
         proOptions={{ hideAttribution: true }}
       >
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-        <Controls className="bg-gray-800! border-gray-700! shadow-lg! [&>button]:bg-gray-800! [&>button]:border-gray-700! [&>button]:text-gray-300! [&>button:hover]:bg-gray-700!" />
+        <Background variant={BackgroundVariant.Cross} gap={40} size={1.5} color="#2a2420" />
+        <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!" />
         <MiniMap
-          className="bg-gray-800! border-gray-700!"
-          nodeColor="#4b5563"
+          className="bg-surface-800! border-surface-border!"
+          nodeColor="#3a3028"
           maskColor="rgba(0,0,0,0.6)"
         />
         <Panel position="top-right">
@@ -371,19 +372,22 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 function EmptyState() {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <div className="pointer-events-auto bg-gray-800 border border-gray-700 rounded-xl p-8 max-w-sm w-full text-center shadow-xl mx-4">
-        <h2 className="text-base font-semibold text-white mb-2">Planscape</h2>
-        <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-          Build a visual dependency graph of your goals — quests, skill targets, and unlocks. See
-          what you can do <span className="text-white">now</span>, what's{' '}
-          <span className="text-gray-500">blocked</span>, and where the biggest{' '}
+      <div className="pointer-events-auto bg-surface-800 border border-surface-border rounded-xl p-8 max-w-sm w-full text-center shadow-xl mx-4">
+        <div className="flex items-center justify-center gap-2.5 mb-3">
+          <CompassIcon size={64} />
+          <h2 className="text-base font-semibold text-amber-100 tracking-wide">Planscape</h2>
+        </div>
+        <p className="text-sm text-stone-400 mb-6 leading-relaxed">
+          Map out your OSRS grind. Chain together quests, skill targets, and unlocks — see what you
+          can do <span className="text-stone-200">now</span>, what's{' '}
+          <span className="text-stone-600">blocked</span>, and where the biggest{' '}
           <span className="text-amber-400">bottlenecks</span> are.
         </p>
         <button
           onClick={() => useUIStore.getState().setShowAddNode(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-500 rounded transition-colors"
+          className="px-4 py-2 text-sm font-medium text-white bg-amber-700 hover:bg-amber-600 rounded transition-colors"
         >
-          + Start planning
+          + Start your grind
         </button>
       </div>
     </div>
@@ -392,9 +396,9 @@ function EmptyState() {
 
 function Legend() {
   return (
-    <div className="bg-gray-800/90 border border-gray-700 rounded-lg p-3 text-xs backdrop-blur-sm">
+    <div className="bg-surface-800/90 border border-surface-border rounded-lg p-3 text-xs backdrop-blur-sm">
       <div className="space-y-1 mb-3">
-        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+        <div className="text-stone-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
           Node type
         </div>
         {[
@@ -405,22 +409,22 @@ function Legend() {
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${color}`} />
-            <span className="text-gray-300">{label}</span>
+            <span className="text-stone-300">{label}</span>
           </div>
         ))}
       </div>
       <div className="space-y-1">
-        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+        <div className="text-stone-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
           Status
         </div>
         {[
           { border: 'border-green-500', label: 'Complete' },
           { border: 'border-blue-400', label: 'Available' },
-          { border: 'border-gray-600', label: 'Blocked' },
+          { border: 'border-surface-border', label: 'Blocked' },
         ].map(({ border, label }) => (
           <div key={label} className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-sm shrink-0 border-2 ${border}`} />
-            <span className="text-gray-300">{label}</span>
+            <span className="text-stone-300">{label}</span>
           </div>
         ))}
       </div>

@@ -12,7 +12,7 @@ export function EditorPage() {
   return (
     <ReactFlowProvider>
       <KeyboardHelp />
-      <div className="h-screen flex flex-col bg-gray-900 text-white">
+      <div className="h-screen flex flex-col bg-surface-900 text-white">
         <Toolbar />
 
         <div className="flex-1 flex overflow-hidden">

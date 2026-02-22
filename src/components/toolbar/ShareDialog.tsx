@@ -37,9 +37,9 @@ export function ShareDialog({ onClose }: ShareDialogProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-5 w-[480px] shadow-xl">
-        <h2 className="text-lg font-semibold text-white mb-3">Share Graph</h2>
-        <p className="text-sm text-gray-400 mb-3">
+      <div className="bg-surface-800 border border-surface-border rounded-lg p-5 w-[480px] shadow-xl">
+        <h2 className="text-lg font-semibold text-brand-text mb-3">Share Graph</h2>
+        <p className="text-sm text-stone-400 mb-3">
           Anyone with this link can view a read-only copy of your graph.
         </p>
 
@@ -48,23 +48,23 @@ export function ShareDialog({ onClose }: ShareDialogProps) {
             <input
               readOnly
               value={url}
-              className="flex-1 bg-gray-700 text-gray-200 text-sm rounded px-2 py-1.5 border border-gray-600 truncate"
+              className="flex-1 bg-surface-700 text-stone-200 text-sm rounded px-2 py-1.5 border border-surface-border truncate"
             />
             <button
               onClick={handleCopy}
-              className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-500 rounded shrink-0"
+              className="px-3 py-1.5 text-sm text-white bg-brand hover:bg-brand-bright rounded shrink-0"
             >
               {copied ? 'Copied!' : 'Copy'}
             </button>
           </div>
         ) : (
-          <div className="text-sm text-gray-500">Generating link...</div>
+          <div className="text-sm text-stone-500">Generating link...</div>
         )}
 
         <div className="flex justify-end mt-4">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+            className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
           >
             Close
           </button>

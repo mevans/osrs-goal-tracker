@@ -25,11 +25,11 @@ export function EdgeActionBar({ edgeId, edgeType, labelX, labelY }: EdgeActionBa
         className="nodrag nopan"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-1.5 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1.5 shadow-xl">
+        <div className="flex items-center gap-1.5 bg-surface-800 border border-surface-border rounded-lg px-2 py-1.5 shadow-xl">
           {/* Reverse */}
           <button
             onClick={() => reverseEdge(edgeId)}
-            className="flex items-center gap-1 text-[11px] text-gray-300 hover:text-white px-1.5 py-1 rounded hover:bg-gray-700"
+            className="flex items-center gap-1 text-[11px] text-stone-300 hover:text-white px-1.5 py-1 rounded hover:bg-surface-700"
             title="Reverse direction"
           >
             <svg
@@ -47,16 +47,16 @@ export function EdgeActionBar({ edgeId, edgeType, labelX, labelY }: EdgeActionBa
             Reverse
           </button>
 
-          <div className="w-px h-5 bg-gray-600" />
+          <div className="w-px h-5 bg-surface-border" />
 
           {/* Type toggle */}
-          <div className="flex items-center bg-gray-700/60 rounded p-0.5">
+          <div className="flex items-center bg-surface-700/60 rounded p-0.5">
             <button
               onClick={() => setEdgeType(edgeId, 'requires')}
               className={`text-[11px] px-2 py-0.5 rounded transition-colors ${
                 isRequires
-                  ? 'bg-gray-600 text-slate-200 shadow-sm'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-surface-600 text-stone-200 shadow-sm'
+                  : 'text-stone-400 hover:text-stone-200'
               }`}
               title="Hard dependency"
             >
@@ -67,7 +67,7 @@ export function EdgeActionBar({ edgeId, edgeType, labelX, labelY }: EdgeActionBa
               className={`text-[11px] px-2 py-0.5 rounded transition-colors ${
                 !isRequires
                   ? 'bg-purple-600/60 text-purple-200 shadow-sm'
-                  : 'text-gray-400 hover:text-gray-200'
+                  : 'text-stone-400 hover:text-stone-200'
               }`}
               title="Soft recommendation"
             >
@@ -75,12 +75,12 @@ export function EdgeActionBar({ edgeId, edgeType, labelX, labelY }: EdgeActionBa
             </button>
           </div>
 
-          <div className="w-px h-5 bg-gray-600" />
+          <div className="w-px h-5 bg-surface-border" />
 
           {/* Delete */}
           <button
             onClick={() => removeEdge(edgeId)}
-            className="flex items-center gap-1 text-[11px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-gray-700"
+            className="flex items-center gap-1 text-[11px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-surface-700"
             title="Delete edge"
           >
             <svg

@@ -44,11 +44,11 @@ export function SharedViewPage() {
 
   if (!param || parseError) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="h-screen flex items-center justify-center bg-surface-900 text-white">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Invalid Share Link</h1>
-          <p className="text-gray-400">This link is invalid or has expired.</p>
-          <a href="/" className="text-blue-400 hover:text-blue-300 mt-4 inline-block">
+          <p className="text-stone-400">This link is invalid or has expired.</p>
+          <a href="/" className="text-brand-bright hover:text-brand mt-4 inline-block">
             Go to Editor
           </a>
         </div>
@@ -58,8 +58,8 @@ export function SharedViewPage() {
 
   if (!graphData) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
-        <div className="text-gray-400">Loading...</div>
+      <div className="h-screen flex items-center justify-center bg-surface-900 text-white">
+        <div className="text-stone-400">Loading...</div>
       </div>
     );
   }
@@ -101,17 +101,17 @@ function SharedView({ data }: { data: GraphData }) {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900 text-white">
-      <div className="flex items-center px-4 py-2 bg-gray-800 border-b border-gray-700 gap-3">
-        <span className="text-sm font-semibold">Planscape</span>
-        <span className="text-xs text-gray-400 bg-gray-700 px-2 py-0.5 rounded">Read-only</span>
-        <span className="text-xs text-gray-500">
+    <div className="h-screen flex flex-col bg-surface-900 text-white">
+      <div className="flex items-center px-4 py-2 bg-surface-800 border-b border-surface-border gap-3">
+        <span className="text-sm font-semibold text-brand-text">Planscape</span>
+        <span className="text-xs text-stone-400 bg-surface-700 px-2 py-0.5 rounded">Read-only</span>
+        <span className="text-xs text-stone-500">
           {data.nodes.length} nodes · {data.edges.length} edges
         </span>
         <div className="flex-1" />
         <button
           onClick={handleOpenInEditor}
-          className="px-3 py-1.5 text-sm text-white bg-blue-600 hover:bg-blue-500 rounded font-medium transition-colors"
+          className="px-3 py-1.5 text-sm text-white bg-brand hover:bg-brand-bright rounded font-medium transition-colors"
         >
           Open in Editor
         </button>
@@ -132,9 +132,9 @@ function SharedView({ data }: { data: GraphData }) {
           proOptions={{ hideAttribution: true }}
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-          <Controls className="bg-gray-800! border-gray-700! shadow-lg! [&>button]:bg-gray-800! [&>button]:border-gray-700! [&>button]:text-gray-300! [&>button:hover]:bg-gray-700!" />
+          <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!" />
           <MiniMap
-            className="bg-gray-800! border-gray-700!"
+            className="bg-surface-800! border-surface-border!"
             nodeColor="#4b5563"
             maskColor="rgba(0,0,0,0.6)"
           />
@@ -149,9 +149,9 @@ function SharedView({ data }: { data: GraphData }) {
 
 function SharedLegend() {
   return (
-    <div className="bg-gray-800/90 border border-gray-700 rounded-lg p-3 text-xs backdrop-blur-sm">
+    <div className="bg-surface-800/90 border border-surface-border rounded-lg p-3 text-xs backdrop-blur-sm">
       <div className="space-y-1 mb-3">
-        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+        <div className="text-stone-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
           Node type
         </div>
         {[
@@ -162,22 +162,22 @@ function SharedLegend() {
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-sm shrink-0 ${color}`} />
-            <span className="text-gray-300">{label}</span>
+            <span className="text-stone-300">{label}</span>
           </div>
         ))}
       </div>
       <div className="space-y-1">
-        <div className="text-gray-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
+        <div className="text-stone-500 font-medium uppercase tracking-wide text-[10px] mb-1.5">
           Status
         </div>
         {[
           { border: 'border-green-500', label: 'Complete' },
           { border: 'border-blue-400', label: 'Available' },
-          { border: 'border-gray-600', label: 'Blocked' },
+          { border: 'border-surface-border', label: 'Blocked' },
         ].map(({ border, label }) => (
           <div key={label} className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-sm shrink-0 border-2 ${border}`} />
-            <span className="text-gray-300">{label}</span>
+            <span className="text-stone-300">{label}</span>
           </div>
         ))}
       </div>

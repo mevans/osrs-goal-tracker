@@ -128,7 +128,7 @@ const NODE_TYPE_CONFIG: TypeConfig[] = [
     cardBorder: 'border-blue-500',
     cardBg: 'bg-blue-500/10',
     iconColor: 'text-blue-400',
-    buttonClass: 'bg-blue-600 hover:bg-blue-500',
+    buttonClass: 'bg-brand hover:bg-brand-bright',
   },
   {
     value: 'skill',
@@ -276,7 +276,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <form
         onSubmit={handleSubmit}
-        className={`bg-gray-800 border border-gray-700 border-l-4 ${cfg.formBorder} rounded-lg p-5 w-96 shadow-xl max-h-[90vh] overflow-y-auto`}
+        className={`bg-surface-800 border border-surface-border border-l-4 ${cfg.formBorder} rounded-lg p-5 w-96 shadow-xl max-h-[90vh] overflow-y-auto`}
       >
         <h2 className="text-base font-semibold text-white mb-4">
           {isEdit ? `Edit ${cfg.label}` : `New ${cfg.label}`}
@@ -292,18 +292,18 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
               className={`text-left p-3 rounded-lg border-2 transition-all ${
                 type === c.value
                   ? `${c.cardBorder} ${c.cardBg}`
-                  : 'border-gray-700 hover:border-gray-600 hover:bg-gray-700/50'
+                  : 'border-surface-border hover:border-surface-600 hover:bg-surface-700/50'
               }`}
             >
-              <div className={`mb-1.5 ${type === c.value ? c.iconColor : 'text-gray-500'}`}>
+              <div className={`mb-1.5 ${type === c.value ? c.iconColor : 'text-stone-500'}`}>
                 <c.Icon />
               </div>
               <div
-                className={`text-sm font-medium leading-none ${type === c.value ? 'text-white' : 'text-gray-400'}`}
+                className={`text-sm font-medium leading-none ${type === c.value ? 'text-white' : 'text-stone-400'}`}
               >
                 {c.label}
               </div>
-              <div className="text-xs text-gray-500 mt-1 leading-tight">{c.description}</div>
+              <div className="text-xs text-stone-500 mt-1 leading-tight">{c.description}</div>
             </button>
           ))}
         </div>
@@ -313,7 +313,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           <div className="mb-3">
             <input
               ref={titleInputRef}
-              className="w-full bg-gray-700 text-white rounded px-3 py-2 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+              className="w-full bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={type === 'goal' ? 'e.g. Fire Cape' : 'e.g. Unlock Piety'}
@@ -326,7 +326,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           <div className="mb-3">
             <select
               autoFocus
-              className="w-full bg-gray-700 text-white rounded px-3 py-2 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+              className="w-full bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
               value={questId}
               onChange={(e) => setQuestId(e.target.value)}
             >
@@ -346,7 +346,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
               <div className="flex items-center gap-2">
                 <SkillIcon skill={skillName} size={20} />
                 <select
-                  className="flex-1 bg-gray-700 text-white rounded px-2 py-2 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+                  className="flex-1 bg-surface-700 text-white rounded px-2 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
                   value={skillName}
                   onChange={(e) => setSkillName(e.target.value as SkillName)}
                 >
@@ -364,7 +364,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                 type="number"
                 min={1}
                 max={99}
-                className="w-full bg-gray-700 text-white rounded px-2 py-2 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+                className="w-full bg-surface-700 text-white rounded px-2 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
                 value={targetLevel}
                 onChange={(e) => setTargetLevel(e.target.value)}
                 placeholder="Level"
@@ -375,7 +375,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                 type="number"
                 min={0}
                 max={25}
-                className="w-full bg-gray-700 text-white rounded px-2 py-2 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+                className="w-full bg-surface-700 text-white rounded px-2 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
                 value={boost}
                 onChange={(e) => setBoost(e.target.value)}
                 placeholder="Boost"
@@ -388,7 +388,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
         <button
           type="button"
           onClick={() => setShowMore((v) => !v)}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 mb-3 transition-colors"
+          className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-300 mb-3 transition-colors"
         >
           <span
             className={`transition-transform duration-150 ${showMore ? 'rotate-0' : '-rotate-90'}`}
@@ -403,14 +403,14 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
             {/* Quantity target — goal/task only */}
             {isGoalOrTask && (
               <div>
-                <label className="block text-xs text-gray-400 mb-1">
+                <label className="block text-xs text-stone-400 mb-1">
                   Quantity{' '}
-                  <span className="text-gray-600">— track progress toward a count (optional)</span>
+                  <span className="text-stone-600">— track progress toward a count (optional)</span>
                 </label>
                 <input
                   type="number"
                   min={0}
-                  className="w-32 bg-gray-700 text-white rounded px-2 py-1.5 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm"
+                  className="w-32 bg-surface-700 text-white rounded px-2 py-1.5 border border-surface-border focus:border-brand focus:outline-none text-sm"
                   value={quantityTarget}
                   onChange={(e) => setQuantityTarget(e.target.value)}
                   placeholder="e.g. 500"
@@ -420,9 +420,9 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
 
             {/* Notes */}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Notes</label>
+              <label className="block text-xs text-stone-400 mb-1">Notes</label>
               <textarea
-                className="w-full bg-gray-700 text-white rounded px-2 py-1.5 border border-gray-600 focus:border-blue-400 focus:outline-none text-sm resize-y min-h-[48px]"
+                className="w-full bg-surface-700 text-white rounded px-2 py-1.5 border border-surface-border focus:border-brand focus:outline-none text-sm resize-y min-h-[48px]"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Optional notes..."
@@ -431,19 +431,19 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
 
             {/* Tags */}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Tags</label>
+              <label className="block text-xs text-stone-400 mb-1">Tags</label>
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-1 mb-1.5">
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-1 bg-blue-600/30 text-blue-300 text-xs px-2 py-0.5 rounded border border-blue-500/30"
+                      className="inline-flex items-center gap-1 bg-brand/20 text-brand-text text-xs px-2 py-0.5 rounded border border-brand/30"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="hover:text-blue-100 leading-none"
+                        className="hover:text-white leading-none"
                       >
                         ×
                       </button>
@@ -455,7 +455,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                 <div className="relative flex-1">
                   <input
                     type="text"
-                    className="w-full bg-gray-700 text-white text-xs rounded px-2 py-1 border border-gray-600 focus:border-blue-400 focus:outline-none"
+                    className="w-full bg-surface-700 text-white text-xs rounded px-2 py-1 border border-surface-border focus:border-brand focus:outline-none"
                     value={newTag}
                     onChange={(e) => {
                       setNewTag(e.target.value);
@@ -485,7 +485,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                     placeholder="Add tag..."
                   />
                   {tagInputFocused && suggestions.length > 0 && (
-                    <ul className="absolute left-0 right-0 top-full mt-0.5 bg-gray-700 border border-gray-600 rounded shadow-lg z-10 max-h-36 overflow-y-auto">
+                    <ul className="absolute left-0 right-0 top-full mt-0.5 bg-surface-700 border border-surface-border rounded shadow-lg z-10 max-h-36 overflow-y-auto">
                       {suggestions.map((tag, i) => (
                         <li key={tag}>
                           <button
@@ -496,8 +496,8 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                             }}
                             className={`w-full text-left text-xs px-2 py-1 ${
                               i === highlightedIndex
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-200 hover:bg-gray-600'
+                                ? 'bg-brand text-white'
+                                : 'text-stone-200 hover:bg-surface-600'
                             }`}
                           >
                             {tag}
@@ -511,7 +511,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                   type="button"
                   onClick={() => addTag()}
                   disabled={!newTag.trim()}
-                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs bg-brand text-white rounded hover:bg-brand-bright disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Add
                 </button>
@@ -524,7 +524,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1.5 text-sm text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded"
+            className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
           >
             Cancel
           </button>

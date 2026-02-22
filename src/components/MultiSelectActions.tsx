@@ -68,7 +68,7 @@ const DistributeVIcon = () => (
 );
 
 function Divider() {
-  return <div className="w-px h-5 bg-gray-600 mx-0.5" />;
+  return <div className="w-px h-5 bg-surface-border mx-0.5" />;
 }
 
 function AlignButton({
@@ -84,7 +84,7 @@ function AlignButton({
     <button
       onClick={onClick}
       title={title}
-      className="p-1 rounded text-gray-300 hover:text-white hover:bg-gray-700"
+      className="p-1 rounded text-stone-300 hover:text-white hover:bg-surface-700"
     >
       {children}
     </button>
@@ -217,7 +217,7 @@ export function MultiSelectActions() {
 
   return (
     <div
-      className="fixed z-40 flex items-center gap-1 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1.5 shadow-xl pointer-events-auto"
+      className="fixed z-40 flex items-center gap-1 bg-surface-800 border border-surface-border rounded-lg px-2 py-1.5 shadow-xl pointer-events-auto"
       style={{
         left: screenX,
         top: screenY,
@@ -226,7 +226,7 @@ export function MultiSelectActions() {
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >
-      <span className="text-xs text-gray-400 pr-1.5 border-r border-gray-600 shrink-0">
+      <span className="text-xs text-stone-400 pr-1.5 border-r border-surface-border shrink-0">
         {selectedNodeIds.length} selected
       </span>
 
@@ -234,7 +234,7 @@ export function MultiSelectActions() {
         onClick={() => toggleNodesComplete(selectedNodeIds)}
         className={`text-xs py-1 px-2 rounded font-medium flex items-center gap-1.5 shrink-0 ${
           allComplete
-            ? 'bg-gray-600 text-gray-300 hover:bg-gray-500'
+            ? 'bg-surface-600 text-stone-300 hover:bg-surface-700'
             : 'bg-green-600 text-white hover:bg-green-500'
         }`}
       >

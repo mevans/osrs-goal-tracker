@@ -73,9 +73,9 @@ export function PlanningDrawer() {
   const toggleStatus = (key: StatusFilter) => setStatusFilter(key);
 
   return (
-    <div className="w-72 bg-gray-800 border-l border-gray-700 flex flex-col overflow-hidden">
+    <div className="w-72 bg-surface-800 border-l border-surface-border flex flex-col overflow-hidden">
       {/* Filters */}
-      <div className="p-3 border-b border-gray-700 space-y-2">
+      <div className="p-3 border-b border-surface-border space-y-2">
         <div className="flex flex-wrap gap-1">
           {STATUS_FILTERS.map(({ key, label }) => (
             <button
@@ -83,12 +83,14 @@ export function PlanningDrawer() {
               onClick={() => toggleStatus(key)}
               className={`text-xs px-2.5 py-1 rounded transition-colors ${
                 statusFilter === key
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-brand text-white'
+                  : 'bg-surface-700 text-stone-300 hover:bg-surface-600'
               }`}
             >
               {label}
-              <span className={`ml-1 ${statusFilter === key ? 'text-blue-200' : 'text-gray-500'}`}>
+              <span
+                className={`ml-1 ${statusFilter === key ? 'text-brand-text' : 'text-stone-500'}`}
+              >
                 {counts[key]}
               </span>
             </button>
@@ -103,8 +105,8 @@ export function PlanningDrawer() {
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                 className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
                   selectedTag === tag
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                    ? 'bg-brand text-white'
+                    : 'bg-surface-700 text-stone-400 hover:bg-surface-600'
                 }`}
               >
                 {tag}
@@ -117,7 +119,7 @@ export function PlanningDrawer() {
       {/* List */}
       <div className="flex-1 overflow-y-auto p-3">
         {filteredNodes.length === 0 ? (
-          <div className="text-sm text-gray-500 text-center mt-6">Nothing to show</div>
+          <div className="text-sm text-stone-500 text-center mt-6">Nothing to show</div>
         ) : (
           <ul className="space-y-1">
             {filteredNodes.map((node) => {
@@ -134,7 +136,7 @@ export function PlanningDrawer() {
                 <li key={node.id}>
                   <button
                     onClick={() => selectNodes([node.id])}
-                    className="w-full text-left rounded px-2 py-1.5 hover:bg-gray-700 transition-colors"
+                    className="w-full text-left rounded px-2 py-1.5 hover:bg-surface-700 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <span
@@ -143,14 +145,14 @@ export function PlanningDrawer() {
                             ? 'bg-green-400'
                             : status === 'available'
                               ? 'bg-blue-400'
-                              : 'bg-gray-500'
+                              : 'bg-stone-500'
                         }`}
                       />
-                      <span className="text-[10px] uppercase text-gray-500 w-9 shrink-0">
+                      <span className="text-[10px] uppercase text-stone-500 w-9 shrink-0">
                         {node.type}
                       </span>
                       {node.skillData && <SkillIcon skill={node.skillData.skillName} size={13} />}
-                      <span className="text-sm text-gray-200 truncate flex-1">{node.title}</span>
+                      <span className="text-sm text-stone-200 truncate flex-1">{node.title}</span>
                       {blockedCount !== undefined && (
                         <span className="text-[10px] text-amber-400 shrink-0">
                           blocks {blockedCount}
@@ -158,7 +160,7 @@ export function PlanningDrawer() {
                       )}
                     </div>
                     {blockers.length > 0 && (
-                      <div className="text-xs text-gray-500 mt-0.5 ml-[calc(0.375rem+0.75rem+2.25rem)] truncate">
+                      <div className="text-xs text-stone-500 mt-0.5 ml-[calc(0.375rem+0.75rem+2.25rem)] truncate">
                         Needs: {blockers.join(', ')}
                       </div>
                     )}
