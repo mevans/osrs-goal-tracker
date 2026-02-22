@@ -26,6 +26,7 @@ export const OSRS_SKILLS = [
   'Farming',
   'Construction',
   'Hunter',
+  'Sailing',
 ] as const;
 
 export type SkillName = (typeof OSRS_SKILLS)[number];

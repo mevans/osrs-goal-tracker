@@ -193,7 +193,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
                 </span>
                 {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
               </div>
-              <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
+              <div className="text-sm font-medium text-white break-words">{displayTitle}</div>
             </div>
           </div>
         ) : (
@@ -204,9 +204,9 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
               </span>
               {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
             </div>
-            <div className="text-sm font-medium text-white truncate">{displayTitle}</div>
+            <div className="text-sm font-medium text-white break-words">{displayTitle}</div>
             {data.subtitle && (
-              <div className="text-xs text-stone-400 truncate mt-0.5">{data.subtitle}</div>
+              <div className="text-xs text-stone-400 break-words mt-0.5">{data.subtitle}</div>
             )}
           </>
         )}
