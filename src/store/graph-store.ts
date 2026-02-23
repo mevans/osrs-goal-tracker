@@ -30,8 +30,13 @@ interface GraphState {
   selectedEdgeIds: string[];
 
   addNode: (params: AddNodeParams) => string;
+  addNodeWithEdge: (
+    params: AddNodeParams,
+    edge: { to: string; type: EdgeType } | { from: string; type: EdgeType },
+  ) => string;
   updateNode: (id: string, updates: Partial<Omit<GraphNode, 'id'>>) => void;
   removeNode: (id: string) => void;
+  removeNodes: (ids: string[]) => void;
   moveNode: (id: string, position: { x: number; y: number }) => void;
   moveNodes: (positions: { id: string; position: { x: number; y: number } }[]) => void;
   toggleNodeComplete: (id: string) => void;
@@ -79,6 +84,37 @@ export const useGraphStore = create<GraphState>()(
         return id;
       },
 
+      addNodeWithEdge: (params, edgeSpec) => {
+        const nodeId = generateId();
+        const node: GraphNode = {
+          id: nodeId,
+          type: params.type,
+          title: params.title,
+          position: params.position,
+          complete: false,
+          notes: params.notes ?? undefined,
+          skillData: params.skillData ?? undefined,
+          questData: params.questData ?? undefined,
+          quantity: params.quantity ?? undefined,
+          tags: params.tags ?? [],
+          completedPrereqIds: [],
+        };
+        const from = 'from' in edgeSpec ? edgeSpec.from : nodeId;
+        const to = 'to' in edgeSpec ? edgeSpec.to : nodeId;
+        set((state) => {
+          const duplicate = state.edges.some(
+            (e) => (e.from === from && e.to === to) || (e.from === to && e.to === from),
+          );
+          const edge: GraphEdge = { id: generateId(), from, to, type: edgeSpec.type };
+          return {
+            nodes: [...state.nodes, node],
+            edges: duplicate ? state.edges : [...state.edges, edge],
+          };
+        });
+        analytics.edgeCreated();
+        return nodeId;
+      },
+
       updateNode: (id, updates) => {
         set((state) => ({
           nodes: state.nodes.map((n) => {
@@ -98,6 +134,15 @@ export const useGraphStore = create<GraphState>()(
           nodes: state.nodes.filter((n) => n.id !== id),
           edges: state.edges.filter((e) => e.from !== id && e.to !== id),
           selectedNodeIds: state.selectedNodeIds.filter((nid) => nid !== id),
+        }));
+      },
+
+      removeNodes: (ids) => {
+        const idSet = new Set(ids);
+        set((state) => ({
+          nodes: state.nodes.filter((n) => !idSet.has(n.id)),
+          edges: state.edges.filter((e) => !idSet.has(e.from) && !idSet.has(e.to)),
+          selectedNodeIds: state.selectedNodeIds.filter((nid) => !idSet.has(nid)),
         }));
       },
 

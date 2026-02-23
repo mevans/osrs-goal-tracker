@@ -89,10 +89,9 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const {
     moveNode,
     moveNodes,
-    addNode,
     updateNode,
     addEdge,
-    removeNode,
+    removeNodes,
     removeEdge,
     selectNodes,
     selectEdges,
@@ -255,20 +254,18 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      // Check for node removal — confirm if it has edges
-      for (const change of changes) {
-        if (change.type === 'remove') {
-          const nodeEdges = edges.filter((e) => e.from === change.id || e.to === change.id);
-          if (nodeEdges.length > 0) {
-            const confirmed = window.confirm(
-              `This node has ${nodeEdges.length} edge(s). Delete anyway?`,
-            );
-            if (!confirmed) {
-              return; // Cancel all changes if user declines
-            }
-          }
-          toast.success('Node deleted');
-        }
+      const removeChanges = changes.filter((c) => c.type === 'remove');
+
+      // Confirm and batch-delete removals
+      if (removeChanges.length > 0) {
+        const totalEdges = removeChanges.reduce(
+          (sum, c) => sum + edges.filter((e) => e.from === c.id || e.to === c.id).length,
+          0,
+        );
+        const nodeWord = removeChanges.length === 1 ? 'node' : `${removeChanges.length} nodes`;
+        const edgeNote =
+          totalEdges > 0 ? ` and ${totalEdges} edge${totalEdges !== 1 ? 's' : ''}` : '';
+        if (!window.confirm(`Delete ${nodeWord}${edgeNote}?`)) return;
       }
 
       // Apply ALL changes locally (position, select, dimensions, remove)
@@ -280,17 +277,22 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         if (change.type === 'position' && change.position && !change.dragging) {
           positionUpdates.push({ id: change.id, position: change.position });
         }
-        if (change.type === 'remove') {
-          removeNode(change.id);
-        }
       }
+
+      if (removeChanges.length > 0) {
+        removeNodes(removeChanges.map((c) => c.id));
+        toast.success(
+          `Deleted ${removeChanges.length} node${removeChanges.length !== 1 ? 's' : ''}`,
+        );
+      }
+
       if (positionUpdates.length === 1) {
         moveNode(positionUpdates[0]!.id, positionUpdates[0]!.position);
       } else if (positionUpdates.length > 1) {
         moveNodes(positionUpdates);
       }
     },
-    [moveNode, moveNodes, removeNode, edges],
+    [moveNode, moveNodes, removeNodes, edges],
   );
 
   const onEdgesChange = useCallback(
@@ -376,19 +378,20 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const handlePendingNodeAdd = useCallback(
     (result: NodeFormResult) => {
       if (!pendingConnection) return;
-      const newId = addNode({ ...result, position: pendingConnection.position });
 
       // If dragged from target handle (top), new node is the prerequisite
       // If dragged from source handle (bottom), existing node is the prerequisite
-      if (pendingConnection.handleType === 'target') {
-        addEdge(newId, pendingConnection.sourceId, edgeMode);
-      } else {
-        addEdge(pendingConnection.sourceId, newId, edgeMode);
-      }
+      const edgeSpec =
+        pendingConnection.handleType === 'target'
+          ? { to: pendingConnection.sourceId, type: edgeMode }
+          : { from: pendingConnection.sourceId, type: edgeMode };
 
+      useGraphStore
+        .getState()
+        .addNodeWithEdge({ ...result, position: pendingConnection.position }, edgeSpec);
       setPendingConnection(undefined);
     },
-    [pendingConnection, addNode, addEdge, edgeMode],
+    [pendingConnection, edgeMode],
   );
 
   return (

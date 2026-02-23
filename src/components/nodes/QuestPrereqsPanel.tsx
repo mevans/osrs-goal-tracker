@@ -18,7 +18,7 @@ function skillKey(skill: string, level: number) {
 export function QuestPrereqsPanel({ questId, nodeId }: Props) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const { addNode, addEdge, updateNode } = useGraphStore.getState();
+  const { addNodeWithEdge, addEdge, updateNode } = useGraphStore.getState();
 
   const entry = QUEST_DATABASE[questId];
 
@@ -99,17 +99,19 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
     const baseX = thisPos.x - spread / 2 + index * 210;
     const baseY = thisPos.y - 180;
     const pos = total === 1 ? findFreePos(baseX, baseY) : { x: baseX, y: baseY };
-    const newId = addNode({
-      type: 'quest',
-      title: '',
-      notes: undefined,
-      skillData: undefined,
-      questData: { questId: prereqId },
-      quantity: undefined,
-      tags: undefined,
-      position: pos,
-    });
-    addEdge(newId, nodeId, 'requires');
+    addNodeWithEdge(
+      {
+        type: 'quest',
+        title: '',
+        notes: undefined,
+        skillData: undefined,
+        questData: { questId: prereqId },
+        quantity: undefined,
+        tags: undefined,
+        position: pos,
+      },
+      { to: nodeId, type: 'requires' },
+    );
   }
 
   function addSkillNode(skill: string, level: number, index: number, total: number) {
@@ -117,17 +119,19 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
     const baseX = thisPos.x - spread / 2 + index * 210;
     const baseY = thisPos.y - 180;
     const pos = total === 1 ? findFreePos(baseX, baseY) : { x: baseX, y: baseY };
-    const newId = addNode({
-      type: 'skill',
-      title: '',
-      notes: undefined,
-      skillData: { skillName: skill as SkillName, targetLevel: level, boost: undefined },
-      questData: undefined,
-      quantity: undefined,
-      tags: undefined,
-      position: pos,
-    });
-    addEdge(newId, nodeId, 'requires');
+    addNodeWithEdge(
+      {
+        type: 'skill',
+        title: '',
+        notes: undefined,
+        skillData: { skillName: skill as SkillName, targetLevel: level, boost: undefined },
+        questData: undefined,
+        quantity: undefined,
+        tags: undefined,
+        position: pos,
+      },
+      { to: nodeId, type: 'requires' },
+    );
   }
 
   function connectExisting(existingId: string) {

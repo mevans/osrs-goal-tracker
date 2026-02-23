@@ -95,7 +95,7 @@ function AlignButton({
 export function MultiSelectActions() {
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
   const nodes = useGraphStore((s) => s.nodes);
-  const { toggleNodesComplete, removeNode, selectNodes, moveNodes } = useGraphStore.getState();
+  const { toggleNodesComplete, removeNodes, selectNodes, moveNodes } = useGraphStore.getState();
   const { getNodes } = useReactFlow();
   const { x: vpX, y: vpY, zoom } = useViewport();
 
@@ -296,8 +296,9 @@ export function MultiSelectActions() {
       <button
         onClick={() => {
           const count = selectedNodeIds.length;
-          if (window.confirm(`Delete ${count} selected nodes?`)) {
-            selectedNodeIds.forEach((id) => removeNode(id));
+          const nodeWord = count === 1 ? 'node' : `${count} nodes`;
+          if (window.confirm(`Delete ${nodeWord}?`)) {
+            removeNodes(selectedNodeIds);
             selectNodes([]);
             toast.success(`Deleted ${count} node${count !== 1 ? 's' : ''}`);
           }
