@@ -7,6 +7,7 @@ import { useViewportCenter } from '../../hooks/useViewportCenter';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { CompassIcon } from '../CompassIcon';
 import { ShareDialog } from './ShareDialog';
+import { PreferencesDialog } from './PreferencesDialog';
 import { exportToJson, importFromJson } from '../../engine/serialization';
 import { analytics } from '../../analytics';
 
@@ -20,6 +21,7 @@ export function Toolbar() {
   const showAddNode = useUIStore((s) => s.showAddNode);
   const setShowAddNode = useUIStore.getState().setShowAddNode;
   const [showShare, setShowShare] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
   const [showBackup, setShowBackup] = useState(false);
   const backupRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,6 +168,13 @@ export function Toolbar() {
         </div>
 
         <button
+          onClick={() => setShowPreferences(true)}
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
+        >
+          Preferences
+        </button>
+
+        <button
           onClick={() => setShowShare(true)}
           className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
         >
@@ -183,6 +192,7 @@ export function Toolbar() {
 
       {showAddNode && <NodeDialog onSubmit={handleAddNode} onClose={() => setShowAddNode(false)} />}
       {showShare && <ShareDialog onClose={() => setShowShare(false)} />}
+      {showPreferences && <PreferencesDialog onClose={() => setShowPreferences(false)} />}
     </>
   );
 }

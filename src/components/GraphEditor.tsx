@@ -31,6 +31,7 @@ import { ImprovesEdge, ImprovesArrowDef } from './edges/ImprovesEdge';
 import { NodeDialog, type NodeFormResult } from './NodeDialog';
 import { MultiSelectActions } from './MultiSelectActions';
 import { useUIStore } from '../store/ui-store';
+import { usePreferencesStore } from '../store/preferences-store';
 import type { EdgeType } from '../engine/types';
 import { buildRfNodes, buildRfEdges } from './rfHelpers';
 import { CompassIcon } from './CompassIcon';
@@ -117,6 +118,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   }, [fitView]);
 
   const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
+  const hideCompleted = usePreferencesStore((s) => s.hideCompleted);
 
   // Paste at viewport center rather than a fixed offset
   const pasteAtViewportCenter = useCallback(async () => {
@@ -235,14 +237,21 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
   useEffect(() => {
+    const visibleNodes = hideCompleted ? nodes.filter((n) => !n.complete) : nodes;
     setRfNodes(
-      buildRfNodes(nodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
+      buildRfNodes(visibleNodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
     );
-  }, [nodes, statuses, highlightedNodeIds, selectedNodeIds]);
+  }, [nodes, statuses, highlightedNodeIds, selectedNodeIds, hideCompleted]);
 
   useEffect(() => {
-    setRfEdges(buildRfEdges(edges, highlightedEdgeIds, selectedEdgeIds));
-  }, [edges, highlightedEdgeIds, selectedEdgeIds]);
+    const hiddenIds = hideCompleted
+      ? new Set(nodes.filter((n) => n.complete).map((n) => n.id))
+      : null;
+    const visibleEdges = hiddenIds
+      ? edges.filter((e) => !hiddenIds.has(e.from) && !hiddenIds.has(e.to))
+      : edges;
+    setRfEdges(buildRfEdges(visibleEdges, highlightedEdgeIds, selectedEdgeIds));
+  }, [edges, nodes, highlightedEdgeIds, selectedEdgeIds, hideCompleted]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
