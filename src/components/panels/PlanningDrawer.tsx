@@ -8,6 +8,7 @@ import {
   getRequiredPrerequisites,
 } from '../../engine/graph-engine';
 import { SkillIcon } from '../SkillIcon';
+import { getNodeTitle } from '../../engine/node-utils';
 
 type StatusFilter = 'available' | 'blocked' | 'bottlenecks';
 
@@ -38,7 +39,7 @@ export function PlanningDrawer() {
 
   const nodeMap = useMemo(() => {
     const map = new Map<string, string>();
-    for (const n of nodes) map.set(n.id, n.title);
+    for (const n of nodes) map.set(n.id, getNodeTitle(n));
     return map;
   }, [nodes]);
 
@@ -152,7 +153,9 @@ export function PlanningDrawer() {
                         {node.type}
                       </span>
                       {node.skillData && <SkillIcon skill={node.skillData.skillName} size={13} />}
-                      <span className="text-sm text-stone-200 truncate flex-1">{node.title}</span>
+                      <span className="text-sm text-stone-200 truncate flex-1">
+                        {getNodeTitle(node)}
+                      </span>
                       {blockedCount !== undefined && (
                         <span className="text-[10px] text-amber-400 shrink-0">
                           blocks {blockedCount}

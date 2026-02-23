@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { QUEST_DATABASE } from '../../engine/quest-db';
 import { useGraphStore } from '../../store/graph-store';
+import { usePlayerStore } from '../../store/player-store';
 import { SkillIcon } from '../SkillIcon';
 import type { SkillName } from '../../engine/types';
 
@@ -10,23 +11,15 @@ interface Props {
   nodeId: string;
 }
 
-/** Key used to store a skill prereq in completedPrereqIds. */
-function skillKey(skill: string, level: number) {
-  return `skill:${skill}:${level}`;
-}
-
 export function QuestPrereqsPanel({ questId, nodeId }: Props) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const { addNodeWithEdge, addEdge, updateNode } = useGraphStore.getState();
+  const { addNodeWithEdge, addEdge } = useGraphStore.getState();
+
+  const playerSkills = usePlayerStore((s) => s.skills);
 
   const entry = QUEST_DATABASE[questId];
-
   const thisNode = nodes.find((n) => n.id === nodeId);
-  const completedPrereqIds = useMemo(
-    () => new Set(thisNode?.completedPrereqIds ?? []),
-    [thisNode?.completedPrereqIds],
-  );
 
   // ── Derived state ──────────────────────────────────────────────────────────
 
@@ -39,20 +32,14 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
         const alreadyEdge = existingNode
           ? edges.some((e) => e.from === existingNode.id && e.to === nodeId)
           : false;
-        return {
-          prereqId,
-          existingNode: existingNode ?? null,
-          alreadyEdge,
-          checkedOff: completedPrereqIds.has(prereqId),
-        };
+        return { prereqId, existingNode: existingNode ?? null, alreadyEdge };
       }),
-    [entry?.questReqs, nodes, edges, nodeId, completedPrereqIds],
+    [entry?.questReqs, nodes, edges, nodeId],
   );
 
   const skillPrereqs = useMemo(
     () =>
       (entry?.skillReqs ?? []).map((req) => {
-        const key = skillKey(req.skill, req.level);
         const existingNode = nodes.find(
           (n) =>
             n.type === 'skill' &&
@@ -62,18 +49,14 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
         const alreadyEdge = existingNode
           ? edges.some((e) => e.from === existingNode.id && e.to === nodeId)
           : false;
-        return {
-          ...req,
-          key,
-          existingNode: existingNode ?? null,
-          alreadyEdge,
-          checkedOff: completedPrereqIds.has(key),
-        };
+        const playerLevel = playerSkills[req.skill as SkillName];
+        const checkedOff = playerLevel !== undefined && playerLevel >= req.level;
+        return { ...req, existingNode: existingNode ?? null, alreadyEdge, checkedOff };
       }),
-    [entry?.skillReqs, nodes, edges, nodeId, completedPrereqIds],
+    [entry?.skillReqs, nodes, edges, nodeId, playerSkills],
   );
 
-  const missingQuests = questPrereqs.filter((p) => !p.existingNode && !p.checkedOff);
+  const missingQuests = questPrereqs.filter((p) => !p.existingNode);
   const missingSkills = skillPrereqs.filter((p) => !p.existingNode && !p.checkedOff);
   const totalMissing = missingQuests.length + missingSkills.length;
 
@@ -138,13 +121,6 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
     addEdge(existingId, nodeId, 'requires');
   }
 
-  function toggleCheckedOff(key: string) {
-    if (!thisNode) return;
-    const current = thisNode.completedPrereqIds;
-    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
-    updateNode(nodeId, { completedPrereqIds: next });
-  }
-
   function addAllMissing() {
     const total = missingQuests.length + missingSkills.length;
     let idx = 0;
@@ -166,9 +142,6 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
       onDoubleClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[9px] uppercase tracking-wider text-stone-500 font-medium">
-          Prerequisites
-        </span>
         <a
           href={`https://oldschool.runescape.wiki/w/${encodeURIComponent(questId.replace(/ /g, '_'))}`}
           target="_blank"
@@ -195,10 +168,9 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
                   label={p.prereqId}
                   inGraph={!!p.existingNode}
                   alreadyEdge={p.alreadyEdge}
-                  checkedOff={p.checkedOff}
+                  checkedOff={false}
                   onAdd={() => addQuestNode(p.prereqId, 0, 1)}
                   onConnect={p.existingNode ? () => connectExisting(p.existingNode!.id) : undefined}
-                  onToggleChecked={() => toggleCheckedOff(p.prereqId)}
                 />
               ))}
             </ul>
@@ -213,7 +185,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
             <ul className="space-y-0.5">
               {skillPrereqs.map((p) => (
                 <PrereqRow
-                  key={p.key}
+                  key={`${p.skill}:${p.level}`}
                   label={`${p.skill} ${p.level}`}
                   boostable={p.boostable}
                   icon={<SkillIcon skill={p.skill as SkillName} size={12} />}
@@ -222,7 +194,6 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
                   checkedOff={p.checkedOff}
                   onAdd={() => addSkillNode(p.skill, p.level, 0, 1)}
                   onConnect={p.existingNode ? () => connectExisting(p.existingNode!.id) : undefined}
-                  onToggleChecked={() => toggleCheckedOff(p.key)}
                 />
               ))}
             </ul>
@@ -253,7 +224,6 @@ interface RowProps {
   checkedOff: boolean;
   onAdd: () => void;
   onConnect: (() => void) | undefined;
-  onToggleChecked: () => void;
 }
 
 function PrereqRow({
@@ -265,7 +235,6 @@ function PrereqRow({
   checkedOff,
   onAdd,
   onConnect,
-  onToggleChecked,
 }: RowProps) {
   return (
     <li className="flex items-center gap-1.5 min-w-0">
@@ -295,22 +264,13 @@ function PrereqRow({
 
       {/* Actions */}
       {!inGraph && !checkedOff && (
-        <div className="flex gap-0.5 shrink-0">
-          <button
-            onClick={onAdd}
-            title="Add as node"
-            className="text-[10px] px-1.5 py-0.5 rounded bg-brand/20 text-brand-text hover:bg-brand/30 border border-brand/30"
-          >
-            +
-          </button>
-          <button
-            onClick={onToggleChecked}
-            title="Mark as already done"
-            className="text-[10px] px-1.5 py-0.5 rounded bg-surface-700 text-stone-400 hover:bg-surface-600 hover:text-green-400"
-          >
-            ✓
-          </button>
-        </div>
+        <button
+          onClick={onAdd}
+          title="Add as node"
+          className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-brand/20 text-brand-text hover:bg-brand/30 border border-brand/30"
+        >
+          +
+        </button>
       )}
 
       {inGraph && !alreadyEdge && (
@@ -320,16 +280,6 @@ function PrereqRow({
           className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-surface-700 text-stone-400 hover:bg-surface-600 hover:text-white"
         >
           link
-        </button>
-      )}
-
-      {checkedOff && !inGraph && (
-        <button
-          onClick={onToggleChecked}
-          title="Unmark"
-          className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-surface-700 text-green-500 hover:bg-surface-600 hover:text-stone-400"
-        >
-          ✓
         </button>
       )}
     </li>

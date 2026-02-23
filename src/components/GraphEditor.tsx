@@ -32,6 +32,7 @@ import { NodeDialog, type NodeFormResult } from './NodeDialog';
 import { MultiSelectActions } from './MultiSelectActions';
 import { useUIStore } from '../store/ui-store';
 import { usePreferencesStore } from '../store/preferences-store';
+import { usePlayerStore } from '../store/player-store';
 import type { EdgeType } from '../engine/types';
 import { buildRfNodes, buildRfEdges } from './rfHelpers';
 import { CompassIcon } from './CompassIcon';
@@ -118,6 +119,12 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
   const hideCompleted = usePreferencesStore((s) => s.hideCompleted);
+
+  // Auto-complete skill nodes when player data changes
+  const playerSkills = usePlayerStore((s) => s.skills);
+  useEffect(() => {
+    useGraphStore.getState().syncPlayerData(playerSkills);
+  }, [playerSkills]);
 
   // Paste at viewport center rather than a fixed offset
   const pasteAtViewportCenter = useCallback(async () => {

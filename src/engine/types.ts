@@ -57,8 +57,6 @@ export interface GraphNode {
   questData: QuestData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
-  /** Prereq IDs manually marked as already done (no node needed). Format: quest page name or "Skill:level". */
-  completedPrereqIds: string[];
 }
 
 export interface GraphEdge {

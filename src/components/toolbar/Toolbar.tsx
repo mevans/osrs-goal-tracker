@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { toast } from 'sonner';
 import { useGraphStore } from '../../store/graph-store';
@@ -8,8 +8,28 @@ import { NodeDialog, type NodeFormResult } from '../NodeDialog';
 import { CompassIcon } from '../CompassIcon';
 import { ShareDialog } from './ShareDialog';
 import { PreferencesDialog } from './PreferencesDialog';
+import { PlayerProfileDialog } from './PlayerProfileDialog';
 import { exportToJson, importFromJson } from '../../engine/serialization';
+import { fetchSkillsFromWom } from '../../engine/wom-api';
+import { usePlayerStore } from '../../store/player-store';
 import { analytics } from '../../analytics';
+
+const SyncIcon = ({ spinning }: { spinning: boolean }) => (
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={spinning ? 'animate-spin' : undefined}
+  >
+    <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+    <path d="M21 3v5h-5" />
+  </svg>
+);
 
 const GitHubIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -22,6 +42,24 @@ export function Toolbar() {
   const setShowAddNode = useUIStore.getState().setShowAddNode;
   const [showShare, setShowShare] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [showPlayerProfile, setShowPlayerProfile] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const playerRsn = usePlayerStore((s) => s.rsn);
+
+  const handleQuickSync = useCallback(async () => {
+    const { rsn, loadProfile } = usePlayerStore.getState();
+    if (!rsn) return;
+    setSyncing(true);
+    try {
+      const skills = await fetchSkillsFromWom(rsn);
+      loadProfile(skills);
+      toast.success(`Skills synced for ${rsn}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
   const [showBackup, setShowBackup] = useState(false);
   const backupRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -104,6 +142,24 @@ export function Toolbar() {
         >
           + Add
         </button>
+
+        <button
+          onClick={() => setShowPlayerProfile(true)}
+          className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
+        >
+          Sync Player
+          {playerRsn && <span className="ml-1.5 text-xs text-stone-500">{playerRsn}</span>}
+        </button>
+        {playerRsn && (
+          <button
+            onClick={() => void handleQuickSync()}
+            disabled={syncing}
+            title="Refresh skills from Wise Old Man"
+            className="px-2 py-1.5 text-stone-400 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-50"
+          >
+            <SyncIcon spinning={syncing} />
+          </button>
+        )}
 
         <button
           onClick={() => setShowHelp(true)}
@@ -193,6 +249,7 @@ export function Toolbar() {
       {showAddNode && <NodeDialog onSubmit={handleAddNode} onClose={() => setShowAddNode(false)} />}
       {showShare && <ShareDialog onClose={() => setShowShare(false)} />}
       {showPreferences && <PreferencesDialog onClose={() => setShowPreferences(false)} />}
+      {showPlayerProfile && <PlayerProfileDialog onClose={() => setShowPlayerProfile(false)} />}
     </>
   );
 }

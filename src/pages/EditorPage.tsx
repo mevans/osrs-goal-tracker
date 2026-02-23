@@ -4,10 +4,12 @@ import { GraphEditor } from '../components/GraphEditor';
 import { Toolbar } from '../components/toolbar/Toolbar';
 import { PlanningDrawer } from '../components/panels/PlanningDrawer';
 import { KeyboardHelp } from '../components/KeyboardHelp';
+import { useAutoSyncPlayer } from '../hooks/useAutoSyncPlayer';
 import type { EdgeType } from '../engine/types';
 
 export function EditorPage() {
   const [edgeMode] = useState<EdgeType>('requires');
+  useAutoSyncPlayer();
 
   return (
     <ReactFlowProvider>

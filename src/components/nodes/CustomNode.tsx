@@ -1,7 +1,7 @@
 import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflow/react';
 import { toast } from 'sonner';
 import type { NodeType, DerivedStatus, Quantity, SkillData, QuestData } from '../../engine/types';
-import { getQuestName } from '../../engine/quest-db';
+import { getNodeTitle } from '../../engine/node-utils';
 import { SkillIcon } from '../SkillIcon';
 import { ShortcutHint } from '../Kbd';
 import { useGraphStore } from '../../store/graph-store';
@@ -63,14 +63,12 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         : PROGRESS_COLORS['empty']
     : '';
 
-  const displayTitle =
-    data.nodeType === 'skill' && data.skillData
-      ? data.skillData.boost
-        ? `${data.skillData.targetLevel - data.skillData.boost}+${data.skillData.boost} ${data.skillData.skillName}`
-        : `${data.skillData.targetLevel} ${data.skillData.skillName}`
-      : data.nodeType === 'quest' && data.questData
-        ? getQuestName(data.questData.questId)
-        : data.title;
+  const displayTitle = getNodeTitle({
+    type: data.nodeType,
+    title: data.title,
+    skillData: data.skillData,
+    questData: data.questData,
+  });
 
   const canEdit = true;
   const isMultiSelect = useGraphStore((s) => s.selectedNodeIds.length > 1);
@@ -80,20 +78,12 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
   return (
     <>
       {data.nodeType === 'quest' && data.questData && (
-        <NodeToolbar
-          isVisible={selected === true && !isMultiSelect}
-          position={Position.Left}
-          offset={8}
-        >
+        <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Left} offset={8}>
           <QuestPrereqsPanel questId={data.questData.questId} nodeId={id} />
         </NodeToolbar>
       )}
 
-      <NodeToolbar
-        isVisible={selected === true && !isMultiSelect}
-        position={Position.Right}
-        offset={8}
-      >
+      <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Right} offset={8}>
         <div
           className="flex flex-col gap-1.5 bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2 min-w-[160px]"
           onClick={(e) => e.stopPropagation()}

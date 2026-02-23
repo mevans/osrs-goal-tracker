@@ -54,6 +54,8 @@ interface GraphState {
   pasteClipboard: (center: { x: number; y: number }) => Promise<number>;
   loadGraph: (data: GraphData) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
+  syncPlayerData: (skills: Partial<Record<SkillName, number>>) => void;
+  clearNodeCompletions: () => void;
   clearGraph: () => void;
 }
 
@@ -78,7 +80,6 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           quantity: params.quantity ?? undefined,
           tags: params.tags ?? [],
-          completedPrereqIds: [],
         };
         set((state) => ({ nodes: [...state.nodes, node] }));
         return id;
@@ -97,7 +98,6 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           quantity: params.quantity ?? undefined,
           tags: params.tags ?? [],
-          completedPrereqIds: [],
         };
         const from = 'from' in edgeSpec ? edgeSpec.from : nodeId;
         const to = 'to' in edgeSpec ? edgeSpec.to : nodeId;
@@ -382,6 +382,31 @@ export const useGraphStore = create<GraphState>()(
             edges: [...state.edges, ...newEdges.filter((e) => !existingEdgeIds.has(e.id))],
           };
         });
+      },
+
+      syncPlayerData: (skills) => {
+        set((state) => ({
+          nodes: state.nodes.map((n) => {
+            if (n.complete) return n; // never auto-un-complete
+            if (n.type === 'skill' && n.skillData) {
+              const playerLevel = skills[n.skillData.skillName];
+              if (playerLevel !== undefined && playerLevel >= n.skillData.targetLevel) {
+                return { ...n, complete: true };
+              }
+            }
+            return n;
+          }),
+        }));
+      },
+
+      clearNodeCompletions: () => {
+        set((state) => ({
+          nodes: state.nodes.map((n) => ({
+            ...n,
+            complete: false,
+            quantity: n.quantity ? { ...n.quantity, current: 0 } : undefined,
+          })),
+        }));
       },
 
       clearGraph: () => {
