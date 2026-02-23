@@ -3,7 +3,7 @@ import type { GraphData } from './types';
 /**
  * Current schema version. Increment when making breaking changes to GraphData.
  */
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;
 
 /**
  * Raw data shape from unknown (possibly old) saves. Typed as a loose record
@@ -229,6 +229,15 @@ const migrations: Record<number, Migration> = {
       const newId = KEBAB_TO_WIKI[questData.questId] ?? questData.questId;
       return { ...n, questData: { questId: newId } };
     }),
+  }),
+
+  // v2 → v3: Add completedPrereqIds field to all nodes
+  2: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({
+      ...n,
+      completedPrereqIds: Array.isArray(n['completedPrereqIds']) ? n['completedPrereqIds'] : [],
+    })),
   }),
 };
 

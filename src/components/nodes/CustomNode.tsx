@@ -6,6 +6,7 @@ import { SkillIcon } from '../SkillIcon';
 import { ShortcutHint } from '../Kbd';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
+import { QuestPrereqsPanel } from './QuestPrereqsPanel';
 
 export interface CustomNodeData {
   title: string;
@@ -78,6 +79,16 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
 
   return (
     <>
+      {data.nodeType === 'quest' && data.questData && (
+        <NodeToolbar
+          isVisible={selected === true && !isMultiSelect}
+          position={Position.Left}
+          offset={8}
+        >
+          <QuestPrereqsPanel questId={data.questData.questId} nodeId={id} />
+        </NodeToolbar>
+      )}
+
       <NodeToolbar
         isVisible={selected === true && !isMultiSelect}
         position={Position.Right}

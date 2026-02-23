@@ -190,7 +190,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
   );
   const [boost, setBoost] = useState(initialNode?.skillData?.boost?.toString() ?? '');
   const [questId, setQuestId] = useState(
-    initialNode?.questData?.questId ?? ALL_QUESTS[0]?.id ?? '',
+    initialNode?.questData?.questId ?? ALL_QUESTS[0]?.name ?? '',
   );
   const [quantityTarget, setQuantityTarget] = useState(
     initialNode?.quantity?.target.toString() ?? '',
@@ -238,8 +238,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
       finalTitle =
         boostVal > 0 ? `${level - boostVal}+${boostVal} ${skillName}` : `${level} ${skillName}`;
     } else if (type === 'quest') {
-      const quest = ALL_QUESTS.find((q) => q.id === questId);
-      finalTitle = quest?.name ?? questId;
+      finalTitle = questId;
     }
 
     const qTarget = Number(quantityTarget);
@@ -331,7 +330,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
               onChange={(e) => setQuestId(e.target.value)}
             >
               {ALL_QUESTS.map((quest) => (
-                <option key={quest.id} value={quest.id}>
+                <option key={quest.name} value={quest.name}>
                   {quest.name}
                 </option>
               ))}

@@ -434,7 +434,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Biohazard", "Plague City"],
+    "questReqs": ["Biohazard"],
     "questPoints": 0
   },
   "Observatory Quest": {
@@ -605,16 +605,8 @@
     "questReqs": [
       "Family Crest",
       "Heroes' Quest",
-      "Shield of Arrav",
-      "Lost City",
-      "Merlin's Crystal",
-      "Dragon Slayer I",
       "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual",
       "Underground Pass",
-      "Biohazard",
-      "Plague City",
       "Waterfall Quest"
     ],
     "questPoints": 107
@@ -624,7 +616,7 @@
     "difficulty": "novice",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["The Feud", "Rune Mysteries", "Icthlarin's Little Helper", "Gertrude's Cat"],
+    "questReqs": ["The Feud", "Rune Mysteries", "Icthlarin's Little Helper"],
     "questPoints": 0
   },
   "Rune Mysteries": {
@@ -654,7 +646,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Druidic Ritual", "Troll Stronghold", "Death Plateau"],
+    "questReqs": ["Druidic Ritual", "Troll Stronghold"],
     "questPoints": 0
   },
   "Big Chompy Bird Hunting": {
@@ -737,7 +729,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Underground Pass", "Biohazard", "Plague City"],
+    "questReqs": ["Underground Pass"],
     "questPoints": 0
   },
   "Tai Bwo Wannai Trio": {
@@ -761,7 +753,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Jungle Potion", "Druidic Ritual"],
+    "questReqs": ["Jungle Potion"],
     "questPoints": 0
   },
   "Troll Stronghold": {
@@ -829,14 +821,7 @@
     "difficulty": "experienced",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Heroes' Quest",
-      "Shield of Arrav",
-      "Lost City",
-      "Merlin's Crystal",
-      "Dragon Slayer I",
-      "The Fremennik Trials"
-    ],
+    "questReqs": ["Heroes' Quest", "The Fremennik Trials"],
     "questPoints": 0
   },
   "Monkey Madness I": {
@@ -872,7 +857,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Troll Stronghold", "Death Plateau"],
+    "questReqs": ["Troll Stronghold"],
     "questPoints": 0
   },
   "In Search of the Myreque": {
@@ -886,7 +871,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Nature Spirit", "Priest in Peril", "The Restless Ghost"],
+    "questReqs": ["Nature Spirit"],
     "questPoints": 0
   },
   "Creature of Fenkenstrain": {
@@ -919,7 +904,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Regicide", "Underground Pass", "Biohazard", "Plague City", "Waterfall Quest"],
+    "questReqs": ["Regicide", "Waterfall Quest"],
     "questPoints": 0
   },
   "Ghosts Ahoy": {
@@ -967,7 +952,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Rune Mysteries", "Shilo Village", "Jungle Potion", "Druidic Ritual"],
+    "questReqs": ["Rune Mysteries", "Shilo Village"],
     "questPoints": 0
   },
   "Mountain Daughter": {
@@ -1072,7 +1057,6 @@
       "Temple of Ikov",
       "The Tourist Trap",
       "Troll Stronghold",
-      "Death Plateau",
       "Priest in Peril",
       "Waterfall Quest",
       "Plague City"
@@ -1188,16 +1172,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Roving Elves",
-      "Regicide",
-      "Underground Pass",
-      "Biohazard",
-      "Plague City",
-      "Waterfall Quest",
-      "Big Chompy Bird Hunting",
-      "Sheep Herder"
-    ],
+    "questReqs": ["Roving Elves", "Big Chompy Bird Hunting", "Sheep Herder"],
     "questPoints": 0
   },
   "Forgettable Tale...": {
@@ -1230,7 +1205,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Creature of Fenkenstrain", "Priest in Peril", "The Restless Ghost"],
+    "questReqs": ["Creature of Fenkenstrain"],
     "questPoints": 0
   },
   "A Tail of Two Cats": {
@@ -1238,7 +1213,7 @@
     "difficulty": "intermediate",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Icthlarin's Little Helper", "Gertrude's Cat"],
+    "questReqs": ["Icthlarin's Little Helper"],
     "questPoints": 0
   },
   "Wanted!": {
@@ -1246,16 +1221,7 @@
     "difficulty": "intermediate",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Recruitment Drive",
-      "Black Knights' Fortress",
-      "Druidic Ritual",
-      "The Lost Tribe",
-      "Rune Mysteries",
-      "Goblin Diplomacy",
-      "Priest in Peril",
-      "Enter the Abyss"
-    ],
+    "questReqs": ["Recruitment Drive", "The Lost Tribe", "Priest in Peril", "Enter the Abyss"],
     "questPoints": 32
   },
   "Mourning's End Part II": {
@@ -1263,17 +1229,7 @@
     "difficulty": "master",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Mourning's End Part I",
-      "Roving Elves",
-      "Regicide",
-      "Underground Pass",
-      "Biohazard",
-      "Plague City",
-      "Waterfall Quest",
-      "Big Chompy Bird Hunting",
-      "Sheep Herder"
-    ],
+    "questReqs": ["Mourning's End Part I"],
     "questPoints": 0
   },
   "Rum Deal": {
@@ -1307,13 +1263,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "Zogre Flesh Eaters",
-      "Big Chompy Bird Hunting",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Priest in Peril"
-    ],
+    "questReqs": ["Zogre Flesh Eaters", "Priest in Peril"],
     "questPoints": 0
   },
   "Shadow of the Storm": {
@@ -1343,7 +1293,7 @@
     "difficulty": "intermediate",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Icthlarin's Little Helper", "Gertrude's Cat", "The Giant Dwarf"],
+    "questReqs": ["Icthlarin's Little Helper", "The Giant Dwarf"],
     "questPoints": 0
   },
   "Spirits of the Elid": {
@@ -1396,20 +1346,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "Wanted!",
-      "Recruitment Drive",
-      "Black Knights' Fortress",
-      "Druidic Ritual",
-      "The Lost Tribe",
-      "Goblin Diplomacy",
-      "Rune Mysteries",
-      "Priest in Peril",
-      "Enter the Abyss",
-      "Troll Stronghold",
-      "Death Plateau",
-      "Doric's Quest"
-    ],
+    "questReqs": ["Wanted!", "Troll Stronghold", "Doric's Quest"],
     "questPoints": 0
   },
   "The Hand in the Sand": {
@@ -1486,15 +1423,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Pirate's Treasure",
-      "Rum Deal",
-      "Zogre Flesh Eaters",
-      "Big Chompy Bird Hunting",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Priest in Peril"
-    ],
+    "questReqs": ["Pirate's Treasure", "Rum Deal"],
     "questPoints": 0
   },
   "Fairytale I - Growing Pains": {
@@ -1502,7 +1431,7 @@
     "difficulty": "intermediate",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Lost City", "Nature Spirit", "Priest in Peril", "The Restless Ghost"],
+    "questReqs": ["Lost City", "Nature Spirit"],
     "questPoints": 0
   },
   "Recipe for Disaster": {
@@ -1583,44 +1512,18 @@
     ],
     "questReqs": [
       "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant",
       "Fishing Contest",
       "Goblin Diplomacy",
       "Big Chompy Bird Hunting",
       "Murder Mystery",
       "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost",
       "Witch's House",
       "Gertrude's Cat",
       "Shadow of the Storm",
-      "Demon Slayer",
-      "The Golem",
       "Legends' Quest",
-      "Family Crest",
-      "Heroes' Quest",
-      "Shield of Arrav",
-      "Lost City",
-      "Merlin's Crystal",
-      "Dragon Slayer I",
-      "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Underground Pass",
-      "Biohazard",
-      "Plague City",
       "Monkey Madness I",
-      "The Grand Tree",
-      "Tree Gnome Village",
       "Desert Treasure I",
-      "The Dig Site",
-      "The Tourist Trap",
-      "Temple of Ikov",
-      "Waterfall Quest",
-      "Troll Stronghold",
-      "Death Plateau",
-      "Horror from the Deep",
-      "Alfred Grimhand's Barcrawl"
+      "Horror from the Deep"
     ],
     "questPoints": 175
   },
@@ -1650,12 +1553,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "In Search of the Myreque",
-      "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["In Search of the Myreque"],
     "questPoints": 0
   },
   "A Soul's Bane": {
@@ -1710,17 +1608,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "One Small Favour",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["One Small Favour", "Garden of Tranquillity"],
     "questPoints": 100
   },
   "Royal Trouble": {
@@ -1739,15 +1627,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "Throne of Miscellania",
-      "Heroes' Quest",
-      "Shield of Arrav",
-      "Lost City",
-      "Merlin's Crystal",
-      "Dragon Slayer I",
-      "The Fremennik Trials"
-    ],
+    "questReqs": ["Throne of Miscellania"],
     "questPoints": 0
   },
   "Death to the Dorgeshuun": {
@@ -1766,7 +1646,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["The Lost Tribe", "Goblin Diplomacy", "Rune Mysteries"],
+    "questReqs": ["The Lost Tribe"],
     "questPoints": 0
   },
   "Fairytale II - Cure a Queen": {
@@ -1790,13 +1670,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "Fairytale I - Growing Pains",
-      "Lost City",
-      "Nature Spirit",
-      "The Restless Ghost",
-      "Priest in Peril"
-    ],
+    "questReqs": ["Fairytale I - Growing Pains"],
     "questPoints": 0
   },
   "Lunar Diplomacy": {
@@ -1840,14 +1714,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "The Fremennik Trials",
-      "Lost City",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual"
-    ],
+    "questReqs": ["The Fremennik Trials", "Lost City", "Rune Mysteries", "Shilo Village"],
     "questPoints": 0
   },
   "The Eyes of Glouphrie": {
@@ -1910,13 +1777,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "In Aid of the Myreque",
-      "In Search of the Myreque",
-      "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["In Aid of the Myreque"],
     "questPoints": 0
   },
   "The Slug Menace": {
@@ -1945,18 +1806,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Wanted!",
-      "Recruitment Drive",
-      "Black Knights' Fortress",
-      "Druidic Ritual",
-      "The Lost Tribe",
-      "Rune Mysteries",
-      "Goblin Diplomacy",
-      "Enter the Abyss",
-      "Priest in Peril",
-      "Sea Slug"
-    ],
+    "questReqs": ["Wanted!", "Sea Slug"],
     "questPoints": 0
   },
   "Elemental Workshop II": {
@@ -1994,14 +1844,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "Troll Stronghold",
-      "Death Plateau",
-      "The Feud",
-      "Jungle Potion"
-    ],
+    "questReqs": ["Eadgar's Ruse", "The Feud", "Jungle Potion"],
     "questPoints": 0
   },
   "Enlightened Journey": {
@@ -2076,7 +1919,7 @@
     "difficulty": "experienced",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Prince Ali Rescue", "Icthlarin's Little Helper", "Gertrude's Cat"],
+    "questReqs": ["Prince Ali Rescue", "Icthlarin's Little Helper"],
     "questPoints": 0
   },
   "Cold War": {
@@ -2151,16 +1994,7 @@
     "questReqs": [
       "Creature of Fenkenstrain",
       "Cabin Fever",
-      "Pirate's Treasure",
-      "Rum Deal",
-      "Priest in Peril",
-      "Zogre Flesh Eaters",
-      "Big Chompy Bird Hunting",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Recipe for Disaster/Freeing Pirate Pete",
-      "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant"
+      "Recipe for Disaster/Freeing Pirate Pete"
     ],
     "questPoints": 0
   },
@@ -2213,14 +2047,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Death to the Dorgeshuun",
-      "The Lost Tribe",
-      "Goblin Diplomacy",
-      "Rune Mysteries",
-      "The Giant Dwarf",
-      "The Dig Site"
-    ],
+    "questReqs": ["Death to the Dorgeshuun", "The Giant Dwarf", "The Dig Site"],
     "questPoints": 0
   },
   "Dream Mentor": {
@@ -2228,18 +2055,7 @@
     "difficulty": "master",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Lunar Diplomacy",
-      "The Fremennik Trials",
-      "Lost City",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "Troll Stronghold",
-      "Death Plateau"
-    ],
+    "questReqs": ["Lunar Diplomacy", "Eadgar's Ruse"],
     "questPoints": 0
   },
   "Grim Tales": {
@@ -2292,17 +2108,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Black Knights' Fortress",
-      "Holy Grail",
-      "Merlin's Crystal",
-      "Murder Mystery",
-      "One Small Favour",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual"
-    ],
+    "questReqs": ["Black Knights' Fortress", "Holy Grail", "Murder Mystery", "One Small Favour"],
     "questPoints": 0
   },
   "Shilo Village": {
@@ -2321,7 +2127,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Jungle Potion", "Druidic Ritual"],
+    "questReqs": ["Jungle Potion"],
     "questPoints": 0
   },
   "Biohazard": {
@@ -2353,7 +2159,7 @@
     "difficulty": "experienced",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Curse of the Empty Lord", "Desert Treasure I", "Fight Arena"],
+    "questReqs": ["Curse of the Empty Lord", "Fight Arena"],
     "questPoints": 0
   },
   "Barbarian Training": {
@@ -2504,16 +2310,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Another Slice of H.A.M.",
-      "Death to the Dorgeshuun",
-      "The Lost Tribe",
-      "Goblin Diplomacy",
-      "Rune Mysteries",
-      "The Giant Dwarf",
-      "The Dig Site",
-      "Fishing Contest"
-    ],
+    "questReqs": ["Another Slice of H.A.M.", "Fishing Contest"],
     "questPoints": 0
   },
   "While Guthix Sleeps": {
@@ -2564,47 +2361,15 @@
     ],
     "questReqs": [
       "Defender of Varrock",
-      "Shield of Arrav",
-      "Temple of Ikov",
-      "Below Ice Mountain",
-      "Family Crest",
-      "What Lies Below",
-      "Romeo & Juliet",
-      "Demon Slayer",
-      "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "Priest in Peril",
-      "The Restless Ghost",
       "The Path of Glouphrie",
-      "The Eyes of Glouphrie",
-      "The Grand Tree",
-      "Waterfall Quest",
-      "Tree Gnome Village",
       "Fight Arena",
       "Dream Mentor",
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "Troll Stronghold",
-      "Death Plateau",
-      "Lunar Diplomacy",
-      "The Fremennik Trials",
-      "Lost City",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
       "The Hand in the Sand",
       "Wanted!",
-      "Recruitment Drive",
-      "Black Knights' Fortress",
-      "The Lost Tribe",
-      "Goblin Diplomacy",
       "Temple of the Eye",
-      "Enter the Abyss",
       "Tears of Guthix",
       "Nature Spirit",
-      "A Tail of Two Cats",
-      "Icthlarin's Little Helper",
-      "Gertrude's Cat"
+      "A Tail of Two Cats"
     ],
     "questPoints": 180
   },
@@ -2629,7 +2394,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Big Chompy Bird Hunting", "Jungle Potion", "Druidic Ritual"],
+    "questReqs": ["Big Chompy Bird Hunting", "Jungle Potion"],
     "questPoints": 0
   },
   "Lair of Tarn Razorlor": {
@@ -2700,10 +2465,7 @@
       "Enlightened Journey",
       "The Eyes of Glouphrie",
       "Monkey Madness I",
-      "The Grand Tree",
-      "Tree Gnome Village",
       "Troll Stronghold",
-      "Death Plateau",
       "Watchtower"
     ],
     "questPoints": 0
@@ -2773,7 +2535,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Client of Kourend", "X Marks the Spot"],
+    "questReqs": ["Client of Kourend"],
     "questPoints": 0
   },
   "Bone Voyage": {
@@ -2832,38 +2594,12 @@
     ],
     "questReqs": [
       "Legends' Quest",
-      "Family Crest",
-      "Heroes' Quest",
-      "Shield of Arrav",
-      "Lost City",
-      "Merlin's Crystal",
-      "Dragon Slayer I",
-      "Underground Pass",
-      "Biohazard",
-      "Plague City",
-      "Waterfall Quest",
       "Dream Mentor",
-      "Lunar Diplomacy",
-      "The Fremennik Trials",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "Troll Stronghold",
-      "Death Plateau",
       "A Tail of Two Cats",
-      "Icthlarin's Little Helper",
-      "Gertrude's Cat",
       "Animal Magnetism",
-      "Ernest the Chicken",
-      "Priest in Peril",
-      "The Restless Ghost",
       "Ghosts Ahoy",
       "Bone Voyage",
-      "The Dig Site",
       "Client of Kourend",
-      "X Marks the Spot",
       "Barbarian Training"
     ],
     "questPoints": 200
@@ -2879,7 +2615,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Client of Kourend", "X Marks the Spot"],
+    "questReqs": ["Client of Kourend"],
     "questPoints": 0
   },
   "Recipe for Disaster/Another Cook's Quest": {
@@ -2901,11 +2637,7 @@
     "difficulty": "grandmaster",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant",
-      "Goblin Diplomacy"
-    ],
+    "questReqs": ["Recipe for Disaster/Another Cook's Quest", "Goblin Diplomacy"],
     "questPoints": 0
   },
   "Recipe for Disaster/Freeing the Mountain Dwarf": {
@@ -2924,10 +2656,7 @@
     "questReqs": [
       "Gertrude's Cat",
       "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant",
-      "Shadow of the Storm",
-      "Demon Slayer",
-      "The Golem"
+      "Shadow of the Storm"
     ],
     "questPoints": 0
   },
@@ -2942,7 +2671,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Recipe for Disaster/Another Cook's Quest", "Cook's Assistant"],
+    "questReqs": ["Recipe for Disaster/Another Cook's Quest"],
     "questPoints": 0
   },
   "Recipe for Disaster/Freeing the Lumbridge Guide": {
@@ -2959,14 +2688,10 @@
     "questReqs": [
       "Big Chompy Bird Hunting",
       "Biohazard",
-      "Plague City",
       "Demon Slayer",
       "Murder Mystery",
       "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost",
       "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant",
       "Witch's House"
     ],
     "questPoints": 0
@@ -2976,24 +2701,7 @@
     "difficulty": "grandmaster",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Legends' Quest",
-      "Family Crest",
-      "Heroes' Quest",
-      "Shield of Arrav",
-      "Lost City",
-      "Merlin's Crystal",
-      "Dragon Slayer I",
-      "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant",
-      "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Underground Pass",
-      "Biohazard",
-      "Plague City",
-      "Waterfall Quest"
-    ],
+    "questReqs": ["Legends' Quest", "Recipe for Disaster/Another Cook's Quest"],
     "questPoints": 107
   },
   "Recipe for Disaster/Freeing King Awowogei": {
@@ -3012,13 +2720,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Monkey Madness I",
-      "The Grand Tree",
-      "Tree Gnome Village",
-      "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant"
-    ],
+    "questReqs": ["Monkey Madness I", "Recipe for Disaster/Another Cook's Quest"],
     "questPoints": 0
   },
   "Recipe for Disaster/Freeing Skrach Uglogwee": {
@@ -3037,11 +2739,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "Big Chompy Bird Hunting",
-      "Recipe for Disaster/Another Cook's Quest",
-      "Cook's Assistant"
-    ],
+    "questReqs": ["Big Chompy Bird Hunting", "Recipe for Disaster/Another Cook's Quest"],
     "questPoints": 0
   },
   "Mage Arena II": {
@@ -3097,14 +2795,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Darkness of Hallowvale",
-      "In Aid of the Myreque",
-      "In Search of the Myreque",
-      "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["Darkness of Hallowvale"],
     "questPoints": 0
   },
   "Tale of the Righteous": {
@@ -3123,7 +2814,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Client of Kourend", "X Marks the Spot"],
+    "questReqs": ["Client of Kourend"],
     "questPoints": 0
   },
   "Making Friends with My Arm": {
@@ -3152,25 +2843,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "My Arm's Big Adventure",
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "Troll Stronghold",
-      "Death Plateau",
-      "The Feud",
-      "Jungle Potion",
-      "Swan Song",
-      "One Small Favour",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "Priest in Peril",
-      "The Restless Ghost",
-      "Cold War",
-      "Romeo & Juliet"
-    ],
+    "questReqs": ["My Arm's Big Adventure", "Swan Song", "Cold War", "Romeo & Juliet"],
     "questPoints": 0
   },
   "Recipe for Disaster/Defeating the Culinaromancer": {
@@ -3180,15 +2853,7 @@
     "skillReqs": [],
     "questReqs": [
       "Desert Treasure I",
-      "The Dig Site",
-      "Temple of Ikov",
-      "The Tourist Trap",
-      "Troll Stronghold",
-      "Death Plateau",
-      "Priest in Peril",
-      "Waterfall Quest",
       "Horror from the Deep",
-      "Alfred Grimhand's Barcrawl",
       "Recipe for Disaster/Freeing Evil Dave",
       "Recipe for Disaster/Freeing the Goblin generals",
       "Recipe for Disaster/Freeing the Lumbridge Guide",
@@ -3246,22 +2911,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Mourning's End Part II",
-      "Mourning's End Part I",
-      "Big Chompy Bird Hunting",
-      "Sheep Herder",
-      "Roving Elves",
-      "Waterfall Quest",
-      "Regicide",
-      "Underground Pass",
-      "Biohazard",
-      "Plague City",
-      "Making History",
-      "Priest in Peril",
-      "The Restless Ghost",
-      "Druidic Ritual"
-    ],
+    "questReqs": ["Mourning's End Part II", "Making History", "Druidic Ritual"],
     "questPoints": 0
   },
   "The Ascent of Arceuus": {
@@ -3275,7 +2925,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Client of Kourend", "X Marks the Spot"],
+    "questReqs": ["Client of Kourend"],
     "questPoints": 0
   },
   "The Forsaken Tower": {
@@ -3283,7 +2933,7 @@
     "difficulty": "intermediate",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Client of Kourend", "X Marks the Spot"],
+    "questReqs": ["Client of Kourend"],
     "questPoints": 0
   },
   "The Fremennik Exiles": {
@@ -3322,21 +2972,7 @@
         "boostable": true
       }
     ],
-    "questReqs": [
-      "The Fremennik Isles",
-      "The Fremennik Trials",
-      "Lunar Diplomacy",
-      "Lost City",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Jungle Potion",
-      "Druidic Ritual",
-      "Mountain Daughter",
-      "Heroes' Quest",
-      "Dragon Slayer I",
-      "Merlin's Crystal",
-      "Shield of Arrav"
-    ],
+    "questReqs": ["The Fremennik Isles", "Lunar Diplomacy", "Mountain Daughter", "Heroes' Quest"],
     "questPoints": 0
   },
   "X Marks the Spot": {
@@ -3383,24 +3019,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Defender of Varrock",
-      "Shield of Arrav",
-      "Temple of Ikov",
-      "Below Ice Mountain",
-      "Family Crest",
-      "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "Priest in Peril",
-      "The Restless Ghost",
-      "What Lies Below",
-      "Rune Mysteries",
-      "Romeo & Juliet",
-      "Demon Slayer",
-      "Troll Romance",
-      "Troll Stronghold",
-      "Death Plateau"
-    ],
+    "questReqs": ["Defender of Varrock", "Troll Romance"],
     "questPoints": 0
   },
   "Defender of Varrock": {
@@ -3425,11 +3044,7 @@
       "Below Ice Mountain",
       "Family Crest",
       "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "Priest in Peril",
-      "The Restless Ghost",
       "What Lies Below",
-      "Rune Mysteries",
       "Romeo & Juliet",
       "Demon Slayer"
     ],
@@ -3484,16 +3099,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Vampyre Slayer",
-      "A Taste of Hope",
-      "Darkness of Hallowvale",
-      "In Aid of the Myreque",
-      "In Search of the Myreque",
-      "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["Vampyre Slayer", "A Taste of Hope"],
     "questPoints": 0
   },
   "A Kingdom Divided": {
@@ -3542,9 +3148,7 @@
       "The Queen of Thieves",
       "The Ascent of Arceuus",
       "The Forsaken Tower",
-      "Tale of the Righteous",
-      "Client of Kourend",
-      "X Marks the Spot"
+      "Tale of the Righteous"
     ],
     "questPoints": 0
   },
@@ -3596,15 +3200,7 @@
     "difficulty": "master",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "A Taste of Hope",
-      "Darkness of Hallowvale",
-      "In Aid of the Myreque",
-      "In Search of the Myreque",
-      "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["A Taste of Hope"],
     "questPoints": 0
   },
   "Beneath Cursed Sands": {
@@ -3628,7 +3224,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Contact!", "Prince Ali Rescue", "Icthlarin's Little Helper", "Gertrude's Cat"],
+    "questReqs": ["Contact!"],
     "questPoints": 0
   },
   "The Frozen Door": {
@@ -3671,12 +3267,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "The Restless Ghost",
-      "Desert Treasure I",
-      "Fairytale II - Cure a Queen",
-      "Land of the Goblins"
-    ],
+    "questReqs": ["Desert Treasure I", "Fairytale II - Cure a Queen", "Land of the Goblins"],
     "questPoints": 0
   },
   "Temple of the Eye": {
@@ -3690,7 +3281,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Enter the Abyss", "Rune Mysteries"],
+    "questReqs": ["Enter the Abyss"],
     "questPoints": 0
   },
   "The Path of Glouphrie": {
@@ -3724,12 +3315,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "The Eyes of Glouphrie",
-      "The Grand Tree",
-      "Waterfall Quest",
-      "Tree Gnome Village"
-    ],
+    "questReqs": ["The Eyes of Glouphrie", "Waterfall Quest", "Tree Gnome Village"],
     "questPoints": 0
   },
   "Sleeping Giants": {
@@ -3751,13 +3337,7 @@
     "difficulty": "master",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "Beneath Cursed Sands",
-      "Contact!",
-      "Prince Ali Rescue",
-      "Icthlarin's Little Helper",
-      "Gertrude's Cat"
-    ],
+    "questReqs": ["Beneath Cursed Sands"],
     "questPoints": 0
   },
   "The Garden of Death": {
@@ -3811,42 +3391,7 @@
       }
     ],
     "questReqs": [
-      "Desert Treasure I",
-      "The Dig Site",
-      "Temple of Ikov",
-      "The Tourist Trap",
-      "Troll Stronghold",
-      "Death Plateau",
-      "Priest in Peril",
-      "Waterfall Quest",
       "Secrets of the North",
-      "Making Friends with My Arm",
-      "My Arm's Big Adventure",
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "The Feud",
-      "Jungle Potion",
-      "Swan Song",
-      "One Small Favour",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "The Restless Ghost",
-      "Cold War",
-      "Romeo & Juliet",
-      "The General's Shadow",
-      "Curse of the Empty Lord",
-      "Fight Arena",
-      "Devious Minds",
-      "Wanted!",
-      "Recruitment Drive",
-      "Black Knights' Fortress",
-      "The Lost Tribe",
-      "Goblin Diplomacy",
-      "Doric's Quest",
-      "Enter the Abyss",
-      "Hazeel Cult",
       "Enakhra's Lament",
       "Temple of the Eye",
       "The Garden of Death",
@@ -3878,35 +3423,8 @@
     ],
     "questReqs": [
       "Making Friends with My Arm",
-      "My Arm's Big Adventure",
-      "Eadgar's Ruse",
-      "Druidic Ritual",
-      "Troll Stronghold",
-      "Death Plateau",
-      "The Feud",
-      "Jungle Potion",
-      "Swan Song",
-      "One Small Favour",
-      "Rune Mysteries",
-      "Shilo Village",
-      "Garden of Tranquillity",
-      "Creature of Fenkenstrain",
-      "Priest in Peril",
-      "The Restless Ghost",
-      "Cold War",
-      "Romeo & Juliet",
       "The General's Shadow",
-      "Curse of the Empty Lord",
-      "Desert Treasure I",
-      "Fight Arena",
       "Devious Minds",
-      "Wanted!",
-      "Recruitment Drive",
-      "Black Knights' Fortress",
-      "The Lost Tribe",
-      "Goblin Diplomacy",
-      "Doric's Quest",
-      "Enter the Abyss",
       "Hazeel Cult"
     ],
     "questPoints": 0
@@ -3958,7 +3476,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Twilight's Promise", "Children of the Sun"],
+    "questReqs": ["Twilight's Promise"],
     "questPoints": 0
   },
   "The Ribbiting Tale of a Lily Pad Labour Dispute": {
@@ -4033,7 +3551,7 @@
         "boostable": false
       }
     ],
-    "questReqs": ["Twilight's Promise", "Children of the Sun"],
+    "questReqs": ["Twilight's Promise"],
     "questPoints": 0
   },
   "Death on the Isle": {
@@ -4082,18 +3600,7 @@
     "difficulty": "grandmaster",
     "members": true,
     "skillReqs": [],
-    "questReqs": [
-      "A Night at the Theatre",
-      "Sins of the Father",
-      "Vampyre Slayer",
-      "A Taste of Hope",
-      "Darkness of Hallowvale",
-      "In Aid of the Myreque",
-      "In Search of the Myreque",
-      "Nature Spirit",
-      "Priest in Peril",
-      "The Restless Ghost"
-    ],
+    "questReqs": ["A Night at the Theatre", "Sins of the Father"],
     "questPoints": 0
   },
   "The Final Dawn": {
@@ -4117,12 +3624,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "The Heart of Darkness",
-      "Twilight's Promise",
-      "Children of the Sun",
-      "Perilous Moons"
-    ],
+    "questReqs": ["The Heart of Darkness", "Perilous Moons"],
     "questPoints": 0
   },
   "Pandemonium": {
@@ -4226,7 +3728,7 @@
         "boostable": true
       }
     ],
-    "questReqs": ["Troubled Tortugans", "Pandemonium"],
+    "questReqs": ["Troubled Tortugans"],
     "questPoints": 0
   },
   "Shadows of Custodia": {

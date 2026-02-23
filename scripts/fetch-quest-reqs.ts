@@ -158,6 +158,46 @@ export interface QuestDataEntry {
   questPoints: number;
 }
 
+// ── Transitive reduction ──────────────────────────────────────────────────────
+
+/**
+ * The wiki lists ALL quest requirements (including transitive ones) on each
+ * quest page. Strip out any prereq that is already reachable via another
+ * direct prereq, leaving only the immediate dependencies.
+ */
+function reduceToDirectPrereqs(output: Record<string, QuestDataEntry>): void {
+  const cache = new Map<string, Set<string>>();
+
+  function allAncestors(name: string, visiting = new Set<string>()): Set<string> {
+    if (cache.has(name)) return cache.get(name)!;
+    if (visiting.has(name)) return new Set(); // cycle guard
+    visiting.add(name);
+
+    const entry = output[name];
+    if (!entry) return new Set();
+
+    const result = new Set<string>();
+    for (const prereq of entry.questReqs) {
+      result.add(prereq);
+      for (const t of allAncestors(prereq, new Set(visiting))) result.add(t);
+    }
+    cache.set(name, result);
+    return result;
+  }
+
+  // Pre-populate cache
+  for (const name of Object.keys(output)) allAncestors(name);
+
+  // Remove any prereq reachable via another direct prereq
+  for (const entry of Object.values(output)) {
+    const direct = entry.questReqs;
+    entry.questReqs = direct.filter(
+      (prereq) =>
+        !direct.some((other) => other !== prereq && (cache.get(other) ?? new Set()).has(prereq)),
+    );
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -194,6 +234,8 @@ async function main() {
       questPoints: parseQuestPointReq(html),
     };
   }
+
+  reduceToDirectPrereqs(output);
 
   const outputPath = join(ROOT, 'src/engine/quest-data.json');
   writeFileSync(outputPath, JSON.stringify(output, null, 2));

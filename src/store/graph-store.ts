@@ -73,6 +73,7 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           quantity: params.quantity ?? undefined,
           tags: params.tags ?? [],
+          completedPrereqIds: [],
         };
         set((state) => ({ nodes: [...state.nodes, node] }));
         return id;
