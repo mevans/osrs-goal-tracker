@@ -1434,99 +1434,6 @@
     "questReqs": ["Lost City", "Nature Spirit"],
     "questPoints": 0
   },
-  "Recipe for Disaster": {
-    "name": "Recipe for Disaster",
-    "difficulty": "grandmaster",
-    "members": true,
-    "skillReqs": [
-      {
-        "skill": "Cooking",
-        "level": 10,
-        "boostable": true
-      },
-      {
-        "skill": "Cooking",
-        "level": 70,
-        "boostable": true
-      },
-      {
-        "skill": "Agility",
-        "level": 48,
-        "boostable": false
-      },
-      {
-        "skill": "Mining",
-        "level": 50,
-        "boostable": true
-      },
-      {
-        "skill": "Fishing",
-        "level": 53,
-        "boostable": true
-      },
-      {
-        "skill": "Thieving",
-        "level": 53,
-        "boostable": false
-      },
-      {
-        "skill": "Herblore",
-        "level": 25,
-        "boostable": true
-      },
-      {
-        "skill": "Magic",
-        "level": 59,
-        "boostable": true
-      },
-      {
-        "skill": "Smithing",
-        "level": 40,
-        "boostable": true
-      },
-      {
-        "skill": "Firemaking",
-        "level": 50,
-        "boostable": true
-      },
-      {
-        "skill": "Ranged",
-        "level": 40,
-        "boostable": false
-      },
-      {
-        "skill": "Crafting",
-        "level": 40,
-        "boostable": true
-      },
-      {
-        "skill": "Fletching",
-        "level": 10,
-        "boostable": true
-      },
-      {
-        "skill": "Woodcutting",
-        "level": 36,
-        "boostable": true
-      }
-    ],
-    "questReqs": [
-      "Recipe for Disaster/Another Cook's Quest",
-      "Fishing Contest",
-      "Goblin Diplomacy",
-      "Big Chompy Bird Hunting",
-      "Murder Mystery",
-      "Nature Spirit",
-      "Witch's House",
-      "Gertrude's Cat",
-      "Shadow of the Storm",
-      "Legends' Quest",
-      "Monkey Madness I",
-      "Desert Treasure I",
-      "Horror from the Deep"
-    ],
-    "questPoints": 175
-  },
   "In Aid of the Myreque": {
     "name": "In Aid of the Myreque",
     "difficulty": "intermediate",
@@ -2464,7 +2371,7 @@
     "questReqs": [
       "Enlightened Journey",
       "The Eyes of Glouphrie",
-      "Monkey Madness I",
+      "Recipe for Disaster/Freeing King Awowogei",
       "Troll Stronghold",
       "Watchtower"
     ],
@@ -2645,7 +2552,7 @@
     "difficulty": "grandmaster",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["Cook's Assistant", "Fishing Contest"],
+    "questReqs": ["Recipe for Disaster/Another Cook's Quest", "Fishing Contest"],
     "questPoints": 0
   },
   "Recipe for Disaster/Freeing Evil Dave": {

@@ -58,6 +58,13 @@ const DIFFICULTY_MAP: Record<string, string> = {
   Special: 'grandmaster',
 };
 
+// Maps wiki redirect page names to their canonical quest page names.
+// Needed when quest requirement pages link to a redirect rather than the
+// canonical page (e.g. "Another Cook's Quest" redirects to the full subquest path).
+const WIKI_REDIRECTS: Record<string, string> = {
+  "Another Cook's Quest": "Recipe for Disaster/Another Cook's Quest",
+};
+
 // ── Bucket API ────────────────────────────────────────────────────────────────
 
 interface BucketQuest {
@@ -129,21 +136,20 @@ function parseQuestPointReq(html: string): number {
 }
 
 /**
- * Extract quest prereq names from the requirements HTML.
- * Wiki links look like [[Page Name]] or [[Page Name|Display text]].
- * We extract the page name portion and check it against known quest names.
+ * Extract quest prereq names from the requirements text.
+ * Collects all [[wiki links]] that resolve to known quest names, then
+ * transitive reduction (reduceToDirectPrereqs) strips indirect ones.
  */
-function parseQuestReqs(html: string, validNames: Set<string>): string[] {
+function parseQuestReqs(text: string, validNames: Set<string>): string[] {
   const questReqs: string[] = [];
   const linkRe = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
-  let m: RegExpExecArray | null;
 
-  while ((m = linkRe.exec(html)) !== null) {
-    const name = m[1]!.trim();
+  for (const m of text.matchAll(linkRe)) {
+    const raw = m[1]!.trim().replace(/_/g, ' ');
+    const name = WIKI_REDIRECTS[raw] ?? raw;
     if (validNames.has(name)) questReqs.push(name);
   }
 
-  // Deduplicate while preserving order
   return [...new Set(questReqs)];
 }
 
@@ -170,7 +176,7 @@ function reduceToDirectPrereqs(output: Record<string, QuestDataEntry>): void {
 
   function allAncestors(name: string, visiting = new Set<string>()): Set<string> {
     if (cache.has(name)) return cache.get(name)!;
-    if (visiting.has(name)) return new Set(); // cycle guard
+    if (visiting.has(name)) return new Set();
     visiting.add(name);
 
     const entry = output[name];
@@ -185,10 +191,8 @@ function reduceToDirectPrereqs(output: Record<string, QuestDataEntry>): void {
     return result;
   }
 
-  // Pre-populate cache
   for (const name of Object.keys(output)) allAncestors(name);
 
-  // Remove any prereq reachable via another direct prereq
   for (const entry of Object.values(output)) {
     const direct = entry.questReqs;
     entry.questReqs = direct.filter(
@@ -205,13 +209,17 @@ async function main() {
   const questList = await fetchQuestList();
   console.log(`  ${questList.length} total entries from bucket`);
 
-  // Deduplicate (the RFD "Full guide" meta-page appears multiple times) and
-  // exclude it — include everything else regardless of difficulty.
+  // Deduplicate and exclude meta-pages:
+  // - "/Full guide" pages are hub/guide pages, not trackable quests
+  // - "Recipe for Disaster" (exact) is the umbrella hub page; all requirements
+  //   from across the questline are aggregated onto it. The actual entry point
+  //   is "Recipe for Disaster/Another Cook's Quest".
+  const HUB_PAGES = new Set(['Recipe for Disaster']);
   const seen = new Set<string>();
   const quests = questList.filter((q) => {
     if (seen.has(q.page_name)) return false;
     seen.add(q.page_name);
-    return !q.page_name.endsWith('/Full guide');
+    return !q.page_name.endsWith('/Full guide') && !HUB_PAGES.has(q.page_name);
   });
   console.log(`  ${quests.length} quests/subquests after filtering`);
 
