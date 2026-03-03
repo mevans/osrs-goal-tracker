@@ -44,11 +44,15 @@ coverage/
 # Markdown files
 *.md
 
-# Screenshots/images
+# Screenshots/images (but allow src/assets)
 *.png
 *.jpg
 *.jpeg
 *.gif
+!src/assets/*.png
+!src/assets/*.jpg
+!src/assets/*.jpeg
+!src/assets/*.gif
 
 # Playwright
 .playwright-mcp/
