@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mevans.github.io/osrs-goal-tracker/sitemap.xml

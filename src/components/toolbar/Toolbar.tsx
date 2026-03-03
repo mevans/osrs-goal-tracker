@@ -5,7 +5,7 @@ import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
 import { useViewportCenter } from '../../hooks/useViewportCenter';
 import { NodeDialog, type NodeFormResult } from '../NodeDialog';
-import { CompassIcon } from '../CompassIcon';
+import logoUrl from '../../assets/logo.png';
 import { ShareDialog } from './ShareDialog';
 import { PreferencesDialog } from './PreferencesDialog';
 import { PlayerProfileDialog } from './PlayerProfileDialog';
@@ -131,9 +131,8 @@ export function Toolbar() {
   return (
     <>
       <div className="flex items-center gap-2 px-4 py-2 bg-surface-800 border-b border-surface-border">
-        <div className="flex items-center gap-2 mr-2">
-          <CompassIcon size={44} />
-          <span className="text-sm font-semibold text-amber-100 tracking-wide">Planscape</span>
+        <div className="flex items-center mr-2">
+          <img src={logoUrl} alt="Planscape" className="h-14 w-auto max-w-none flex-shrink-0" />
         </div>
 
         <button

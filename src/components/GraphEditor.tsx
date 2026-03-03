@@ -35,7 +35,7 @@ import { usePreferencesStore } from '../store/preferences-store';
 import { usePlayerStore } from '../store/player-store';
 import type { EdgeType } from '../engine/types';
 import { buildRfNodes, buildRfEdges } from './rfHelpers';
-import { CompassIcon } from './CompassIcon';
+import logoUrl from '../assets/logo.png';
 import { GraphLegend } from './GraphLegend';
 
 const nodeTypes = { custom: CustomNode };
@@ -492,9 +492,8 @@ function EmptyState() {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="pointer-events-auto bg-surface-800 border border-surface-border rounded-xl p-8 max-w-sm w-full text-center shadow-xl mx-4">
-        <div className="flex items-center justify-center gap-2.5 mb-3">
-          <CompassIcon size={64} />
-          <h2 className="text-base font-semibold text-amber-100 tracking-wide">Planscape</h2>
+        <div className="flex items-center justify-center mb-3">
+          <img src={logoUrl} alt="Planscape" className="h-28 w-auto max-w-none" />
         </div>
         <p className="text-sm text-stone-400 mb-6 leading-relaxed">
           Map out your OSRS grind. Chain together quests, skill targets, and unlocks — see what you
