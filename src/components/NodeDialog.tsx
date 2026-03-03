@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { OSRS_SKILLS } from '../engine/types';
 import { ALL_QUESTS } from '../engine/quest-db';
-import type { GraphNode, NodeType, SkillName, Quantity } from '../engine/types';
+import { ALL_BOSSES } from '../engine/boss-db';
+import type { GraphNode, NodeType, SkillName, Quantity, BossData } from '../engine/types';
 import { SkillIcon } from './SkillIcon';
+import { BossIcon } from './BossIcon';
 import { useGraphStore } from '../store/graph-store';
 
 // --- Icons ---
@@ -75,6 +77,26 @@ const TaskIcon = () => (
   >
     <polyline points="9 11 12 14 22 4" />
     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+  </svg>
+);
+
+const KillIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M14.5 17.5L3 6V3h3l11.5 11.5" />
+    <path d="M13 19l2-2" />
+    <path d="M17.5 14.5l2-2" />
+    <path d="M19 22l-4-4" />
+    <path d="M20 20l1 1" />
+    <path d="M6.5 6.5l3-3" />
   </svg>
 );
 
@@ -152,6 +174,17 @@ const NODE_TYPE_CONFIG: TypeConfig[] = [
     iconColor: 'text-purple-400',
     buttonClass: 'bg-purple-700 hover:bg-purple-600',
   },
+  {
+    value: 'kill',
+    label: 'Kill',
+    description: 'Boss & monster kills',
+    Icon: KillIcon,
+    formBorder: 'border-l-red-500',
+    cardBorder: 'border-red-500',
+    cardBg: 'bg-red-500/10',
+    iconColor: 'text-red-400',
+    buttonClass: 'bg-red-700 hover:bg-red-600',
+  },
 ];
 
 // --- Types ---
@@ -162,6 +195,7 @@ export interface NodeFormResult {
   notes: string | undefined;
   skillData: { skillName: SkillName; targetLevel: number; boost: number | undefined } | undefined;
   questData: { questId: string } | undefined;
+  bossData: BossData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
 }
@@ -192,8 +226,17 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
   const [questId, setQuestId] = useState(
     initialNode?.questData?.questId ?? ALL_QUESTS[0]?.name ?? '',
   );
+  const [bossId, setBossId] = useState(initialNode?.bossData?.bossId ?? ALL_BOSSES[0]?.id ?? '');
   const [quantityTarget, setQuantityTarget] = useState(
     initialNode?.quantity?.target.toString() ?? '',
+  );
+  const [kcCurrent, setKcCurrent] = useState(
+    initialNode?.type === 'kill' ? (initialNode.quantity?.current.toString() ?? '0') : '0',
+  );
+  const [kcTarget, setKcTarget] = useState(
+    initialNode?.type === 'kill' && initialNode.quantity?.target
+      ? initialNode.quantity.target.toString()
+      : '',
   );
   const [tags, setTags] = useState<string[]>(initialNode?.tags ?? []);
   const [newTag, setNewTag] = useState('');
@@ -230,6 +273,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
     if ((type === 'goal' || type === 'task') && !title.trim()) return;
     if (type === 'skill' && !targetLevel) return;
     if (type === 'quest' && !questId) return;
+    if (type === 'kill' && !bossId) return;
 
     let finalTitle = title.trim();
     if (type === 'skill') {
@@ -239,9 +283,13 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
         boostVal > 0 ? `${level - boostVal}+${boostVal} ${skillName}` : `${level} ${skillName}`;
     } else if (type === 'quest') {
       finalTitle = questId;
+    } else if (type === 'kill') {
+      finalTitle = bossId;
     }
 
     const qTarget = Number(quantityTarget);
+    const killTarget = Number(kcTarget) || 0;
+    const killCurrent = Number(kcCurrent) || 0;
     onSubmit({
       type,
       title: finalTitle || (initialNode?.title ?? ''),
@@ -251,8 +299,13 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           ? { skillName, targetLevel: Number(targetLevel) || 1, boost: Number(boost) || undefined }
           : undefined,
       questData: type === 'quest' && questId ? { questId } : undefined,
+      bossData: type === 'kill' && bossId ? { bossId } : undefined,
       quantity:
-        qTarget > 0 ? { target: qTarget, current: initialNode?.quantity?.current ?? 0 } : undefined,
+        type === 'kill'
+          ? { target: killTarget, current: killCurrent }
+          : qTarget > 0
+            ? { target: qTarget, current: initialNode?.quantity?.current ?? 0 }
+            : undefined,
       tags,
     });
   };
@@ -269,6 +322,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
   const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
 
   const isGoalOrTask = type === 'goal' || type === 'task';
+  const hasQuantity = isGoalOrTask;
   const cfg = NODE_TYPE_CONFIG.find((c) => c.value === type)!;
 
   return (
@@ -338,6 +392,66 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           </div>
         )}
 
+        {/* Boss select */}
+        {type === 'kill' && (
+          <>
+            <div className="mb-3">
+              <div className="flex items-center gap-2">
+                {bossId && <BossIcon bossId={bossId} size={28} />}
+                <select
+                  autoFocus
+                  className="flex-1 bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
+                  value={bossId}
+                  onChange={(e) => setBossId(e.target.value)}
+                >
+                  {ALL_BOSSES.map((boss) => (
+                    <option key={boss.id} value={boss.id}>
+                      {boss.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* KC tracking */}
+            <div className="mb-3">
+              <label className="block text-xs text-stone-400 mb-1.5">
+                Kill count
+                <span className="text-stone-600 ml-1">
+                  — leave target blank if grinding for a drop
+                </span>
+              </label>
+              <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-stone-500">Current KC</span>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-24 bg-surface-700 text-white rounded px-2 py-1.5 border border-surface-border focus:border-brand focus:outline-none text-sm"
+                    value={kcCurrent}
+                    onChange={(e) => setKcCurrent(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+                <span className="text-stone-600 mt-4">/</span>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] text-stone-500">
+                    Target KC <span className="text-stone-600">(optional)</span>
+                  </span>
+                  <input
+                    type="number"
+                    min={0}
+                    className="w-24 bg-surface-700 text-white rounded px-2 py-1.5 border border-surface-border focus:border-brand focus:outline-none text-sm"
+                    value={kcTarget}
+                    onChange={(e) => setKcTarget(e.target.value)}
+                    placeholder="e.g. 40"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Skill fields */}
         {type === 'skill' && (
           <div className="flex gap-2 mb-3">
@@ -399,8 +513,8 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
 
         {showMore && (
           <div className="space-y-3 mb-4">
-            {/* Quantity target — goal/task only */}
-            {isGoalOrTask && (
+            {/* Quantity target — goal/task/kill */}
+            {hasQuantity && (
               <div>
                 <label className="block text-xs text-stone-400 mb-1">
                   Quantity{' '}
@@ -530,7 +644,9 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           <button
             type="submit"
             disabled={
-              isGoalOrTask && !title.trim() ? true : type === 'skill' && !targetLevel ? true : false
+              (isGoalOrTask && !title.trim()) ||
+              (type === 'skill' && !targetLevel) ||
+              (type === 'kill' && !bossId)
             }
             className={`px-3 py-1.5 text-sm text-white rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${cfg.buttonClass}`}
           >

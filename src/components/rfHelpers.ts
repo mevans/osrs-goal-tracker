@@ -28,6 +28,7 @@ export function buildRfNodes(
         subtitle: undefined,
         skillData: n.skillData,
         questData: n.questData,
+        bossData: n.bossData,
         quantity: n.quantity,
         tags: n.tags,
       },

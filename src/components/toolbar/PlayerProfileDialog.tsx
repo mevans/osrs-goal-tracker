@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { usePlayerStore } from '../../store/player-store';
 import { useGraphStore } from '../../store/graph-store';
-import { fetchSkillsFromWom } from '../../engine/wom-api';
+import { fetchPlayerDataFromWom } from '../../engine/wom-api';
 
 interface PlayerProfileDialogProps {
   onClose: () => void;
@@ -18,7 +18,7 @@ export function PlayerProfileDialog({ onClose }: PlayerProfileDialogProps) {
   const [status, setStatus] = useState<
     | { type: 'idle' }
     | { type: 'loading' }
-    | { type: 'success'; rsn: string; count: number }
+    | { type: 'success'; rsn: string; skillCount: number; bossCount: number }
     | { type: 'error'; message: string }
   >({ type: 'idle' });
 
@@ -27,10 +27,15 @@ export function PlayerProfileDialog({ onClose }: PlayerProfileDialogProps) {
     if (!name) return;
     setStatus({ type: 'loading' });
     try {
-      const skills = await fetchSkillsFromWom(name);
+      const { skills, bossKcs } = await fetchPlayerDataFromWom(name);
       setRsn(name);
-      loadProfile(skills);
-      setStatus({ type: 'success', rsn: name, count: Object.keys(skills).length });
+      loadProfile(skills, bossKcs);
+      setStatus({
+        type: 'success',
+        rsn: name,
+        skillCount: Object.keys(skills).length,
+        bossCount: Object.keys(bossKcs).length,
+      });
     } catch (err) {
       setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Unknown error' });
     }
@@ -96,7 +101,8 @@ export function PlayerProfileDialog({ onClose }: PlayerProfileDialogProps) {
 
             {status.type === 'success' && (
               <p className="text-xs text-green-400">
-                {status.count} skills loaded for <span className="font-medium">{status.rsn}</span>.
+                {status.skillCount} skills and {status.bossCount} boss KCs loaded for{' '}
+                <span className="font-medium">{status.rsn}</span>.
               </p>
             )}
             {status.type === 'error' && <p className="text-xs text-red-400">{status.message}</p>}
@@ -104,7 +110,7 @@ export function PlayerProfileDialog({ onClose }: PlayerProfileDialogProps) {
 
           {/* Info note */}
           <p className="text-xs text-stone-500 leading-relaxed">
-            Skill levels are fetched from{' '}
+            Skill levels and boss kill counts are fetched from{' '}
             <a
               href="https://wiseoldman.net"
               target="_blank"
@@ -113,8 +119,9 @@ export function PlayerProfileDialog({ onClose }: PlayerProfileDialogProps) {
             >
               Wise Old Man
             </a>
-            . Quest completion isn't available via RSN — mark quests done directly on the canvas, or
-            use the RuneLite plugin <span className="text-stone-600">(coming soon)</span>.
+            . Boss KCs update kill node counters (never decrease). Quest completion isn't available
+            via RSN — mark quests done directly on the canvas, or use the RuneLite plugin{' '}
+            <span className="text-stone-600">(coming soon)</span>.
           </p>
 
           {/* Reset */}

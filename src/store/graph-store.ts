@@ -8,6 +8,7 @@ import type {
   GraphData,
   SkillName,
   Quantity,
+  BossData,
 } from '../engine/types';
 import { generateId } from '../engine/types';
 import { analytics } from '../analytics';
@@ -19,6 +20,7 @@ export interface AddNodeParams {
   notes: string | undefined;
   skillData: { skillName: SkillName; targetLevel: number; boost: number | undefined } | undefined;
   questData: { questId: string } | undefined;
+  bossData: BossData | undefined;
   quantity: Quantity | undefined;
   tags: string[] | undefined;
 }
@@ -55,6 +57,7 @@ interface GraphState {
   loadGraph: (data: GraphData) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
   syncPlayerData: (skills: Partial<Record<SkillName, number>>) => void;
+  syncBossKcs: (kcs: Record<string, number>) => void;
   clearNodeCompletions: () => void;
   clearGraph: () => void;
 }
@@ -78,6 +81,7 @@ export const useGraphStore = create<GraphState>()(
           notes: params.notes ?? undefined,
           skillData: params.skillData ?? undefined,
           questData: params.questData ?? undefined,
+          bossData: params.bossData ?? undefined,
           quantity: params.quantity ?? undefined,
           tags: params.tags ?? [],
         };
@@ -96,6 +100,7 @@ export const useGraphStore = create<GraphState>()(
           notes: params.notes ?? undefined,
           skillData: params.skillData ?? undefined,
           questData: params.questData ?? undefined,
+          bossData: params.bossData ?? undefined,
           quantity: params.quantity ?? undefined,
           tags: params.tags ?? [],
         };
@@ -395,6 +400,22 @@ export const useGraphStore = create<GraphState>()(
               }
             }
             return n;
+          }),
+        }));
+      },
+
+      syncBossKcs: (kcs) => {
+        set((state) => ({
+          nodes: state.nodes.map((n) => {
+            if (n.type !== 'kill' || !n.bossData) return n;
+            const womKc = kcs[n.bossData.bossId];
+            if (!womKc) return n;
+            const currentKc = n.quantity?.current ?? 0;
+            if (womKc <= currentKc) return n; // never decrement
+            return {
+              ...n,
+              quantity: { target: n.quantity?.target ?? 0, current: womKc },
+            };
           }),
         }));
       },

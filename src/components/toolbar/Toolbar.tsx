@@ -10,7 +10,7 @@ import { ShareDialog } from './ShareDialog';
 import { PreferencesDialog } from './PreferencesDialog';
 import { PlayerProfileDialog } from './PlayerProfileDialog';
 import { exportToJson, importFromJson } from '../../engine/serialization';
-import { fetchSkillsFromWom } from '../../engine/wom-api';
+import { fetchPlayerDataFromWom } from '../../engine/wom-api';
 import { usePlayerStore } from '../../store/player-store';
 import { analytics } from '../../analytics';
 
@@ -51,9 +51,9 @@ export function Toolbar() {
     if (!rsn) return;
     setSyncing(true);
     try {
-      const skills = await fetchSkillsFromWom(rsn);
-      loadProfile(skills);
-      toast.success(`Skills synced for ${rsn}`);
+      const { skills, bossKcs } = await fetchPlayerDataFromWom(rsn);
+      loadProfile(skills, bossKcs);
+      toast.success(`Skills and boss KCs synced for ${rsn}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Sync failed');
     } finally {

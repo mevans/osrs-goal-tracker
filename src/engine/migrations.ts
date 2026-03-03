@@ -3,7 +3,7 @@ import type { GraphData } from './types';
 /**
  * Current schema version. Increment when making breaking changes to GraphData.
  */
-export const CURRENT_VERSION = 1;
+export const CURRENT_VERSION = 2;
 
 /**
  * Raw data shape from unknown (possibly old) saves. Typed as a loose record
@@ -17,7 +17,10 @@ type Migration = (data: RawData) => RawData;
  * Example: migrations[1] upgrades v1 data to v2.
  */
 const migrations: Record<number, Migration> = {
-  // future migrations go here
+  1: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({ ...n, bossData: undefined })),
+  }),
 };
 
 /**

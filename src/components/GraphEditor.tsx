@@ -126,6 +126,12 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     useGraphStore.getState().syncPlayerData(playerSkills);
   }, [playerSkills]);
 
+  // Auto-update kill node KC counters when boss KC data changes
+  const playerBossKcs = usePlayerStore((s) => s.bossKcs);
+  useEffect(() => {
+    useGraphStore.getState().syncBossKcs(playerBossKcs);
+  }, [playerBossKcs]);
+
   // Paste at viewport center rather than a fixed offset
   const pasteAtViewportCenter = useCallback(async () => {
     const count = await pasteClipboard(getViewportCenter());

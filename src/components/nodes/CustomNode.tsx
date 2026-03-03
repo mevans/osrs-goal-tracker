@@ -1,8 +1,16 @@
 import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflow/react';
 import { toast } from 'sonner';
-import type { NodeType, DerivedStatus, Quantity, SkillData, QuestData } from '../../engine/types';
+import type {
+  NodeType,
+  DerivedStatus,
+  Quantity,
+  SkillData,
+  QuestData,
+  BossData,
+} from '../../engine/types';
 import { getNodeTitle } from '../../engine/node-utils';
 import { SkillIcon } from '../SkillIcon';
+import { BossIcon } from '../BossIcon';
 import { ShortcutHint } from '../Kbd';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
@@ -16,6 +24,7 @@ export interface CustomNodeData {
   subtitle: string | undefined;
   skillData: SkillData | undefined;
   questData: QuestData | undefined;
+  bossData: BossData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
   [key: string]: unknown;
@@ -26,6 +35,7 @@ const TYPE_COLORS: Record<NodeType, string> = {
   quest: 'bg-blue-900/60',
   skill: 'bg-green-900/60',
   task: 'bg-purple-900/60',
+  kill: 'bg-red-900/60',
 };
 
 const TYPE_LABELS: Record<NodeType, string> = {
@@ -33,6 +43,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
   quest: 'Quest',
   skill: 'Skill',
   task: 'Task',
+  kill: 'Kill',
 };
 
 const STATUS_BORDERS: Record<DerivedStatus, string> = {
@@ -68,6 +79,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
     title: data.title,
     skillData: data.skillData,
     questData: data.questData,
+    bossData: data.bossData,
   });
 
   const canEdit = true;
@@ -118,23 +130,30 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
                 <input
                   type="number"
                   min={0}
-                  max={q.target}
+                  {...(q.target > 0 && { max: q.target })}
                   value={q.current}
                   onChange={(e) => {
-                    const val = Math.max(0, Math.min(q.target, Number(e.target.value) || 0));
+                    const raw = Math.max(0, Number(e.target.value) || 0);
+                    const val = q.target > 0 ? Math.min(q.target, raw) : raw;
                     updateNode(id, { quantity: { ...q, current: val } });
                   }}
                   className="min-w-0 flex-1 text-center text-xs bg-surface-700 text-stone-200 rounded border border-surface-border focus:border-brand focus:outline-none py-1 [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
                 />
-                <span className="text-xs text-stone-400 shrink-0">/ {q.target}</span>
+                {q.target > 0 && (
+                  <span className="text-xs text-stone-400 shrink-0">/ {q.target}</span>
+                )}
                 <button
                   onClick={(e) => {
                     const step = e.shiftKey ? (e.ctrlKey || e.metaKey ? 100 : 10) : 1;
                     updateNode(id, {
-                      quantity: { ...q, current: Math.min(q.target, q.current + step) },
+                      quantity: {
+                        ...q,
+                        current:
+                          q.target > 0 ? Math.min(q.target, q.current + step) : q.current + step,
+                      },
                     });
                   }}
-                  disabled={q.current >= q.target}
+                  disabled={q.target > 0 && q.current >= q.target}
                   className="text-xs w-7 h-7 rounded bg-surface-700 text-stone-300 hover:bg-surface-600 disabled:opacity-50 shrink-0"
                   title="+1  (shift: +10,  ctrl+shift: +100)"
                 >
@@ -197,6 +216,19 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
               <div className="text-sm font-medium text-white break-words">{displayTitle}</div>
             </div>
           </div>
+        ) : data.bossData ? (
+          <div className="flex items-center gap-2.5">
+            <BossIcon bossId={data.bossData.bossId} size={36} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">
+                  {TYPE_LABELS[data.nodeType]}
+                </span>
+                {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
+              </div>
+              <div className="text-sm font-medium text-white break-words">{displayTitle}</div>
+            </div>
+          </div>
         ) : (
           <>
             <div className="flex items-center gap-1.5 mb-0.5">
@@ -212,20 +244,32 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
           </>
         )}
 
-        {q && (
+        {q && (data.nodeType !== 'kill' || q.target > 0 || q.current > 0) && (
           <div className="mt-1.5">
-            <div className="flex items-center justify-between mb-0.5">
-              <span className="text-[10px] text-stone-400">
-                {q.current} / {q.target}
-              </span>
-              <span className="text-[10px] text-stone-500">{progressPct}%</span>
-            </div>
-            <div className="w-full h-1.5 bg-surface-600/80 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${progressColor}`}
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
+            {data.nodeType === 'kill' && q.target === 0 ? (
+              <span className="text-[10px] text-stone-400">{q.current} KC</span>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-0.5">
+                  {data.nodeType === 'kill' ? (
+                    <span className="text-[10px] text-stone-400">
+                      {q.current} / {q.target} KC
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-stone-400">
+                      {q.current} / {q.target}
+                    </span>
+                  )}
+                  <span className="text-[10px] text-stone-500">{progressPct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-surface-600/80 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${progressColor}`}
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
 
