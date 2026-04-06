@@ -3656,7 +3656,7 @@
       {
         "skill": "Construction",
         "level": 41,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Hunter",
