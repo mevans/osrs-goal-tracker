@@ -616,7 +616,7 @@
     "difficulty": "novice",
     "members": true,
     "skillReqs": [],
-    "questReqs": ["The Feud", "Rune Mysteries", "Icthlarin's Little Helper"],
+    "questReqs": ["The Feud", "Icthlarin's Little Helper"],
     "questPoints": 0
   },
   "Rune Mysteries": {
