@@ -3627,12 +3627,12 @@
       {
         "skill": "Sailing",
         "level": 52,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Smithing",
         "level": 48,
-        "boostable": true
+        "boostable": false
       }
     ],
     "questReqs": ["Troubled Tortugans"],
