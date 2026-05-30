@@ -410,12 +410,14 @@ export const useGraphStore = create<GraphState>()(
             };
           });
 
-          const newEdges = clipboardData.edges.map((edge) => ({
-            ...edge,
-            id: generateId(),
-            from: idMap.get(edge.from)!,
-            to: idMap.get(edge.to)!,
-          }));
+          const newEdges = clipboardData.edges
+            .filter((edge) => idMap.has(edge.from) && idMap.has(edge.to))
+            .map((edge) => ({
+              ...edge,
+              id: generateId(),
+              from: idMap.get(edge.from)!,
+              to: idMap.get(edge.to)!,
+            }));
 
           set((state) => ({
             nodes: [...state.nodes, ...newNodes],

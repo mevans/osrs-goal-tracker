@@ -17,6 +17,14 @@ type Migration = (data: RawData) => RawData;
  * Example: migrations[1] upgrades v1 data to v2.
  */
 const migrations: Record<number, Migration> = {
+  // v0 → v1: Add tags field to nodes (legacy data from before versioning)
+  0: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({
+      ...n,
+      tags: Array.isArray(n['tags']) ? n['tags'] : [],
+    })),
+  }),
   1: (data) => ({
     ...data,
     nodes: (data['nodes'] as RawData[]).map((n) => ({ ...n, bossData: undefined })),

@@ -288,10 +288,13 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   // Local RF state — React Flow owns positions and selection during interaction
   const [rfNodes, setRfNodes] = useState<Node<RfNodeData>[]>(() =>
-    buildRfNodes(nodes, nodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
+    buildRfNodes(foldView.visibleNodes, nodes, statuses, {
+      highlightedIds: highlightedNodeIds,
+      selectedNodeIds,
+    }),
   );
   const [rfEdges, setRfEdges] = useState<Edge[]>(() =>
-    buildRfEdges(edges, highlightedEdgeIds, selectedEdgeIds),
+    buildRfEdges(foldView.visibleEdges, highlightedEdgeIds, selectedEdgeIds),
   );
 
   // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
