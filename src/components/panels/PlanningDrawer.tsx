@@ -26,9 +26,14 @@ export function PlanningDrawer() {
   const edges = useGraphStore((s) => s.edges);
   const selectNodes = useGraphStore.getState().selectNodes;
 
-  const available = useMemo(() => getAvailableNodes(nodes, edges), [nodes, edges]);
-  const blocked = useMemo(() => getBlockedNodes(nodes, edges), [nodes, edges]);
-  const bottlenecks = useMemo(() => computeBottlenecks(nodes, edges, 10), [nodes, edges]);
+  const planningNodes = useMemo(() => nodes.filter((n) => n.type !== 'group'), [nodes]);
+
+  const available = useMemo(() => getAvailableNodes(planningNodes, edges), [planningNodes, edges]);
+  const blocked = useMemo(() => getBlockedNodes(planningNodes, edges), [planningNodes, edges]);
+  const bottlenecks = useMemo(
+    () => computeBottlenecks(planningNodes, edges, 10),
+    [planningNodes, edges],
+  );
   const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
 
   const bottleneckMap = useMemo(() => {
@@ -48,17 +53,17 @@ export function PlanningDrawer() {
     if (statusFilter === 'available') return available;
     if (statusFilter === 'blocked') return blocked;
     const ids = new Set(bottlenecks.map((b) => b.nodeId));
-    return nodes.filter((n) => ids.has(n.id));
-  }, [statusFilter, available, blocked, bottlenecks, nodes]);
+    return planningNodes.filter((n) => ids.has(n.id));
+  }, [statusFilter, available, blocked, bottlenecks, planningNodes]);
 
   // Tags always collected from all non-complete nodes
   const availableTags = useMemo(() => {
     const tags = new Set<string>();
-    for (const n of nodes) {
+    for (const n of planningNodes) {
       if (!n.complete) for (const t of n.tags) tags.add(t);
     }
     return [...tags].sort();
-  }, [nodes]);
+  }, [planningNodes]);
 
   const filteredNodes = useMemo(() => {
     if (!selectedTag) return baseNodes;
