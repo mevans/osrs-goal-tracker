@@ -16,14 +16,17 @@ import { parseShareParam } from '../engine/serialization';
 import { analytics } from '../analytics';
 import { useGraphStore } from '../store/graph-store';
 import { computeAllStatuses } from '../engine/graph-engine';
+import { applyFoldView, computeGroupStatus } from '../engine/fold-view';
 import type { GraphData } from '../engine/types';
-import { CustomNode, type CustomNodeData } from '../components/nodes/CustomNode';
+import { CustomNode } from '../components/nodes/CustomNode';
+import { FoldGroupNode } from '../components/nodes/FoldGroupNode';
+import type { RfNodeData } from '../components/rfHelpers';
 import { RequiresEdge, RequiresArrowDef } from '../components/edges/RequiresEdge';
 import { ImprovesEdge, ImprovesArrowDef } from '../components/edges/ImprovesEdge';
 import { buildRfNodes, buildRfEdges } from '../components/rfHelpers';
 import { GraphLegend } from '../components/GraphLegend';
 
-const nodeTypes = { custom: CustomNode };
+const nodeTypes = { custom: CustomNode, foldGroup: FoldGroupNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
 
 export function SharedViewPage() {
@@ -75,17 +78,27 @@ export function SharedViewPage() {
 function SharedView({ data }: { data: GraphData }) {
   const navigate = useNavigate();
 
-  const statuses = useMemo(
-    () => computeAllStatuses(data.nodes, data.edges),
-    [data.nodes, data.edges],
+  const statuses = useMemo(() => {
+    const base = computeAllStatuses(data.nodes, data.edges);
+    for (const node of data.nodes) {
+      if (node.type === 'group') {
+        base.set(node.id, computeGroupStatus(node, data.nodes, base));
+      }
+    }
+    return base;
+  }, [data.nodes, data.edges]);
+
+  const foldView = useMemo(() => applyFoldView(data.nodes, data.edges), [data.nodes, data.edges]);
+
+  const rfNodes: Node<RfNodeData>[] = useMemo(
+    () => buildRfNodes(foldView.visibleNodes, data.nodes, statuses, { draggable: false }),
+    [foldView.visibleNodes, data.nodes, statuses],
   );
 
-  const rfNodes: Node<CustomNodeData>[] = useMemo(
-    () => buildRfNodes(data.nodes, statuses, { draggable: false }),
-    [data.nodes, statuses],
+  const rfEdges: Edge[] = useMemo(
+    () => buildRfEdges(foldView.visibleEdges),
+    [foldView.visibleEdges],
   );
-
-  const rfEdges: Edge[] = useMemo(() => buildRfEdges(data.edges), [data.edges]);
 
   const handleOpenInEditor = () => {
     const { nodes: existingNodes } = useGraphStore.getState();

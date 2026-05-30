@@ -21,11 +21,20 @@ import {
   type Node,
   type Edge,
 } from '@xyflow/react';
-import { applyLayout } from '../engine/layout';
+import { applyLayoutWithFolds } from '../engine/fold-view';
 import { analytics } from '../analytics';
 import { useGraphStore } from '../store/graph-store';
 import { computeAllStatuses, getAllPrerequisites, getAllDependents } from '../engine/graph-engine';
-import { CustomNode, type CustomNodeData } from './nodes/CustomNode';
+import {
+  applyFoldView,
+  computeGroupStatus,
+  getMemberToGroupMap,
+  isGroupComplete,
+  resolveStoredEdgeId,
+} from '../engine/fold-view';
+import { CustomNode } from './nodes/CustomNode';
+import { FoldGroupNode } from './nodes/FoldGroupNode';
+import type { RfNodeData } from './rfHelpers';
 import { RequiresEdge, RequiresArrowDef } from './edges/RequiresEdge';
 import { ImprovesEdge, ImprovesArrowDef } from './edges/ImprovesEdge';
 import { NodeDialog, type NodeFormResult } from './NodeDialog';
@@ -38,7 +47,7 @@ import { buildRfNodes, buildRfEdges } from './rfHelpers';
 import logoUrl from '../assets/logo.png';
 import { GraphLegend } from './GraphLegend';
 
-const nodeTypes = { custom: CustomNode };
+const nodeTypes = { custom: CustomNode, foldGroup: FoldGroupNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
 
 // SVG icons for React Flow ControlButton (must use fill="currentColor" to respect RF color theming)
@@ -109,7 +118,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const handleTidyLayout = useCallback(() => {
     const { nodes: storeNodes, edges: storeEdges } = useGraphStore.getState();
     if (storeNodes.length === 0) return;
-    const laidOut = applyLayout(storeNodes, storeEdges);
+    const laidOut = applyLayoutWithFolds(storeNodes, storeEdges);
     useGraphStore.setState({ nodes: laidOut });
     analytics.tidyLayout();
     setTimeout(() => {
@@ -160,17 +169,52 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     [editingNodeId, nodes],
   );
 
-  const statuses = useMemo(() => computeAllStatuses(nodes, edges), [nodes, edges]);
+  const statuses = useMemo(() => {
+    const base = computeAllStatuses(nodes, edges);
+    for (const node of nodes) {
+      if (node.type === 'group') {
+        base.set(node.id, computeGroupStatus(node, nodes, base));
+      }
+    }
+    return base;
+  }, [nodes, edges]);
+
+  const foldView = useMemo(() => applyFoldView(nodes, edges), [nodes, edges]);
 
   // Compute highlight set: selected nodes + all prerequisites + all dependents (requires edges only)
   // OR just the two endpoints when an edge is selected
   const highlightedNodeIds = useMemo(() => {
+    const memberToGroup = getMemberToGroupMap(nodes);
+
+    const addGroupForMember = (set: Set<string>, nodeId: string) => {
+      const groupId = memberToGroup.get(nodeId);
+      if (groupId) set.add(groupId);
+    };
+
+    const addPrereqsAndDependents = (set: Set<string>, nodeId: string) => {
+      getAllPrerequisites(nodeId, edges).forEach((id) => {
+        set.add(id);
+        addGroupForMember(set, id);
+      });
+      getAllDependents(nodeId, edges).forEach((id) => {
+        set.add(id);
+        addGroupForMember(set, id);
+      });
+    };
+
     if (selectedNodeIds.length > 0) {
       const set = new Set<string>();
       for (const nodeId of selectedNodeIds) {
         set.add(nodeId);
-        getAllPrerequisites(nodeId, edges).forEach((id) => set.add(id));
-        getAllDependents(nodeId, edges).forEach((id) => set.add(id));
+        const node = nodes.find((n) => n.id === nodeId);
+        if (node?.type === 'group' && node.groupData) {
+          for (const memberId of node.groupData.memberIds) {
+            set.add(memberId);
+            addPrereqsAndDependents(set, memberId);
+          }
+        } else {
+          addPrereqsAndDependents(set, nodeId);
+        }
       }
       return set;
     }
@@ -178,31 +222,34 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     if (selectedEdgeIds.length > 0) {
       const set = new Set<string>();
       for (const edgeId of selectedEdgeIds) {
-        const edge = edges.find((e) => e.id === edgeId);
+        const edge = edges.find((e) => e.id === resolveStoredEdgeId(edgeId));
         if (edge) {
           set.add(edge.from);
           set.add(edge.to);
+          addGroupForMember(set, edge.from);
+          addGroupForMember(set, edge.to);
         }
       }
       return set;
     }
 
     return null;
-  }, [selectedNodeIds, selectedEdgeIds, edges]);
+  }, [selectedNodeIds, selectedEdgeIds, edges, nodes]);
 
   // Compute highlighted edges: selected edges + edges between highlighted nodes
   const highlightedEdgeIds = useMemo(() => {
     if (!highlightedNodeIds) return null;
     const set = new Set<string>(selectedEdgeIds);
 
-    for (const edge of edges) {
-      if (highlightedNodeIds.has(edge.from) && highlightedNodeIds.has(edge.to)) {
+    for (const edge of foldView.visibleEdges) {
+      const stored = edges.find((e) => e.id === resolveStoredEdgeId(edge.id));
+      if (stored && highlightedNodeIds.has(stored.from) && highlightedNodeIds.has(stored.to)) {
         set.add(edge.id);
       }
     }
 
     return set;
-  }, [highlightedNodeIds, selectedEdgeIds, edges]);
+  }, [highlightedNodeIds, selectedEdgeIds, foldView.visibleEdges, edges]);
 
   // Close edit dialog when selection changes
   useEffect(() => {
@@ -240,30 +287,47 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   >(undefined);
 
   // Local RF state — React Flow owns positions and selection during interaction
-  const [rfNodes, setRfNodes] = useState<Node<CustomNodeData>[]>(() =>
-    buildRfNodes(nodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
+  const [rfNodes, setRfNodes] = useState<Node<RfNodeData>[]>(() =>
+    buildRfNodes(foldView.visibleNodes, nodes, statuses, {
+      highlightedIds: highlightedNodeIds,
+      selectedNodeIds,
+    }),
   );
   const [rfEdges, setRfEdges] = useState<Edge[]>(() =>
-    buildRfEdges(edges, highlightedEdgeIds, selectedEdgeIds),
+    buildRfEdges(foldView.visibleEdges, highlightedEdgeIds, selectedEdgeIds),
   );
 
   // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
   useEffect(() => {
-    const visibleNodes = hideCompleted ? nodes.filter((n) => !n.complete) : nodes;
+    let visibleNodes = foldView.visibleNodes;
+    if (hideCompleted) {
+      visibleNodes = visibleNodes.filter((n) =>
+        n.type === 'group' ? !isGroupComplete(n, nodes) : !n.complete,
+      );
+    }
     setRfNodes(
-      buildRfNodes(visibleNodes, statuses, { highlightedIds: highlightedNodeIds, selectedNodeIds }),
+      buildRfNodes(visibleNodes, nodes, statuses, {
+        highlightedIds: highlightedNodeIds,
+        selectedNodeIds,
+      }),
     );
-  }, [nodes, statuses, highlightedNodeIds, selectedNodeIds, hideCompleted]);
+  }, [foldView, nodes, statuses, highlightedNodeIds, selectedNodeIds, hideCompleted]);
 
   useEffect(() => {
-    const hiddenIds = hideCompleted
-      ? new Set(nodes.filter((n) => n.complete).map((n) => n.id))
-      : null;
-    const visibleEdges = hiddenIds
-      ? edges.filter((e) => !hiddenIds.has(e.from) && !hiddenIds.has(e.to))
-      : edges;
+    let visibleEdges = foldView.visibleEdges;
+    if (hideCompleted) {
+      const hiddenIds = new Set<string>();
+      for (const n of nodes) {
+        if (n.type === 'group') {
+          if (isGroupComplete(n, nodes)) hiddenIds.add(n.id);
+        } else if (n.complete) {
+          hiddenIds.add(n.id);
+        }
+      }
+      visibleEdges = visibleEdges.filter((e) => !hiddenIds.has(e.from) && !hiddenIds.has(e.to));
+    }
     setRfEdges(buildRfEdges(visibleEdges, highlightedEdgeIds, selectedEdgeIds));
-  }, [edges, nodes, highlightedEdgeIds, selectedEdgeIds, hideCompleted]);
+  }, [foldView, edges, nodes, highlightedEdgeIds, selectedEdgeIds, hideCompleted]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -282,7 +346,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
       }
 
       // Apply ALL changes locally (position, select, dimensions, remove)
-      setRfNodes((nds) => applyNodeChanges(changes, nds) as Node<CustomNodeData>[]);
+      setRfNodes((nds) => applyNodeChanges(changes, nds) as Node<RfNodeData>[]);
 
       // Sync specific changes back to Zustand
       const positionUpdates: { id: string; position: { x: number; y: number } }[] = [];

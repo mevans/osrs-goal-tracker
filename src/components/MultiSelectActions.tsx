@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { useReactFlow, useViewport } from '@xyflow/react';
 import { toast } from 'sonner';
 import { useGraphStore } from '../store/graph-store';
+import { expandCompletionTargetIds, isGroupMember } from '../engine/fold-view';
+import { getNodeTitle } from '../engine/node-utils';
+import { FoldNameDialog } from './FoldNameDialog';
 import { ShortcutHint } from './Kbd';
 
 // Alignment icon components
@@ -93,9 +97,11 @@ function AlignButton({
 }
 
 export function MultiSelectActions() {
+  const [showFoldDialog, setShowFoldDialog] = useState(false);
   const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
   const nodes = useGraphStore((s) => s.nodes);
-  const { toggleNodesComplete, removeNodes, selectNodes, moveNodes } = useGraphStore.getState();
+  const { toggleNodesComplete, removeNodes, selectNodes, moveNodes, createFoldGroup } =
+    useGraphStore.getState();
   const { getNodes } = useReactFlow();
   const { x: vpX, y: vpY, zoom } = useViewport();
 
@@ -103,6 +109,14 @@ export function MultiSelectActions() {
 
   const rfNodes = getNodes().filter((n) => selectedNodeIds.includes(n.id));
   if (rfNodes.length === 0) return null;
+
+  const foldableIds = selectedNodeIds.filter((id) => {
+    const node = nodes.find((n) => n.id === id);
+    return node && node.type !== 'group' && !isGroupMember(id, nodes);
+  });
+  const canFold = foldableIds.length >= 2;
+  const foldableNodes = nodes.filter((n) => foldableIds.includes(n.id));
+  const foldDefaultName = foldableNodes.length > 0 ? getNodeTitle(foldableNodes[0]!) : 'New group';
 
   // Compute bounding box in flow coordinates
   let minX = Infinity;
@@ -122,8 +136,10 @@ export function MultiSelectActions() {
   const screenX = ((minX + maxX) / 2) * zoom + vpX;
   const screenY = minY * zoom + vpY;
 
-  const selectedNodes = nodes.filter((n) => selectedNodeIds.includes(n.id));
-  const allComplete = selectedNodes.every((n) => n.complete);
+  const completionTargetIds = expandCompletionTargetIds(selectedNodeIds, nodes);
+  const allComplete =
+    completionTargetIds.length > 0 &&
+    completionTargetIds.every((id) => nodes.find((n) => n.id === id)?.complete);
 
   // Alignment helpers — each reads fresh RF node positions at call time
   const align = (
@@ -217,97 +233,134 @@ export function MultiSelectActions() {
   };
 
   return (
-    <div
-      className="fixed z-40 flex items-center gap-1 bg-surface-800 border border-surface-border rounded-lg px-2 py-1.5 shadow-xl pointer-events-auto"
-      style={{
-        left: screenX,
-        top: screenY,
-        transform: 'translate(-50%, calc(-100% - 10px))',
-      }}
-      onClick={(e) => e.stopPropagation()}
-      onDoubleClick={(e) => e.stopPropagation()}
-    >
-      <span className="text-xs text-stone-400 pr-1.5 border-r border-surface-border shrink-0">
-        {selectedNodeIds.length} selected
-      </span>
-
-      <button
-        onClick={() => toggleNodesComplete(selectedNodeIds)}
-        className={`text-xs py-1 px-2 rounded font-medium flex items-center gap-1.5 shrink-0 ${
-          allComplete
-            ? 'bg-surface-600 text-stone-300 hover:bg-surface-700'
-            : 'bg-green-600 text-white hover:bg-green-500'
-        }`}
-      >
-        <span>{allComplete ? 'Mark Incomplete' : 'Mark Complete'}</span>
-        <ShortcutHint id="toggleComplete" />
-      </button>
-
-      <Divider />
-
-      {/* Align */}
-      <AlignButton title="Align left edges" onClick={alignLeft}>
-        <AlignLeftIcon />
-      </AlignButton>
-      <AlignButton title="Align right edges" onClick={alignRight}>
-        <AlignRightIcon />
-      </AlignButton>
-      <AlignButton title="Align top edges" onClick={alignTop}>
-        <AlignTopIcon />
-      </AlignButton>
-      <AlignButton title="Align bottom edges" onClick={alignBottom}>
-        <AlignBottomIcon />
-      </AlignButton>
-      <AlignButton title="Center on vertical axis" onClick={alignCenterH}>
-        <AlignCenterHIcon />
-      </AlignButton>
-      <AlignButton title="Center on horizontal axis" onClick={alignCenterV}>
-        <AlignCenterVIcon />
-      </AlignButton>
-
-      <Divider />
-
-      {/* Distribute — only useful with 3+ nodes */}
-      <AlignButton
-        title={
-          rfNodes.length >= 3
-            ? 'Distribute horizontally'
-            : 'Distribute horizontally (need 3+ nodes)'
-        }
-        onClick={distributeH}
-      >
-        <span className={rfNodes.length < 3 ? 'opacity-30' : ''}>
-          <DistributeHIcon />
-        </span>
-      </AlignButton>
-      <AlignButton
-        title={
-          rfNodes.length >= 3 ? 'Distribute vertically' : 'Distribute vertically (need 3+ nodes)'
-        }
-        onClick={distributeV}
-      >
-        <span className={rfNodes.length < 3 ? 'opacity-30' : ''}>
-          <DistributeVIcon />
-        </span>
-      </AlignButton>
-
-      <Divider />
-
-      <button
-        onClick={() => {
-          const count = selectedNodeIds.length;
-          const nodeWord = count === 1 ? 'node' : `${count} nodes`;
-          if (window.confirm(`Delete ${nodeWord}?`)) {
-            removeNodes(selectedNodeIds);
-            selectNodes([]);
-            toast.success(`Deleted ${count} node${count !== 1 ? 's' : ''}`);
-          }
+    <>
+      <div
+        className="fixed z-40 flex items-center gap-1 bg-surface-800 border border-surface-border rounded-lg px-2 py-1.5 shadow-xl pointer-events-auto"
+        style={{
+          left: screenX,
+          top: screenY,
+          transform: 'translate(-50%, calc(-100% - 10px))',
         }}
-        className="text-xs py-1 px-2 rounded bg-red-600/40 text-red-300 hover:bg-red-600/60 border border-red-500/40 flex items-center gap-1.5 shrink-0"
+        onClick={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
       >
-        <span>Delete All</span>
-        <ShortcutHint id="delete" />
-      </button>
-    </div>
+        <span className="text-xs text-stone-400 pr-1.5 border-r border-surface-border shrink-0">
+          {selectedNodeIds.length} selected
+        </span>
+
+        <button
+          onClick={() => toggleNodesComplete(selectedNodeIds)}
+          className={`text-xs py-1 px-2 rounded font-medium flex items-center gap-1.5 shrink-0 ${
+            allComplete
+              ? 'bg-surface-600 text-stone-300 hover:bg-surface-700'
+              : 'bg-green-600 text-white hover:bg-green-500'
+          }`}
+        >
+          <span>{allComplete ? 'Mark Incomplete' : 'Mark Complete'}</span>
+          <ShortcutHint id="toggleComplete" />
+        </button>
+
+        <Divider />
+
+        {/* Align */}
+        <AlignButton title="Align left edges" onClick={alignLeft}>
+          <AlignLeftIcon />
+        </AlignButton>
+        <AlignButton title="Align right edges" onClick={alignRight}>
+          <AlignRightIcon />
+        </AlignButton>
+        <AlignButton title="Align top edges" onClick={alignTop}>
+          <AlignTopIcon />
+        </AlignButton>
+        <AlignButton title="Align bottom edges" onClick={alignBottom}>
+          <AlignBottomIcon />
+        </AlignButton>
+        <AlignButton title="Center on vertical axis" onClick={alignCenterH}>
+          <AlignCenterHIcon />
+        </AlignButton>
+        <AlignButton title="Center on horizontal axis" onClick={alignCenterV}>
+          <AlignCenterVIcon />
+        </AlignButton>
+
+        <Divider />
+
+        {/* Distribute — only useful with 3+ nodes */}
+        <AlignButton
+          title={
+            rfNodes.length >= 3
+              ? 'Distribute horizontally'
+              : 'Distribute horizontally (need 3+ nodes)'
+          }
+          onClick={distributeH}
+        >
+          <span className={rfNodes.length < 3 ? 'opacity-30' : ''}>
+            <DistributeHIcon />
+          </span>
+        </AlignButton>
+        <AlignButton
+          title={
+            rfNodes.length >= 3 ? 'Distribute vertically' : 'Distribute vertically (need 3+ nodes)'
+          }
+          onClick={distributeV}
+        >
+          <span className={rfNodes.length < 3 ? 'opacity-30' : ''}>
+            <DistributeVIcon />
+          </span>
+        </AlignButton>
+
+        <Divider />
+
+        <button
+          onClick={() => setShowFoldDialog(true)}
+          disabled={!canFold}
+          title={
+            canFold
+              ? 'Fold selection into a named group'
+              : 'Fold needs 2+ nodes not already in a group'
+          }
+          className={`text-xs py-1 px-2 rounded font-medium shrink-0 border ${
+            canFold
+              ? 'bg-stone-600 text-white hover:bg-stone-500 border-stone-500'
+              : 'bg-surface-700 text-stone-500 border-surface-border cursor-not-allowed'
+          }`}
+        >
+          Fold
+        </button>
+
+        <Divider />
+
+        <button
+          onClick={() => {
+            const count = selectedNodeIds.length;
+            const nodeWord = count === 1 ? 'node' : `${count} nodes`;
+            if (window.confirm(`Delete ${nodeWord}?`)) {
+              removeNodes(selectedNodeIds);
+              selectNodes([]);
+              toast.success(`Deleted ${count} node${count !== 1 ? 's' : ''}`);
+            }
+          }}
+          className="text-xs py-1 px-2 rounded bg-red-600/40 text-red-300 hover:bg-red-600/60 border border-red-500/40 flex items-center gap-1.5 shrink-0"
+        >
+          <span>Delete All</span>
+          <ShortcutHint id="delete" />
+        </button>
+      </div>
+
+      {showFoldDialog && (
+        <FoldNameDialog
+          defaultName={foldDefaultName}
+          onClose={() => setShowFoldDialog(false)}
+          onSubmit={(title) => {
+            setShowFoldDialog(false);
+            const groupId = createFoldGroup(foldableIds, title);
+            if (groupId) {
+              toast.success(`Folded into “${title}”`);
+            } else {
+              toast.error('Could not fold — need 2+ nodes not already in a group');
+            }
+          }}
+        />
+      )}
+    </>
   );
 }

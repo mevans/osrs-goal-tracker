@@ -1,4 +1,4 @@
-export type NodeType = 'goal' | 'quest' | 'skill' | 'task' | 'kill';
+export type NodeType = 'goal' | 'quest' | 'skill' | 'task' | 'kill' | 'group';
 export type EdgeType = 'requires' | 'improves';
 export type DerivedStatus = 'complete' | 'available' | 'blocked';
 
@@ -50,6 +50,10 @@ export interface Quantity {
   current: number;
 }
 
+export interface GroupData {
+  memberIds: string[];
+}
+
 export interface GraphNode {
   id: string;
   type: NodeType;
@@ -61,6 +65,7 @@ export interface GraphNode {
   questData: QuestData | undefined;
   bossData: BossData | undefined;
   quantity: Quantity | undefined;
+  groupData: GroupData | undefined;
   tags: string[];
 }
 
