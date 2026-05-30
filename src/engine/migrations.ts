@@ -3,7 +3,7 @@ import type { GraphData } from './types';
 /**
  * Current schema version. Increment when making breaking changes to GraphData.
  */
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 4;
 
 /**
  * Raw data shape from unknown (possibly old) saves. Typed as a loose record
@@ -17,9 +17,29 @@ type Migration = (data: RawData) => RawData;
  * Example: migrations[1] upgrades v1 data to v2.
  */
 const migrations: Record<number, Migration> = {
+  // v0 → v1: Add tags field to nodes (legacy data from before versioning)
+  0: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({
+      ...n,
+      tags: Array.isArray(n['tags']) ? n['tags'] : [],
+    })),
+  }),
   1: (data) => ({
     ...data,
     nodes: (data['nodes'] as RawData[]).map((n) => ({ ...n, bossData: undefined })),
+  }),
+  2: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({ ...n, groupData: undefined })),
+  }),
+  3: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => {
+      if (n['type'] !== 'group' || !n['groupData']) return n;
+      const gd = n['groupData'] as { memberIds: string[] };
+      return { ...n, groupData: { memberIds: gd.memberIds ?? [] } };
+    }),
   }),
 };
 

@@ -36,6 +36,7 @@ const TYPE_COLORS: Record<NodeType, string> = {
   skill: 'bg-green-900/60',
   task: 'bg-purple-900/60',
   kill: 'bg-red-900/60',
+  group: 'bg-stone-700/60',
 };
 
 const TYPE_LABELS: Record<NodeType, string> = {
@@ -44,6 +45,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
   skill: 'Skill',
   task: 'Task',
   kill: 'Kill',
+  group: 'Group',
 };
 
 const STATUS_BORDERS: Record<DerivedStatus, string> = {

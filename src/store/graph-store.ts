@@ -11,7 +11,27 @@ import type {
   BossData,
 } from '../engine/types';
 import { generateId } from '../engine/types';
+import {
+  isGroupMember,
+  resolveStoredEdgeId,
+  expandCompletionTargetIds,
+  expandCopyTargetIds,
+  collectUnfoldSelection,
+  applyPositionUpdates,
+  syncGroupCompletionStates,
+} from '../engine/fold-view';
 import { analytics } from '../analytics';
+
+function pruneGroupsAfterMemberRemoval(nodes: GraphNode[], removedIds: Set<string>): GraphNode[] {
+  return nodes
+    .map((n) => {
+      if (n.type !== 'group' || !n.groupData) return n;
+      const memberIds = n.groupData.memberIds.filter((id) => !removedIds.has(id));
+      if (memberIds.length < 2) return null;
+      return { ...n, groupData: { ...n.groupData, memberIds } };
+    })
+    .filter((n): n is GraphNode => n !== null);
+}
 
 export interface AddNodeParams {
   type: NodeType;
@@ -60,6 +80,8 @@ interface GraphState {
   syncBossKcs: (kcs: Record<string, number>) => void;
   clearNodeCompletions: () => void;
   clearGraph: () => void;
+  createFoldGroup: (memberIds: string[], title: string | undefined) => string | null;
+  unfoldGroup: (groupId: string) => void;
 }
 
 export const useGraphStore = create<GraphState>()(
@@ -83,6 +105,7 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           bossData: params.bossData ?? undefined,
           quantity: params.quantity ?? undefined,
+          groupData: undefined,
           tags: params.tags ?? [],
         };
         set((state) => ({ nodes: [...state.nodes, node] }));
@@ -102,6 +125,7 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           bossData: params.bossData ?? undefined,
           quantity: params.quantity ?? undefined,
+          groupData: undefined,
           tags: params.tags ?? [],
         };
         const from = 'from' in edgeSpec ? edgeSpec.from : nodeId;
@@ -135,45 +159,68 @@ export const useGraphStore = create<GraphState>()(
       },
 
       removeNode: (id) => {
-        set((state) => ({
-          nodes: state.nodes.filter((n) => n.id !== id),
-          edges: state.edges.filter((e) => e.from !== id && e.to !== id),
-          selectedNodeIds: state.selectedNodeIds.filter((nid) => nid !== id),
-        }));
+        set((state) => {
+          const removedIds = new Set([id]);
+          const unfolded = collectUnfoldSelection(removedIds, state.nodes);
+          return {
+            nodes: pruneGroupsAfterMemberRemoval(
+              state.nodes.filter((n) => n.id !== id),
+              removedIds,
+            ),
+            edges: state.edges.filter((e) => e.from !== id && e.to !== id),
+            selectedNodeIds:
+              unfolded.length > 0 ? unfolded : state.selectedNodeIds.filter((nid) => nid !== id),
+            selectedEdgeIds: unfolded.length > 0 ? [] : state.selectedEdgeIds,
+          };
+        });
       },
 
       removeNodes: (ids) => {
         const idSet = new Set(ids);
-        set((state) => ({
-          nodes: state.nodes.filter((n) => !idSet.has(n.id)),
-          edges: state.edges.filter((e) => !idSet.has(e.from) && !idSet.has(e.to)),
-          selectedNodeIds: state.selectedNodeIds.filter((nid) => !idSet.has(nid)),
-        }));
+        set((state) => {
+          const unfolded = collectUnfoldSelection(idSet, state.nodes);
+          return {
+            nodes: pruneGroupsAfterMemberRemoval(
+              state.nodes.filter((n) => !idSet.has(n.id)),
+              idSet,
+            ),
+            edges: state.edges.filter((e) => !idSet.has(e.from) && !idSet.has(e.to)),
+            selectedNodeIds:
+              unfolded.length > 0
+                ? unfolded
+                : state.selectedNodeIds.filter((nid) => !idSet.has(nid)),
+            selectedEdgeIds: unfolded.length > 0 ? [] : state.selectedEdgeIds,
+          };
+        });
       },
 
       moveNode: (id, position) => {
         set((state) => ({
-          nodes: state.nodes.map((n) => (n.id === id ? { ...n, position } : n)),
+          nodes: applyPositionUpdates(state.nodes, new Map([[id, position]])),
         }));
       },
 
       moveNodes: (positions) => {
         const posMap = new Map(positions.map((p) => [p.id, p.position]));
         set((state) => ({
-          nodes: state.nodes.map((n) => {
-            const pos = posMap.get(n.id);
-            return pos ? { ...n, position: pos } : n;
-          }),
+          nodes: applyPositionUpdates(state.nodes, posMap),
         }));
       },
 
       toggleNodeComplete: (id) => {
-        set((state) => ({
-          nodes: state.nodes.map((n) => {
-            if (n.id !== id) return n;
-            const newComplete = !n.complete;
+        set((state) => {
+          const targetIds = expandCompletionTargetIds([id], state.nodes);
+          if (targetIds.length === 0) return state;
+
+          const targetSet = new Set(targetIds);
+          const allComplete = targetIds.every(
+            (tid) => state.nodes.find((n) => n.id === tid)?.complete,
+          );
+          const newComplete = !allComplete;
+
+          let nodes = state.nodes.map((n) => {
+            if (!targetSet.has(n.id)) return n;
             if (newComplete) analytics.nodeCompleted(n.type);
-            // When marking complete, sync quantity.current to target for consistency
             if (newComplete && n.quantity) {
               return {
                 ...n,
@@ -182,35 +229,43 @@ export const useGraphStore = create<GraphState>()(
               };
             }
             return { ...n, complete: newComplete };
-          }),
-        }));
+          });
+          nodes = syncGroupCompletionStates(nodes);
+          return { nodes };
+        });
       },
 
       toggleNodesComplete: (ids) => {
         set((state) => {
-          const idsSet = new Set(ids);
-          // If all selected are complete, mark all incomplete; otherwise mark all complete
-          const allComplete = ids.every((id) => state.nodes.find((n) => n.id === id)?.complete);
-          return {
-            nodes: state.nodes.map((n) => {
-              if (!idsSet.has(n.id)) return n;
-              const newComplete = !allComplete;
-              if (newComplete && n.quantity) {
-                return {
-                  ...n,
-                  complete: true,
-                  quantity: { ...n.quantity, current: n.quantity.target },
-                };
-              }
-              return { ...n, complete: newComplete };
-            }),
-          };
+          const targetIds = expandCompletionTargetIds(ids, state.nodes);
+          if (targetIds.length === 0) return state;
+
+          const idsSet = new Set(targetIds);
+          const allComplete = targetIds.every(
+            (tid) => state.nodes.find((n) => n.id === tid)?.complete,
+          );
+          const newComplete = !allComplete;
+
+          let nodes = state.nodes.map((n) => {
+            if (!idsSet.has(n.id)) return n;
+            if (newComplete) analytics.nodeCompleted(n.type);
+            if (newComplete && n.quantity) {
+              return {
+                ...n,
+                complete: true,
+                quantity: { ...n.quantity, current: n.quantity.target },
+              };
+            }
+            return { ...n, complete: newComplete };
+          });
+          nodes = syncGroupCompletionStates(nodes);
+          return { nodes };
         });
       },
 
       duplicateNodes: (ids) => {
         const state = get();
-        const nodesToDupe = state.nodes.filter((n) => ids.includes(n.id));
+        const nodesToDupe = state.nodes.filter((n) => ids.includes(n.id) && n.type !== 'group');
         const idMap = new Map<string, string>();
 
         const newNodes = nodesToDupe.map((node) => {
@@ -275,20 +330,23 @@ export const useGraphStore = create<GraphState>()(
       },
 
       removeEdge: (id) => {
+        const realId = resolveStoredEdgeId(id);
         set((state) => ({
-          edges: state.edges.filter((e) => e.id !== id),
+          edges: state.edges.filter((e) => e.id !== realId),
         }));
       },
 
       reverseEdge: (id) => {
+        const realId = resolveStoredEdgeId(id);
         set((state) => ({
-          edges: state.edges.map((e) => (e.id === id ? { ...e, from: e.to, to: e.from } : e)),
+          edges: state.edges.map((e) => (e.id === realId ? { ...e, from: e.to, to: e.from } : e)),
         }));
       },
 
       setEdgeType: (id, type) => {
+        const realId = resolveStoredEdgeId(id);
         set((state) => ({
-          edges: state.edges.map((e) => (e.id === id ? { ...e, type } : e)),
+          edges: state.edges.map((e) => (e.id === realId ? { ...e, type } : e)),
         }));
       },
 
@@ -302,8 +360,9 @@ export const useGraphStore = create<GraphState>()(
 
       copySelection: async () => {
         const state = get();
-        const selectedSet = new Set(state.selectedNodeIds);
-        const nodesToCopy = state.nodes.filter((n) => selectedSet.has(n.id));
+        const copyIds = expandCopyTargetIds(state.selectedNodeIds, state.nodes);
+        const selectedSet = new Set(copyIds);
+        const nodesToCopy = state.nodes.filter((n) => selectedSet.has(n.id) && n.type !== 'group');
         const edgesToCopy = state.edges.filter(
           (e) => selectedSet.has(e.from) && selectedSet.has(e.to),
         );
@@ -328,16 +387,19 @@ export const useGraphStore = create<GraphState>()(
 
           if (clipboardData.nodes.length === 0) return 0;
 
+          const pasteNodes = clipboardData.nodes.filter((n) => n.type !== 'group');
+          if (pasteNodes.length === 0) return 0;
+
           // Compute bounding center of clipboard nodes so we can center them at the target
-          const xs = clipboardData.nodes.map((n) => n.position.x);
-          const ys = clipboardData.nodes.map((n) => n.position.y);
+          const xs = pasteNodes.map((n) => n.position.x);
+          const ys = pasteNodes.map((n) => n.position.y);
           const clipCenterX = (Math.min(...xs) + Math.max(...xs)) / 2;
           const clipCenterY = (Math.min(...ys) + Math.max(...ys)) / 2;
           const dx = center.x - clipCenterX;
           const dy = center.y - clipCenterY;
 
           const idMap = new Map<string, string>();
-          const newNodes = clipboardData.nodes.map((node) => {
+          const newNodes = pasteNodes.map((node) => {
             const newId = generateId();
             idMap.set(node.id, newId);
             return {
@@ -348,12 +410,14 @@ export const useGraphStore = create<GraphState>()(
             };
           });
 
-          const newEdges = clipboardData.edges.map((edge) => ({
-            ...edge,
-            id: generateId(),
-            from: idMap.get(edge.from)!,
-            to: idMap.get(edge.to)!,
-          }));
+          const newEdges = clipboardData.edges
+            .filter((edge) => idMap.has(edge.from) && idMap.has(edge.to))
+            .map((edge) => ({
+              ...edge,
+              id: generateId(),
+              from: idMap.get(edge.from)!,
+              to: idMap.get(edge.to)!,
+            }));
 
           set((state) => ({
             nodes: [...state.nodes, ...newNodes],
@@ -390,8 +454,8 @@ export const useGraphStore = create<GraphState>()(
       },
 
       syncPlayerData: (skills) => {
-        set((state) => ({
-          nodes: state.nodes.map((n) => {
+        set((state) => {
+          let nodes = state.nodes.map((n) => {
             if (n.complete) return n; // never auto-un-complete
             if (n.type === 'skill' && n.skillData) {
               const playerLevel = skills[n.skillData.skillName];
@@ -400,13 +464,15 @@ export const useGraphStore = create<GraphState>()(
               }
             }
             return n;
-          }),
-        }));
+          });
+          nodes = syncGroupCompletionStates(nodes);
+          return { nodes };
+        });
       },
 
       syncBossKcs: (kcs) => {
-        set((state) => ({
-          nodes: state.nodes.map((n) => {
+        set((state) => {
+          let nodes = state.nodes.map((n) => {
             if (n.type !== 'kill' || !n.bossData) return n;
             const womKc = kcs[n.bossData.bossId];
             if (!womKc) return n;
@@ -416,22 +482,73 @@ export const useGraphStore = create<GraphState>()(
               ...n,
               quantity: { target: n.quantity?.target ?? 0, current: womKc },
             };
-          }),
-        }));
+          });
+          nodes = syncGroupCompletionStates(nodes);
+          return { nodes };
+        });
       },
 
       clearNodeCompletions: () => {
-        set((state) => ({
-          nodes: state.nodes.map((n) => ({
+        set((state) => {
+          let nodes = state.nodes.map((n) => ({
             ...n,
             complete: false,
             quantity: n.quantity ? { ...n.quantity, current: 0 } : undefined,
-          })),
-        }));
+          }));
+          nodes = syncGroupCompletionStates(nodes);
+          return { nodes };
+        });
       },
 
       clearGraph: () => {
         set({ nodes: [], edges: [], selectedNodeIds: [], selectedEdgeIds: [] });
+      },
+
+      createFoldGroup: (memberIds, title) => {
+        const state = get();
+        const uniqueIds = [...new Set(memberIds)];
+        if (uniqueIds.length < 2) return null;
+
+        const members = state.nodes.filter((n) => uniqueIds.includes(n.id));
+        if (members.length < 2) return null;
+        if (members.some((n) => n.type === 'group')) return null;
+        if (members.some((n) => isGroupMember(n.id, state.nodes))) return null;
+
+        const cx = members.reduce((sum, n) => sum + n.position.x, 0) / members.length;
+        const cy = members.reduce((sum, n) => sum + n.position.y, 0) / members.length;
+        const groupId = generateId();
+        const groupNode: GraphNode = {
+          id: groupId,
+          type: 'group',
+          title: title ?? `${members.length} nodes`,
+          position: { x: cx, y: cy },
+          complete: members.every((m) => m.complete),
+          notes: undefined,
+          skillData: undefined,
+          questData: undefined,
+          bossData: undefined,
+          quantity: undefined,
+          groupData: { memberIds: uniqueIds },
+          tags: [],
+        };
+
+        set({
+          nodes: [...state.nodes, groupNode],
+          selectedNodeIds: [groupId],
+          selectedEdgeIds: [],
+        });
+        return groupId;
+      },
+
+      unfoldGroup: (groupId) => {
+        const group = get().nodes.find((n) => n.id === groupId);
+        const memberIds = group?.groupData?.memberIds ?? [];
+        set((state) => ({
+          nodes: state.nodes.filter((n) => n.id !== groupId),
+          selectedNodeIds:
+            memberIds.length > 0 ? memberIds : state.selectedNodeIds.filter((id) => id !== groupId),
+          selectedEdgeIds: [],
+        }));
       },
     }),
     {
