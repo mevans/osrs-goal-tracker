@@ -2256,6 +2256,11 @@
         "boostable": false
       },
       {
+        "skill": "Firemaking",
+        "level": 49,
+        "boostable": true
+      },
+      {
         "skill": "Attack",
         "level": 99,
         "boostable": true
@@ -3506,7 +3511,58 @@
     "name": "The Blood Moon Rises",
     "difficulty": "grandmaster",
     "members": true,
-    "skillReqs": [],
+    "skillReqs": [
+      {
+        "skill": "Slayer",
+        "level": 74,
+        "boostable": true
+      },
+      {
+        "skill": "Woodcutting",
+        "level": 74,
+        "boostable": true
+      },
+      {
+        "skill": "Smithing",
+        "level": 72,
+        "boostable": true
+      },
+      {
+        "skill": "Cooking",
+        "level": 72,
+        "boostable": true
+      },
+      {
+        "skill": "Fletching",
+        "level": 70,
+        "boostable": true
+      },
+      {
+        "skill": "Mining",
+        "level": 66,
+        "boostable": true
+      },
+      {
+        "skill": "Hunter",
+        "level": 65,
+        "boostable": true
+      },
+      {
+        "skill": "Crafting",
+        "level": 64,
+        "boostable": true
+      },
+      {
+        "skill": "Herblore",
+        "level": 64,
+        "boostable": true
+      },
+      {
+        "skill": "Magic",
+        "level": 57,
+        "boostable": true
+      }
+    ],
     "questReqs": ["A Night at the Theatre", "Sins of the Father"],
     "questPoints": 0
   },
@@ -3735,6 +3791,64 @@
     "members": true,
     "skillReqs": [],
     "questReqs": [],
+    "questPoints": 0
+  },
+  "The Graveyard": {
+    "name": "The Graveyard",
+    "difficulty": "master",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Sailing",
+        "level": 65,
+        "boostable": true
+      },
+      {
+        "skill": "Agility",
+        "level": 65,
+        "boostable": true
+      },
+      {
+        "skill": "Woodcutting",
+        "level": 56,
+        "boostable": true
+      },
+      {
+        "skill": "Fletching",
+        "level": 54,
+        "boostable": true
+      }
+    ],
+    "questReqs": ["The Fremennik Exiles", "Olaf's Quest", "Pandemonium"],
+    "questPoints": 0
+  },
+  "Fallen From Grace": {
+    "name": "Fallen From Grace",
+    "difficulty": "experienced",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Sailing",
+        "level": 62,
+        "boostable": true
+      },
+      {
+        "skill": "Agility",
+        "level": 60,
+        "boostable": true
+      },
+      {
+        "skill": "Runecraft",
+        "level": 47,
+        "boostable": true
+      },
+      {
+        "skill": "Mining",
+        "level": 53,
+        "boostable": true
+      }
+    ],
+    "questReqs": ["Pandemonium"],
     "questPoints": 0
   }
 }
