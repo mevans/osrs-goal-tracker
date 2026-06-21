@@ -16,5 +16,5 @@ export function useAutoSyncPlayer() {
       .catch(() => {
         // Silent failure — user still sees last-synced data
       });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 }

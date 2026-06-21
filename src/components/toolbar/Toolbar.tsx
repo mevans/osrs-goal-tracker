@@ -37,7 +37,12 @@ const GitHubIcon = () => (
   </svg>
 );
 
-export function Toolbar() {
+interface ToolbarProps {
+  onOpenChangelog: () => void;
+  hasUnseenChangelog: boolean;
+}
+
+export function Toolbar({ onOpenChangelog, hasUnseenChangelog }: ToolbarProps) {
   const showAddNode = useUIStore((s) => s.showAddNode);
   const setShowAddNode = useUIStore.getState().setShowAddNode;
   const [showShare, setShowShare] = useState(false);
@@ -169,6 +174,16 @@ export function Toolbar() {
         </button>
 
         <div className="flex-1" />
+
+        <button
+          onClick={onOpenChangelog}
+          className="relative px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
+        >
+          Changelog
+          {hasUnseenChangelog && (
+            <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-brand" />
+          )}
+        </button>
 
         <a
           href="https://github.com/mevans/osrs-goal-tracker/issues/new"

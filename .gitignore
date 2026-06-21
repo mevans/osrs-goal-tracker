@@ -44,6 +44,7 @@ coverage/
 # Markdown files
 *.md
 !README.md
+!src/changelog/*.md
 
 # Screenshots/images (but allow src/assets and public SEO assets)
 *.png
