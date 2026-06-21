@@ -29,3 +29,9 @@
 .react-flow__renderer {
   background-color: #1a1714;
 }
+
+/* Upscaled OSRS wiki sprites — nearest-neighbor, no blur */
+.osrs-pixel-icon {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

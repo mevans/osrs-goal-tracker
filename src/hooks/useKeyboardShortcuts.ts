@@ -104,7 +104,7 @@ export function useKeyboardShortcuts(options: ShortcutOptions) {
       if (key === 'e' || key === 'E') {
         const node =
           selectedNodeIds.length === 1 ? nodes.find((n) => n.id === selectedNodeIds[0]) : undefined;
-        if (node && (node.type === 'goal' || node.type === 'task')) {
+        if (node && (node.type === 'goal' || node.type === 'task' || node.type === 'item')) {
           setEditingNodeId(node.id);
         }
         return;

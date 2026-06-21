@@ -9,6 +9,7 @@ import type {
   SkillName,
   Quantity,
   BossData,
+  ItemData,
 } from '../engine/types';
 import { generateId } from '../engine/types';
 import {
@@ -41,6 +42,7 @@ export interface AddNodeParams {
   skillData: { skillName: SkillName; targetLevel: number; boost: number | undefined } | undefined;
   questData: { questId: string } | undefined;
   bossData: BossData | undefined;
+  itemData: ItemData | undefined;
   quantity: Quantity | undefined;
   tags: string[] | undefined;
 }
@@ -107,6 +109,7 @@ export const useGraphStore = create<GraphState>()(
           skillData: params.skillData ?? undefined,
           questData: params.questData ?? undefined,
           bossData: params.bossData ?? undefined,
+          itemData: params.itemData ?? undefined,
           quantity: params.quantity ?? undefined,
           groupData: undefined,
           tags: params.tags ?? [],
@@ -127,6 +130,7 @@ export const useGraphStore = create<GraphState>()(
           skillData: params.skillData ?? undefined,
           questData: params.questData ?? undefined,
           bossData: params.bossData ?? undefined,
+          itemData: params.itemData ?? undefined,
           quantity: params.quantity ?? undefined,
           groupData: undefined,
           tags: params.tags ?? [],
@@ -533,6 +537,7 @@ export const useGraphStore = create<GraphState>()(
           skillData: undefined,
           questData: undefined,
           bossData: undefined,
+          itemData: undefined,
           quantity: undefined,
           groupData: { memberIds: uniqueIds },
           tags: [],

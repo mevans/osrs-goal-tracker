@@ -7,10 +7,12 @@ import type {
   SkillData,
   QuestData,
   BossData,
+  ItemData,
 } from '../../engine/types';
 import { getNodeTitle } from '../../engine/node-utils';
 import { SkillIcon } from '../SkillIcon';
 import { BossIcon } from '../BossIcon';
+import { ItemIcon } from '../ItemIcon';
 import { ShortcutHint } from '../Kbd';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
@@ -25,6 +27,7 @@ export interface CustomNodeData {
   skillData: SkillData | undefined;
   questData: QuestData | undefined;
   bossData: BossData | undefined;
+  itemData: ItemData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
   [key: string]: unknown;
@@ -36,6 +39,7 @@ const TYPE_COLORS: Record<NodeType, string> = {
   skill: 'bg-green-900/60',
   task: 'bg-purple-900/60',
   kill: 'bg-red-900/60',
+  item: 'bg-cyan-900/60',
   group: 'bg-stone-700/60',
 };
 
@@ -45,6 +49,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
   skill: 'Skill',
   task: 'Task',
   kill: 'Kill',
+  item: 'Acquire Item',
   group: 'Group',
 };
 
@@ -82,6 +87,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
     skillData: data.skillData,
     questData: data.questData,
     bossData: data.bossData,
+    itemData: data.itemData,
   });
 
   const canEdit = true;
@@ -221,6 +227,19 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         ) : data.bossData ? (
           <div className="flex items-center gap-2.5">
             <BossIcon bossId={data.bossData.bossId} size={36} />
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">
+                  {TYPE_LABELS[data.nodeType]}
+                </span>
+                {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
+              </div>
+              <div className="text-sm font-medium text-white break-words">{displayTitle}</div>
+            </div>
+          </div>
+        ) : data.itemData ? (
+          <div className="flex items-center gap-2.5">
+            <ItemIcon itemId={data.itemData.itemId} size={36} />
             <div className="min-w-0">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">

@@ -38,6 +38,7 @@ const MEMBER_TYPE_ACCENT: Record<NodeType, string> = {
   skill: 'border-l-green-500',
   task: 'border-l-purple-500',
   kill: 'border-l-red-500',
+  item: 'border-l-cyan-500',
   group: 'border-l-stone-500',
 };
 

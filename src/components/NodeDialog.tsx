@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { OSRS_SKILLS } from '../engine/types';
 import { ALL_QUESTS } from '../engine/quest-db';
 import { ALL_BOSSES } from '../engine/boss-db';
-import type { GraphNode, NodeType, SkillName, Quantity, BossData } from '../engine/types';
+import { getItemName } from '../engine/item-db';
+import type { GraphNode, NodeType, SkillName, Quantity, BossData, ItemData } from '../engine/types';
 import { SkillIcon } from './SkillIcon';
 import { BossIcon } from './BossIcon';
+import { ItemPicker } from './ItemPicker';
 import { useGraphStore } from '../store/graph-store';
 
 // --- Icons ---
@@ -100,6 +102,23 @@ const KillIcon = () => (
   </svg>
 );
 
+const ItemIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+    <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+    <line x1="12" y1="22.08" x2="12" y2="12" />
+  </svg>
+);
+
 const ChevronDown = () => (
   <svg
     width="12"
@@ -185,6 +204,17 @@ const NODE_TYPE_CONFIG: TypeConfig[] = [
     iconColor: 'text-red-400',
     buttonClass: 'bg-red-700 hover:bg-red-600',
   },
+  {
+    value: 'item',
+    label: 'Acquire Item',
+    description: 'Items to obtain',
+    Icon: ItemIcon,
+    formBorder: 'border-l-cyan-500',
+    cardBorder: 'border-cyan-500',
+    cardBg: 'bg-cyan-500/10',
+    iconColor: 'text-cyan-400',
+    buttonClass: 'bg-cyan-700 hover:bg-cyan-600',
+  },
 ];
 
 // --- Types ---
@@ -196,6 +226,7 @@ export interface NodeFormResult {
   skillData: { skillName: SkillName; targetLevel: number; boost: number | undefined } | undefined;
   questData: { questId: string } | undefined;
   bossData: BossData | undefined;
+  itemData: ItemData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
 }
@@ -227,6 +258,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
     initialNode?.questData?.questId ?? ALL_QUESTS[0]?.name ?? '',
   );
   const [bossId, setBossId] = useState(initialNode?.bossData?.bossId ?? ALL_BOSSES[0]?.id ?? '');
+  const [itemId, setItemId] = useState(initialNode?.itemData?.itemId ?? '');
   const [quantityTarget, setQuantityTarget] = useState(
     initialNode?.quantity?.target.toString() ?? '',
   );
@@ -274,6 +306,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
     if (type === 'skill' && !targetLevel) return;
     if (type === 'quest' && !questId) return;
     if (type === 'kill' && !bossId) return;
+    if (type === 'item' && !itemId) return;
 
     let finalTitle = title.trim();
     if (type === 'skill') {
@@ -285,6 +318,8 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
       finalTitle = questId;
     } else if (type === 'kill') {
       finalTitle = bossId;
+    } else if (type === 'item') {
+      finalTitle = getItemName(itemId);
     }
 
     const qTarget = Number(quantityTarget);
@@ -300,6 +335,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           : undefined,
       questData: type === 'quest' && questId ? { questId } : undefined,
       bossData: type === 'kill' && bossId ? { bossId } : undefined,
+      itemData: type === 'item' && itemId ? { itemId } : undefined,
       quantity:
         type === 'kill'
           ? { target: killTarget, current: killCurrent }
@@ -321,8 +357,8 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
 
   const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
 
-  const isGoalOrTask = type === 'goal' || type === 'task';
-  const hasQuantity = isGoalOrTask;
+  const hasTitle = type === 'goal' || type === 'task';
+  const hasQuantity = hasTitle || type === 'item';
   const cfg = NODE_TYPE_CONFIG.find((c) => c.value === type)!;
 
   return (
@@ -361,8 +397,8 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           ))}
         </div>
 
-        {/* Title — goal/task only */}
-        {isGoalOrTask && (
+        {/* Title — goal/task */}
+        {hasTitle && (
           <div className="mb-3">
             <input
               ref={titleInputRef}
@@ -371,6 +407,13 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
               onChange={(e) => setTitle(e.target.value)}
               placeholder={type === 'goal' ? 'e.g. Fire Cape' : 'e.g. Unlock Piety'}
             />
+          </div>
+        )}
+
+        {/* Item search */}
+        {type === 'item' && (
+          <div className="mb-3">
+            <ItemPicker itemId={itemId} onChange={setItemId} autoFocus={!isEdit} />
           </div>
         )}
 
@@ -644,9 +687,10 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           <button
             type="submit"
             disabled={
-              (isGoalOrTask && !title.trim()) ||
+              (hasTitle && !title.trim()) ||
               (type === 'skill' && !targetLevel) ||
-              (type === 'kill' && !bossId)
+              (type === 'kill' && !bossId) ||
+              (type === 'item' && !itemId)
             }
             className={`px-3 py-1.5 text-sm text-white rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${cfg.buttonClass}`}
           >

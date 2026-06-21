@@ -32,8 +32,8 @@ Plain paragraph.`;
   it('loads markdown files from src/changelog/', () => {
     expect(CHANGELOG.length).toBeGreaterThanOrEqual(2);
     expect(CHANGELOG[0]).toMatchObject({
-      id: '2',
-      title: 'Notes panel',
+      id: '3',
+      title: 'Acquire Item nodes',
     });
   });
 
@@ -63,7 +63,7 @@ Plain paragraph.`;
   });
 
   it('shows unseen entries for returning engaged users', () => {
-    expect(getUnseenChangelog('1', 2)).toEqual([CHANGELOG[0]]);
+    expect(getUnseenChangelog('1', 2)).toEqual([CHANGELOG[0]!, CHANGELOG[1]!]);
     expect(hasUnseenChangelog('1', 2)).toBe(true);
   });
 
