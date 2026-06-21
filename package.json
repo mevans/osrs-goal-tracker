@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate:seo": "node scripts/generate-seo-assets.mjs",
     "fetch:quests": "tsx scripts/fetch-quest-reqs.ts",
     "fetch:items": "npx tsx scripts/fetch-item-db.ts",
     "build": "npm run generate:seo && tsc -b && vite build",
