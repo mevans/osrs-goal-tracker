@@ -562,8 +562,9 @@ function EmptyState() {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="pointer-events-auto bg-surface-800 border border-surface-border rounded-xl p-8 max-w-sm w-full text-center shadow-xl mx-4">
+        <h1 className="sr-only">Planscape — OSRS Quest &amp; Goal Planner</h1>
         <div className="flex items-center justify-center mb-3">
-          <img src={logoUrl} alt="Planscape" className="h-28 w-auto max-w-none" />
+          <img src={logoUrl} alt="" aria-hidden="true" className="h-28 w-auto max-w-none" />
         </div>
         <p className="text-sm text-stone-400 mb-6 leading-relaxed">
           Map out your OSRS grind. Chain together quests, skill targets, and unlocks — see what you

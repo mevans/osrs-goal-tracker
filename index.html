@@ -4,32 +4,51 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Planscape — OSRS Goal Planner</title>
-    <meta name="description" content="Map out your OSRS grind. Chain together quests, skill targets, and unlocks — see what you can do now, what's blocked, and where the biggest bottlenecks are." />
+    <title>__SITE_TITLE__</title>
+    <meta name="description" content="__SITE_DESCRIPTION__" />
+    <link rel="canonical" href="__SITE_ORIGIN__/" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/osrs-goal-tracker/favicon.png" />
-    <link rel="apple-touch-icon" href="/osrs-goal-tracker/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://mevans.github.io/osrs-goal-tracker/" />
-    <meta property="og:title" content="Planscape — OSRS Goal Planner" />
-    <meta property="og:description" content="Map out your OSRS grind. Chain together quests, skill targets, and unlocks — see what you can do now, what's blocked, and where the biggest bottlenecks are." />
-    <meta property="og:image" content="https://mevans.github.io/osrs-goal-tracker/og-image.svg" />
+    <meta property="og:url" content="__SITE_ORIGIN__/" />
+    <meta property="og:title" content="__SITE_TITLE__" />
+    <meta property="og:description" content="__SITE_DESCRIPTION__" />
+    <meta property="og:image" content="__SITE_ORIGIN__/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Planscape — OSRS goal planning tool" />
-    <meta property="og:site_name" content="Planscape" />
+    <meta property="og:image:alt" content="Planscape — OSRS quest and goal planning tool" />
+    <meta property="og:site_name" content="__SITE_NAME__" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Planscape — OSRS Goal Planner" />
-    <meta name="twitter:description" content="Map out your OSRS grind. Chain together quests, skill targets, and unlocks — see what you can do now, what's blocked, and where the biggest bottlenecks are." />
-    <meta name="twitter:image" content="https://mevans.github.io/osrs-goal-tracker/og-image.svg" />
+    <meta name="twitter:title" content="__SITE_TITLE__" />
+    <meta name="twitter:description" content="__SITE_DESCRIPTION__" />
+    <meta name="twitter:image" content="__SITE_ORIGIN__/og-image.png" />
 
     <!-- Theme color (browser chrome on mobile) -->
-    <meta name="theme-color" content="#92400e" />
+    <meta name="theme-color" content="__SITE_THEME_COLOR__" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "__SITE_NAME__",
+        "url": "__SITE_ORIGIN__/",
+        "description": "__SITE_DESCRIPTION__",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "keywords": "OSRS, Old School RuneScape, quest planner, goal tracker, skill planner, efficiency, dependency graph"
+      }
+    </script>
 
     <!-- Privacy-friendly analytics by Plausible -->
     <script async src="https://plausible.io/js/pa-T10y1t2t_WTVGg66LGaH4.js"></script>
@@ -39,6 +58,38 @@
     </script>
   </head>
   <body>
+    <div
+      id="seo-content"
+      aria-hidden="true"
+      style="
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      "
+    >
+      <h1>__SITE_TITLE__</h1>
+      <p>__SITE_DESCRIPTION__</p>
+      <p>
+        Free OSRS quest planner and goal tracker. Build dependency graphs for quests, skill targets,
+        unlocks, and boss grinds — see what's available, blocked, and where your bottlenecks are.
+      </p>
+    </div>
+    <noscript>
+      <div style="max-width: 36rem; margin: 2rem auto; padding: 0 1rem; font-family: system-ui, sans-serif; color: #e7e5e4;">
+        <h1>__SITE_TITLE__</h1>
+        <p>__SITE_DESCRIPTION__</p>
+        <p>
+          Planscape requires JavaScript. Enable it to use the interactive goal planner, or visit
+          <a href="__SITE_GITHUB__">the GitHub repo</a> for more info.
+        </p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -43,8 +43,9 @@ coverage/
 
 # Markdown files
 *.md
+!README.md
 
-# Screenshots/images (but allow src/assets)
+# Screenshots/images (but allow src/assets and public SEO assets)
 *.png
 *.jpg
 *.jpeg
@@ -53,6 +54,9 @@ coverage/
 !src/assets/*.jpg
 !src/assets/*.jpeg
 !src/assets/*.gif
+!public/favicon.png
+!public/apple-touch-icon.png
+!public/og-image.png
 
 # Playwright
 .playwright-mcp/

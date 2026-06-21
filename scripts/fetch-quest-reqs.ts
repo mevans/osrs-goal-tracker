@@ -19,7 +19,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
 const API_URL = 'https://oldschool.runescape.wiki/api.php';
-const USER_AGENT = 'Planscape/1.0 (OSRS goal tracker; https://github.com/mevans/osrs-goal-tracker)';
+const USER_AGENT = 'Planscape/1.0 (OSRS goal tracker; https://planscape.studio)';
 
 const VALID_SKILLS = new Set([
   'Attack',

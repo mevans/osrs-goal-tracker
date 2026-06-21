@@ -1,73 +1,53 @@
-# React + TypeScript + Vite
+# Planscape
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**[planscape.studio](https://planscape.studio)** — a graph-based OSRS quest and goal planner.
 
-Currently, two official plugins are available:
+Map out your Old School RuneScape grind visually. Chain together quests, skill targets, unlocks, and boss kills with dependency edges — then see what's available right now, what's blocked, and where the biggest bottlenecks are.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Not a checklist. An efficiency engine with a visual graph UI.
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Dependency graph** — hard `requires` edges and soft `improves` recommendations
+- **Quest planner** — add quests with prerequisite trees from the OSRS wiki
+- **Skill targets** — track level goals with optional boost levels; sync from [Wise Old Man](https://wiseoldman.net)
+- **Planning panel** — filter available, blocked, and bottleneck nodes
+- **Fold groups** — collapse sub-trees to keep large plans readable
+- **Share links** — read-only views anyone can open
+- **Export / import** — versioned JSON backups with auto-save to localStorage
+- **Global notes** — free-form plan-level notes (gear, account details, reminders)
 
-## Expanding the ESLint configuration
+## Quick start
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Generate SEO assets, type-check, production build |
+| `npm run preview` | Preview production build |
+| `npm test` | Run tests |
+| `npm run generate:seo` | Regenerate favicon, OG image, and CNAME in `public/` |
+
+## Tech stack
+
+- Vite 7 + React 19 + TypeScript
+- Tailwind CSS 4
+- Zustand (graph state + undo/redo via zundo)
+- @xyflow/react (controlled graph canvas)
+- Deployed to GitHub Pages at [planscape.studio](https://planscape.studio) via Cloudflare
+
+## Feedback
+
+[Open an issue](https://github.com/mevans/osrs-goal-tracker/issues/new) on GitHub.
+
+## License
+
+See the repository for license details.
