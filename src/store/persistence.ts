@@ -16,7 +16,7 @@ export function initPersistence(): void {
   useGraphStore.subscribe((state) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      saveToLocalStorage({ nodes: state.nodes, edges: state.edges });
+      saveToLocalStorage({ nodes: state.nodes, edges: state.edges, notes: state.notes });
     }, 300);
   });
 }

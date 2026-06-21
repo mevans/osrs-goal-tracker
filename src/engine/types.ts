@@ -79,6 +79,7 @@ export interface GraphEdge {
 export interface GraphData {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  notes: string | undefined;
 }
 
 export interface BottleneckEntry {

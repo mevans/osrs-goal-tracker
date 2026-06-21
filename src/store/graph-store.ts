@@ -48,6 +48,7 @@ export interface AddNodeParams {
 interface GraphState {
   nodes: GraphNode[];
   edges: GraphEdge[];
+  notes: string | undefined;
   selectedNodeIds: string[];
   selectedEdgeIds: string[];
 
@@ -75,6 +76,7 @@ interface GraphState {
   copySelection: () => Promise<number>;
   pasteClipboard: (center: { x: number; y: number }) => Promise<number>;
   loadGraph: (data: GraphData) => void;
+  setNotes: (notes: string | undefined) => void;
   mergeGraph: (data: { nodes: GraphNode[]; edges: GraphEdge[] }) => void;
   syncPlayerData: (skills: Partial<Record<SkillName, number>>) => void;
   syncBossKcs: (kcs: Record<string, number>) => void;
@@ -89,6 +91,7 @@ export const useGraphStore = create<GraphState>()(
     (set, get) => ({
       nodes: [],
       edges: [],
+      notes: undefined,
       selectedNodeIds: [],
       selectedEdgeIds: [],
 
@@ -437,10 +440,13 @@ export const useGraphStore = create<GraphState>()(
         set({
           nodes: data.nodes,
           edges: data.edges,
+          notes: data.notes ?? undefined,
           selectedNodeIds: [],
           selectedEdgeIds: [],
         });
       },
+
+      setNotes: (notes) => set({ notes: notes || undefined }),
 
       mergeGraph: ({ nodes: newNodes, edges: newEdges }) => {
         set((state) => {
@@ -501,7 +507,7 @@ export const useGraphStore = create<GraphState>()(
       },
 
       clearGraph: () => {
-        set({ nodes: [], edges: [], selectedNodeIds: [], selectedEdgeIds: [] });
+        set({ nodes: [], edges: [], notes: undefined, selectedNodeIds: [], selectedEdgeIds: [] });
       },
 
       createFoldGroup: (memberIds, title) => {

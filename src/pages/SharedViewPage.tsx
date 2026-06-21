@@ -130,32 +130,46 @@ function SharedView({ data }: { data: GraphData }) {
           Open in Editor
         </button>
       </div>
-      <div className="flex-1">
-        <RequiresArrowDef />
-        <ImprovesArrowDef />
-        <ReactFlow
-          nodes={rfNodes}
-          edges={rfEdges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          colorMode="dark"
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-          <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!" />
-          <MiniMap
-            className="bg-surface-800! border-surface-border!"
-            nodeColor="#4b5563"
-            maskColor="rgba(0,0,0,0.6)"
-          />
-          <Panel position="top-right">
-            <GraphLegend />
-          </Panel>
-        </ReactFlow>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1">
+          <RequiresArrowDef />
+          <ImprovesArrowDef />
+          <ReactFlow
+            nodes={rfNodes}
+            edges={rfEdges}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            fitView
+            colorMode="dark"
+            nodesDraggable={false}
+            nodesConnectable={false}
+            elementsSelectable={false}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
+            <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!" />
+            <MiniMap
+              className="bg-surface-800! border-surface-border!"
+              nodeColor="#4b5563"
+              maskColor="rgba(0,0,0,0.6)"
+            />
+            <Panel position="top-right">
+              <GraphLegend />
+            </Panel>
+          </ReactFlow>
+        </div>
+        {data.notes && (
+          <div className="w-72 bg-surface-800 border-l border-surface-border flex flex-col overflow-hidden">
+            <div className="p-3 border-b border-surface-border">
+              <h2 className="text-xs font-semibold text-stone-400 uppercase tracking-wide">
+                Notes
+              </h2>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3">
+              <p className="text-sm text-stone-200 whitespace-pre-wrap">{data.notes}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

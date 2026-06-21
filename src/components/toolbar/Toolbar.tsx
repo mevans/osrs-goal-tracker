@@ -87,8 +87,8 @@ export function Toolbar() {
   };
 
   const handleExport = () => {
-    const { nodes, edges } = useGraphStore.getState();
-    exportToJson({ nodes, edges });
+    const { nodes, edges, notes } = useGraphStore.getState();
+    exportToJson({ nodes, edges, notes });
     analytics.exportJson();
     toast.success('Graph exported');
   };

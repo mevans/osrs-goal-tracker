@@ -11,18 +11,19 @@ interface ShareDialogProps {
 export function ShareDialog({ onClose }: ShareDialogProps) {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
+  const notes = useGraphStore((s) => s.notes);
   const [url, setUrl] = useState<string | undefined>(undefined);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    buildShareUrl({ nodes, edges }).then((result) => {
+    buildShareUrl({ nodes, edges, notes }).then((result) => {
       if (!cancelled) setUrl(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [nodes, edges]);
+  }, [nodes, edges, notes]);
 
   const handleCopy = async () => {
     if (!url) return;
