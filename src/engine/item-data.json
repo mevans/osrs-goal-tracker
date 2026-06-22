@@ -3114,6 +3114,11 @@
   { "id": "26707", "name": "Dragon claws ornament kit", "wikiName": "Dragon_claws_ornament_kit" },
   { "id": "21902", "name": "Dragon crossbow", "wikiName": "Dragon_crossbow" },
   { "id": "28053", "name": "Dragon crossbow (cr)", "wikiName": "Dragon_crossbow_(cr)" },
+  {
+    "id": "33460",
+    "name": "Dragon crossbow (Last Man Standing)",
+    "wikiName": "Dragon_crossbow_(Last_Man_Standing)"
+  },
   { "id": "21921", "name": "Dragon crossbow (u)", "wikiName": "Dragon_crossbow_(u)" },
   { "id": "1215", "name": "Dragon dagger", "wikiName": "Dragon_dagger" },
   { "id": "28019", "name": "Dragon dagger (cr)", "wikiName": "Dragon_dagger_(cr)" },
@@ -6050,6 +6055,11 @@
   { "id": "30744", "name": "Oathplate armour set", "wikiName": "Oathplate_armour_set" },
   { "id": "30753", "name": "Oathplate chest", "wikiName": "Oathplate_chest" },
   { "id": "30750", "name": "Oathplate helm", "wikiName": "Oathplate_helm" },
+  {
+    "id": "33462",
+    "name": "Oathplate helm (Last Man Standing)",
+    "wikiName": "Oathplate_helm_(Last_Man_Standing)"
+  },
   { "id": "30756", "name": "Oathplate legs", "wikiName": "Oathplate_legs" },
   { "id": "30765", "name": "Oathplate shards", "wikiName": "Oathplate_shards_1" },
   { "id": "33338", "name": "Oathplate slayer helmet", "wikiName": "Oathplate_slayer_helmet" },
