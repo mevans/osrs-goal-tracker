@@ -2536,6 +2536,11 @@
   { "id": "32484", "name": "Crate of feathers", "wikiName": "Crate_of_feathers" },
   { "id": "32753", "name": "Crate of fishing supplies", "wikiName": "Crate_of_fishing_supplies" },
   { "id": "32640", "name": "Crate of gin", "wikiName": "Crate_of_gin" },
+  {
+    "id": "32488",
+    "name": "Crate of glassmaking supplies",
+    "wikiName": "Crate_of_glassmaking_supplies"
+  },
   { "id": "32490", "name": "Crate of grog", "wikiName": "Crate_of_grog" },
   { "id": "32620", "name": "Crate of gunpowder", "wikiName": "Crate_of_gunpowder" },
   { "id": "32593", "name": "Crate of high importance", "wikiName": "Crate_of_high_importance" },
@@ -2939,7 +2944,6 @@
   { "id": "6384", "name": "Desert top", "wikiName": "Desert_top" },
   { "id": "30640", "name": "Desiccated page", "wikiName": "Desiccated_page" },
   { "id": "28393", "name": "Detonator", "wikiName": "Detonator" },
-  { "id": "30371", "name": "Devil's element", "wikiName": "Devil%27s_element" },
   { "id": "22954", "name": "Devout boots", "wikiName": "Devout_boots" },
   { "id": "21034", "name": "Dexterous prayer scroll", "wikiName": "Dexterous_prayer_scroll" },
   { "id": "12877", "name": "Dharok's armour set", "wikiName": "Dharok%27s_armour_set" },
@@ -3114,11 +3118,6 @@
   { "id": "26707", "name": "Dragon claws ornament kit", "wikiName": "Dragon_claws_ornament_kit" },
   { "id": "21902", "name": "Dragon crossbow", "wikiName": "Dragon_crossbow" },
   { "id": "28053", "name": "Dragon crossbow (cr)", "wikiName": "Dragon_crossbow_(cr)" },
-  {
-    "id": "33460",
-    "name": "Dragon crossbow (Last Man Standing)",
-    "wikiName": "Dragon_crossbow_(Last_Man_Standing)"
-  },
   { "id": "21921", "name": "Dragon crossbow (u)", "wikiName": "Dragon_crossbow_(u)" },
   { "id": "1215", "name": "Dragon dagger", "wikiName": "Dragon_dagger" },
   { "id": "28019", "name": "Dragon dagger (cr)", "wikiName": "Dragon_dagger_(cr)" },
@@ -6055,11 +6054,6 @@
   { "id": "30744", "name": "Oathplate armour set", "wikiName": "Oathplate_armour_set" },
   { "id": "30753", "name": "Oathplate chest", "wikiName": "Oathplate_chest" },
   { "id": "30750", "name": "Oathplate helm", "wikiName": "Oathplate_helm" },
-  {
-    "id": "33462",
-    "name": "Oathplate helm (Last Man Standing)",
-    "wikiName": "Oathplate_helm_(Last_Man_Standing)"
-  },
   { "id": "30756", "name": "Oathplate legs", "wikiName": "Oathplate_legs" },
   { "id": "30765", "name": "Oathplate shards", "wikiName": "Oathplate_shards_1" },
   { "id": "33338", "name": "Oathplate slayer helmet", "wikiName": "Oathplate_slayer_helmet" },
@@ -7179,11 +7173,6 @@
   { "id": "25656", "name": "Ruined guppy", "wikiName": "Ruined_guppy" },
   { "id": "4462", "name": "Ruined herb tea", "wikiName": "Ruined_herb_tea" },
   { "id": "25668", "name": "Ruined tetra", "wikiName": "Ruined_tetra" },
-  {
-    "id": "33010",
-    "name": "Ruinous powers (Deadman Mode)",
-    "wikiName": "Ruinous_powers_(Deadman_Mode)"
-  },
   { "id": "28896", "name": "Rum", "wikiName": "Rum" },
   { "id": "1319", "name": "Rune 2h sword", "wikiName": "Rune_2h_sword" },
   { "id": "13024", "name": "Rune armour set (lg)", "wikiName": "Rune_armour_set_(lg)" },
@@ -9272,7 +9261,6 @@
   { "id": "22191", "name": "Useful rock", "wikiName": "Useful_rock" },
   { "id": "24258", "name": "V sigil", "wikiName": "V_sigil" },
   { "id": "24259", "name": "V sigil (e)", "wikiName": "V_sigil_(e)" },
-  { "id": "33247", "name": "V's helm", "wikiName": "V%27s_helm" },
   { "id": "24266", "name": "V's shield", "wikiName": "V%27s_shield" },
   { "id": "31371", "name": "Vacuum pump", "wikiName": "Vacuum_pump" },
   { "id": "31373", "name": "Vacuum pump and gull", "wikiName": "Vacuum_pump_and_gull" },
