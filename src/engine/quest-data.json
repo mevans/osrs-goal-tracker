@@ -3515,52 +3515,52 @@
       {
         "skill": "Slayer",
         "level": 74,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Woodcutting",
         "level": 74,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Smithing",
         "level": 72,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Cooking",
         "level": 72,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Fletching",
         "level": 70,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Mining",
         "level": 66,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Hunter",
         "level": 65,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Crafting",
         "level": 64,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Herblore",
         "level": 64,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Magic",
         "level": 57,
-        "boostable": true
+        "boostable": false
       }
     ],
     "questReqs": ["A Night at the Theatre", "Sins of the Father"],
