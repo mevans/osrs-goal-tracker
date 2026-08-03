@@ -3830,22 +3830,22 @@
       {
         "skill": "Sailing",
         "level": 62,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Crafting",
         "level": 60,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Runecraft",
         "level": 47,
-        "boostable": true
+        "boostable": false
       },
       {
         "skill": "Mining",
         "level": 53,
-        "boostable": true
+        "boostable": false
       }
     ],
     "questReqs": ["Pandemonium"],
