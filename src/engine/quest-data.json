@@ -2181,14 +2181,7 @@
         "boostable": false
       }
     ],
-    "questReqs": [
-      "Rag and Bone Man I",
-      "Skippy and the Mogres",
-      "Horror from the Deep",
-      "The Fremennik Trials",
-      "Creature of Fenkenstrain",
-      "Waterfall Quest"
-    ],
+    "questReqs": ["Rag and Bone Man I", "Skippy and the Mogres", "Creature of Fenkenstrain"],
     "questPoints": 0
   },
   "Land of the Goblins": {
