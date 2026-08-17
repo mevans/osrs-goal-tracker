@@ -3843,5 +3843,38 @@
     ],
     "questReqs": ["Pandemonium"],
     "questPoints": 0
+  },
+  "A Ruff Situation": {
+    "name": "A Ruff Situation",
+    "difficulty": "novice",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Crafting",
+        "level": 15,
+        "boostable": true
+      }
+    ],
+    "questReqs": [],
+    "questPoints": 0
+  },
+  "Crab Quest": {
+    "name": "Crab Quest",
+    "difficulty": "intermediate",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Sailing",
+        "level": 40,
+        "boostable": true
+      },
+      {
+        "skill": "Fishing",
+        "level": 30,
+        "boostable": true
+      }
+    ],
+    "questReqs": [],
+    "questPoints": 0
   }
 }
