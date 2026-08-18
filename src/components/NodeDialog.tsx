@@ -506,11 +506,13 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                   value={skillName}
                   onChange={(e) => setSkillName(e.target.value as SkillName)}
                 >
-                  {[...OSRS_SKILLS].sort((a, b) => a.localeCompare(b)).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
+                  {[...OSRS_SKILLS]
+                    .sort((a, b) => a.localeCompare(b))
+                    .map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
