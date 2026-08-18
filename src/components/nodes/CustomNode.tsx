@@ -34,13 +34,13 @@ export interface CustomNodeData {
 }
 
 const TYPE_COLORS: Record<NodeType, string> = {
-  goal: 'bg-amber-900/60',
-  quest: 'bg-blue-900/60',
-  skill: 'bg-green-900/60',
-  task: 'bg-purple-900/60',
-  kill: 'bg-red-900/60',
-  item: 'bg-cyan-900/60',
-  group: 'bg-stone-700/60',
+  goal: 'bg-amber-500',
+  quest: 'bg-blue-500',
+  skill: 'bg-green-600',
+  task: 'bg-purple-600',
+  kill: 'bg-red-500',
+  item: 'bg-cyan-500',
+  group: 'bg-stone-600',
 };
 
 const TYPE_LABELS: Record<NodeType, string> = {
@@ -55,7 +55,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
 
 const STATUS_BORDERS: Record<DerivedStatus, string> = {
   blocked: 'border-surface-border',
-  available: 'border-surface-600',
+  available: 'border-blue-400',
   complete: 'border-green-500',
 };
 

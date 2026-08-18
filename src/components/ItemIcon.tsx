@@ -19,13 +19,16 @@ export function ItemIcon({ itemId, size = 36 }: { itemId: string; size?: number 
   }
 
   return (
-    <img
-      src={getItemImageUrl(itemId)}
-      alt=""
-      width={size}
-      height={size}
-      className="inline-block object-contain rounded shrink-0 osrs-pixel-icon"
-      onError={() => setErrored(true)}
-    />
+    <span
+      style={{ width: size, height: size }}
+      className="inline-flex items-center justify-center shrink-0 overflow-hidden"
+    >
+      <img
+        src={getItemImageUrl(itemId)}
+        alt=""
+        className="max-w-full max-h-full object-contain osrs-pixel-icon"
+        onError={() => setErrored(true)}
+      />
+    </span>
   );
 }

@@ -22,13 +22,16 @@ export function BossIcon({ bossId, size = 36 }: { bossId: string; size?: number 
   }
 
   return (
-    <img
-      src={`${WIKI_THUMB}/${wikiName}.png/${size}px-${wikiName}.png`}
-      alt={bossId}
-      width={size}
-      height={size}
-      className="inline-block object-contain rounded shrink-0"
-      onError={() => setErrored(true)}
-    />
+    <span
+      style={{ width: size, height: size }}
+      className="inline-flex items-center justify-center shrink-0 overflow-hidden"
+    >
+      <img
+        src={`${WIKI_THUMB}/${wikiName}.png/${size}px-${wikiName}.png`}
+        alt={bossId}
+        className="max-w-full max-h-full object-contain"
+        onError={() => setErrored(true)}
+      />
+    </span>
   );
 }

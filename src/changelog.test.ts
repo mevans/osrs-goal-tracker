@@ -29,12 +29,15 @@ Plain paragraph.`;
     });
   });
 
-  it('loads markdown files from src/changelog/', () => {
-    expect(CHANGELOG.length).toBeGreaterThanOrEqual(2);
-    expect(CHANGELOG[0]).toMatchObject({
-      id: '3',
-      title: 'Acquire Item nodes',
-    });
+  it('loads markdown files from src/changelog/, newest first', () => {
+    expect(CHANGELOG.length).toBeGreaterThan(0);
+    for (const entry of CHANGELOG) {
+      expect(entry.id).toBeTruthy();
+      expect(entry.date).toBeTruthy();
+      expect(entry.title).toBeTruthy();
+    }
+    const ids = CHANGELOG.map((e) => Number(e.id));
+    expect(ids).toEqual([...ids].sort((a, b) => b - a));
   });
 
   it('ignores fold group nodes when counting engagement', () => {
@@ -63,8 +66,9 @@ Plain paragraph.`;
   });
 
   it('shows unseen entries for returning engaged users', () => {
-    expect(getUnseenChangelog('1', 2)).toEqual([CHANGELOG[0]!, CHANGELOG[1]!]);
-    expect(hasUnseenChangelog('1', 2)).toBe(true);
+    const oldest = CHANGELOG.at(-1)!;
+    expect(getUnseenChangelog(oldest.id, 2)).toEqual(CHANGELOG.slice(0, -1));
+    expect(hasUnseenChangelog(oldest.id, 2)).toBe(CHANGELOG.length > 1);
   });
 
   it('shows nothing when already up to date', () => {

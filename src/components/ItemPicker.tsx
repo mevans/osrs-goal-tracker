@@ -25,12 +25,13 @@ export function ItemPicker({ itemId, onChange, autoFocus = false }: ItemPickerPr
 
   const close = () => {
     setOpen(false);
-    setQuery('');
     setHighlightedIndex(-1);
+    if (itemId) setQuery('');
   };
 
   const pick = (item: ItemInfo) => {
     onChange(item.id);
+    setQuery('');
     close();
   };
 
@@ -129,7 +130,7 @@ export function ItemPicker({ itemId, onChange, autoFocus = false }: ItemPickerPr
           spellCheck={false}
           data-1p-ignore
           data-lpignore="true"
-          value={open ? query : selectedName}
+          value={itemId && !open ? selectedName : query}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
@@ -137,7 +138,7 @@ export function ItemPicker({ itemId, onChange, autoFocus = false }: ItemPickerPr
           }}
           onFocus={() => {
             setOpen(true);
-            setQuery('');
+            if (itemId) setQuery('');
           }}
           onBlur={close}
           onKeyDown={(e) => {
