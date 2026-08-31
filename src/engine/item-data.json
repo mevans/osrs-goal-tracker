@@ -4671,6 +4671,9 @@
   { "id": "30082", "name": "Hueycoatl hide vambraces", "wikiName": "Hueycoatl_hide_vambraces" },
   { "id": "31420", "name": "Huge halibut", "wikiName": "Huge_halibut" },
   { "id": "31785", "name": "Huge pearl", "wikiName": "Huge_pearl" },
+  { "id": "34385", "name": "Huge port coin bag", "wikiName": "Huge_port_coin_bag" },
+  { "id": "34215", "name": "Huge port reward bag (aldarin)", "wikiName": "Huge_port_reward_bag" },
+  { "id": "34285", "name": "Huge port reward bag (brimhaven)", "wikiName": "Huge_port_reward_bag" },
   { "id": "26957", "name": "Human emblem", "wikiName": "Human_emblem" },
   { "id": "742", "name": "Hunk of crystal", "wikiName": "Hunk_of_crystal" },
   { "id": "9948", "name": "Hunter cape", "wikiName": "Hunter_cape" },
@@ -5213,6 +5216,13 @@
   { "id": "32029", "name": "Large mithril keel parts", "wikiName": "Large_mithril_keel_parts" },
   { "id": "32065", "name": "Large oak hull parts", "wikiName": "Large_oak_hull_parts" },
   { "id": "9651", "name": "Large ornate key", "wikiName": "Large_ornate_key" },
+  { "id": "34383", "name": "Large port coin bag", "wikiName": "Large_port_coin_bag" },
+  { "id": "34213", "name": "Large port reward bag (aldarin)", "wikiName": "Large_port_reward_bag" },
+  {
+    "id": "34083",
+    "name": "Large port reward bag (cairn isle)",
+    "wikiName": "Large_port_reward_bag"
+  },
   { "id": "5512", "name": "Large pouch", "wikiName": "Large_pouch" },
   { "id": "21540", "name": "Large rock", "wikiName": "Large_rock" },
   { "id": "32080", "name": "Large rosewood hull parts", "wikiName": "Large_rosewood_hull_parts" },
@@ -5642,6 +5652,17 @@
   { "id": "29301", "name": "Medium fur pouch", "wikiName": "Medium_fur_pouch" },
   { "id": "4264", "name": "Medium ninja bonemeal", "wikiName": "Medium_ninja_bonemeal" },
   { "id": "3180", "name": "Medium ninja monkey bones", "wikiName": "Medium_ninja_monkey_bones" },
+  { "id": "34381", "name": "Medium port coin bag", "wikiName": "Medium_port_coin_bag" },
+  {
+    "id": "34211",
+    "name": "Medium port reward bag (aldarin)",
+    "wikiName": "Medium_port_reward_bag"
+  },
+  {
+    "id": "34081",
+    "name": "Medium port reward bag (cairn isle)",
+    "wikiName": "Medium_port_reward_bag"
+  },
   { "id": "5510", "name": "Medium pouch", "wikiName": "Medium_pouch" },
   { "id": "20892", "name": "Medivaemia blossom", "wikiName": "Medivaemia_blossom" },
   { "id": "5066", "name": "Meeting notes", "wikiName": "Meeting_notes" },
@@ -7536,7 +7557,27 @@
   { "id": "8794", "name": "Saw", "wikiName": "Saw" },
   { "id": "9468", "name": "Sawdust", "wikiName": "Sawdust" },
   { "id": "21529", "name": "Sawmill agreement", "wikiName": "Sawmill_agreement" },
+  {
+    "id": "34072",
+    "name": "Sawmill coupon (camphor plank)",
+    "wikiName": "Sawmill_coupon_(camphor_plank)"
+  },
+  {
+    "id": "34074",
+    "name": "Sawmill coupon (ironwood plank)",
+    "wikiName": "Sawmill_coupon_(ironwood_plank)"
+  },
+  {
+    "id": "34070",
+    "name": "Sawmill coupon (mahogany plank)",
+    "wikiName": "Sawmill_coupon_(mahogany_plank)"
+  },
   { "id": "32085", "name": "Sawmill coupon (oak plank)", "wikiName": "Sawmill_coupon_(oak_plank)" },
+  {
+    "id": "34068",
+    "name": "Sawmill coupon (teak plank)",
+    "wikiName": "Sawmill_coupon_(teak_plank)"
+  },
   {
     "id": "32083",
     "name": "Sawmill coupon (wood plank)",
@@ -8117,6 +8158,13 @@
   { "id": "3179", "name": "Small ninja monkey bones", "wikiName": "Small_ninja_monkey_bones" },
   { "id": "31773", "name": "Small pearl", "wikiName": "Small_pearl" },
   { "id": "3720", "name": "Small pick", "wikiName": "Small_pick" },
+  { "id": "34379", "name": "Small port coin bag", "wikiName": "Small_port_coin_bag" },
+  { "id": "34209", "name": "Small port reward bag (aldarin)", "wikiName": "Small_port_reward_bag" },
+  {
+    "id": "34339",
+    "name": "Small port reward bag (deepfin point)",
+    "wikiName": "Small_port_reward_bag"
+  },
   { "id": "5509", "name": "Small pouch", "wikiName": "Small_pouch" },
   { "id": "32847", "name": "Small salvage", "wikiName": "Small_salvage" },
   {
@@ -8845,6 +8893,9 @@
   { "id": "590", "name": "Tinderbox", "wikiName": "Tinderbox" },
   { "id": "6674", "name": "Tiny net", "wikiName": "Tiny_net" },
   { "id": "31770", "name": "Tiny pearl", "wikiName": "Tiny_pearl" },
+  { "id": "34377", "name": "Tiny port coin bag", "wikiName": "Tiny_port_coin_bag" },
+  { "id": "34207", "name": "Tiny port reward bag (aldarin)", "wikiName": "Tiny_port_reward_bag" },
+  { "id": "34317", "name": "Tiny port reward bag (ardougne)", "wikiName": "Tiny_port_reward_bag" },
   { "id": "25602", "name": "Tiny tempor", "wikiName": "Tiny_tempor" },
   { "id": "11203", "name": "To-do list", "wikiName": "To-do_list" },
   { "id": "2255", "name": "Toad batta", "wikiName": "Toad_batta" },
