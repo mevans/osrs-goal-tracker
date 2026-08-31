@@ -58,7 +58,7 @@ export function PlayerProfileDialog({ onClose }: PlayerProfileDialogProps) {
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <div className="bg-surface-800 border border-surface-border rounded-lg shadow-xl w-[420px] flex flex-col">
         <div className="flex items-center justify-between px-5 pt-5 pb-4">
-          <h2 className="text-lg font-semibold text-brand-text">Sync Player</h2>
+          <h2 className="text-lg font-semibold text-brand-text">Link player</h2>
           <button
             onClick={onClose}
             className="text-stone-400 hover:text-white text-xl leading-none"

@@ -1,0 +1,14 @@
+name = "planscape-sync"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+account_id = "622d1f6cc57e246672071197778efe82"
+workers_dev = false
+
+[[routes]]
+pattern = "planscape.studio/api/*"
+zone_name = "planscape.studio"
+
+[[kv_namespaces]]
+binding = "GRAPHS"
+id = "0ad3ea67e67745a3a8de68abff6b4da7"
+preview_id = "planscape-sync-graphs-preview"

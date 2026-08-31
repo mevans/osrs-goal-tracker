@@ -16,6 +16,9 @@ export const analytics = {
   undoUsed: () => track('Undo Used'),
   redoUsed: () => track('Redo Used'),
   openInEditor: () => track('Open in Editor'),
+  deviceSyncStarted: () => track('Device Sync Started'),
+  deviceSyncJoined: () => track('Device Sync Joined'),
+  deviceSyncConflict: (choice: string) => track('Device Sync Conflict', { choice }),
 };
 
 declare global {

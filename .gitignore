@@ -59,5 +59,6 @@ coverage/
 !public/apple-touch-icon.png
 !public/og-image.png
 
-# Playwright
-.playwright-mcp/
+# Wrangler local state
+.wrangler/
+worker/.wrangler/

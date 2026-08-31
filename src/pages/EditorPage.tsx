@@ -5,7 +5,10 @@ import { Toolbar } from '../components/toolbar/Toolbar';
 import { PlanningDrawer } from '../components/panels/PlanningDrawer';
 import { KeyboardHelp } from '../components/KeyboardHelp';
 import { ChangelogDialog } from '../components/ChangelogDialog';
+import { SyncConflictDialog } from '../components/SyncConflictDialog';
 import { useAutoSyncPlayer } from '../hooks/useAutoSyncPlayer';
+import { useGraphSync } from '../hooks/useGraphSync';
+import { useSyncStore } from '../store/sync-store';
 import {
   CHANGELOG,
   getUnseenChangelog,
@@ -25,6 +28,8 @@ export function EditorPage() {
   const nodes = useGraphStore((s) => s.nodes);
   const engagedNodeCount = getEngagedNodeCount(nodes);
   useAutoSyncPlayer();
+  useGraphSync();
+  const syncConflict = useSyncStore((s) => s.status === 'conflict');
 
   const unseenEntries = hydrated ? getUnseenChangelog(lastSeenId, engagedNodeCount) : [];
   const showAutoPrompt = unseenEntries.length > 0 && !autoDismissed;
@@ -68,6 +73,7 @@ export function EditorPage() {
           onClose={closeChangelog}
         />
       )}
+      {syncConflict && <SyncConflictDialog />}
     </ReactFlowProvider>
   );
 }

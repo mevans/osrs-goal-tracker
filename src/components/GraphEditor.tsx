@@ -87,6 +87,42 @@ const RedoIcon = () => (
   </svg>
 );
 
+const EyeIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 3l18 18" />
+    <path d="M10.6 10.7a2 2 0 0 0 2.8 2.8" />
+    <path d="M9.9 5.1A11 11 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 3.6" />
+    <path d="M6.1 6.1A18 18 0 0 0 2 12s3.5 7 10 7a11 11 0 0 0 4.2-.8" />
+  </svg>
+);
+
 interface GraphEditorProps {
   edgeMode: EdgeType;
 }
@@ -128,6 +164,7 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
 
   const { editingNodeId, setEditingNodeId, setShowHelp } = useUIStore();
   const hideCompleted = usePreferencesStore((s) => s.hideCompleted);
+  const toggleHideCompleted = usePreferencesStore((s) => s.toggleHideCompleted);
 
   // Auto-complete skill nodes when player data changes
   const playerSkills = usePlayerStore((s) => s.skills);
@@ -521,6 +558,21 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
             <RedoIcon />
           </ControlButton>
         </Controls>
+        <Panel position="bottom-left" className="!left-[52px] !bottom-[15px] !m-0">
+          <button
+            type="button"
+            onClick={toggleHideCompleted}
+            title={hideCompleted ? 'Show completed nodes' : 'Hide completed nodes'}
+            className={`flex items-center gap-1.5 h-[26px] px-2 text-xs rounded border shadow-lg ${
+              hideCompleted
+                ? 'bg-brand border-brand text-white'
+                : 'bg-surface-800 border-surface-border text-stone-300 hover:bg-surface-700'
+            }`}
+          >
+            {hideCompleted ? <EyeOffIcon /> : <EyeIcon />}
+            {hideCompleted ? 'Show completed' : 'Hide completed'}
+          </button>
+        </Panel>
         <MiniMap
           className="bg-surface-800! border-surface-border!"
           nodeColor="#3a3028"
