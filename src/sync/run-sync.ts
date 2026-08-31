@@ -4,6 +4,7 @@ import { CURRENT_VERSION, runMigrations } from '../engine/migrations';
 import {
   decideSyncAction,
   generateSyncId,
+  graphSnapshotsEqual,
   nextRev,
   normalizeSyncId,
   type SyncEnvelope,
@@ -16,9 +17,19 @@ import { getGraph, putGraph, SyncHttpError } from './sync-client';
 
 let applyingRemote = false;
 let refusedVersionNotified = false;
+let syncChain: Promise<void> = Promise.resolve();
 
 export function isApplyingRemote(): boolean {
   return applyingRemote;
+}
+
+function enqueueSync<T>(task: () => Promise<T>): Promise<T> {
+  const run = syncChain.then(task, task);
+  syncChain = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 function currentGraph(): GraphData {
@@ -76,7 +87,25 @@ function toastSyncError(error: unknown, fallback: string, silent: boolean): void
   if (!silent) toast.error(message);
 }
 
+function takeConflictIfReal(envelope: SyncEnvelope): void {
+  const migrated = runMigrations(envelope.data, envelope.version);
+  if (migrated && graphSnapshotsEqual(currentGraph(), migrated)) {
+    useSyncStore.getState().markClean(envelope.rev, envelope.updatedAt);
+    return;
+  }
+  analytics.deviceSyncConflict('detected');
+  useSyncStore.getState().setConflict(envelope);
+}
+
 export async function pullOnce(silent: boolean): Promise<void> {
+  return enqueueSync(() => runPullOnce(silent));
+}
+
+export async function pushOnce(silent: boolean): Promise<void> {
+  return enqueueSync(() => runPushOnce(silent));
+}
+
+async function runPullOnce(silent: boolean): Promise<void> {
   const store = useSyncStore.getState();
   if (!store.syncId) return;
   if (store.status === 'conflict') return;
@@ -105,8 +134,7 @@ export async function pullOnce(silent: boolean): Promise<void> {
       return;
     }
     if (action === 'conflict' && result.kind === 'ok') {
-      analytics.deviceSyncConflict('detected');
-      useSyncStore.getState().setConflict(result.envelope);
+      takeConflictIfReal(result.envelope);
       return;
     }
     if (action === 'pull' && result.kind === 'ok') {
@@ -129,7 +157,7 @@ export async function pullOnce(silent: boolean): Promise<void> {
   }
 }
 
-export async function pushOnce(silent: boolean): Promise<void> {
+async function runPushOnce(silent: boolean): Promise<void> {
   const store = useSyncStore.getState();
   if (!store.syncId || !store.dirty) return;
   if (store.status === 'conflict') return;
@@ -158,8 +186,7 @@ export async function pushOnce(silent: boolean): Promise<void> {
       return;
     }
     if (action === 'conflict' && result.kind === 'ok') {
-      analytics.deviceSyncConflict('detected');
-      useSyncStore.getState().setConflict(result.envelope);
+      takeConflictIfReal(result.envelope);
       return;
     }
     if (action === 'pull' && result.kind === 'ok') {
@@ -182,16 +209,18 @@ export async function pushOnce(silent: boolean): Promise<void> {
 }
 
 export async function startDeviceSync(): Promise<string> {
-  const id = generateSyncId();
-  const envelope: SyncEnvelope = {
-    version: CURRENT_VERSION,
-    rev: 1,
-    updatedAt: new Date().toISOString(),
-    data: currentGraph(),
-  };
-  await putGraph(id, envelope);
-  useSyncStore.getState().setLinked(id, envelope.rev, envelope.updatedAt);
-  return id;
+  return enqueueSync(async () => {
+    const id = generateSyncId();
+    const envelope: SyncEnvelope = {
+      version: CURRENT_VERSION,
+      rev: 1,
+      updatedAt: new Date().toISOString(),
+      data: currentGraph(),
+    };
+    await putGraph(id, envelope);
+    useSyncStore.getState().setLinked(id, envelope.rev, envelope.updatedAt);
+    return id;
+  });
 }
 
 export async function joinDeviceSync(rawCode: string): Promise<void> {
@@ -199,20 +228,22 @@ export async function joinDeviceSync(rawCode: string): Promise<void> {
   if (!id) {
     throw new Error('That code does not look right — check for typos');
   }
-  const result = await getGraph(id);
-  if (result.kind === 'not-found') {
-    throw new Error('No graph found for that code');
-  }
-  if (result.envelope.version > CURRENT_VERSION) {
-    notifyRefuseVersion();
-    throw new Error('This graph was saved with a newer app version — update Planscape to sync');
-  }
-  const migrated = runMigrations(result.envelope.data, result.envelope.version);
-  if (!migrated) {
-    throw new Error('Failed to migrate synced graph');
-  }
-  applyRemoteGraph(migrated, result.envelope.rev, result.envelope.updatedAt);
-  useSyncStore.getState().setLinked(id, result.envelope.rev, result.envelope.updatedAt);
+  return enqueueSync(async () => {
+    const result = await getGraph(id);
+    if (result.kind === 'not-found') {
+      throw new Error('No graph found for that code');
+    }
+    if (result.envelope.version > CURRENT_VERSION) {
+      notifyRefuseVersion();
+      throw new Error('This graph was saved with a newer app version — update Planscape to sync');
+    }
+    const migrated = runMigrations(result.envelope.data, result.envelope.version);
+    if (!migrated) {
+      throw new Error('Failed to migrate synced graph');
+    }
+    applyRemoteGraph(migrated, result.envelope.rev, result.envelope.updatedAt);
+    useSyncStore.getState().setLinked(id, result.envelope.rev, result.envelope.updatedAt);
+  });
 }
 
 export function unlinkDevice(): void {
@@ -220,26 +251,30 @@ export function unlinkDevice(): void {
 }
 
 export async function keepLocalOnConflict(): Promise<void> {
-  const { syncId, conflictRemote } = useSyncStore.getState();
-  if (!syncId) return;
-  useSyncStore.getState().clearConflict();
-  useSyncStore.getState().markDirty();
-  await upload(syncId, conflictRemote?.rev);
+  return enqueueSync(async () => {
+    const { syncId, conflictRemote } = useSyncStore.getState();
+    if (!syncId) return;
+    useSyncStore.getState().clearConflict();
+    useSyncStore.getState().markDirty();
+    await upload(syncId, conflictRemote?.rev);
+  });
 }
 
 export async function keepRemoteOnConflict(): Promise<void> {
-  const remote = useSyncStore.getState().conflictRemote;
-  if (!remote) return;
-  if (remote.version > CURRENT_VERSION) {
-    notifyRefuseVersion();
-    return;
-  }
-  const migrated = runMigrations(remote.data, remote.version);
-  if (!migrated) {
-    toast.error('Failed to migrate synced graph');
-    return;
-  }
-  applyRemoteGraph(migrated, remote.rev, remote.updatedAt);
+  return enqueueSync(async () => {
+    const remote = useSyncStore.getState().conflictRemote;
+    if (!remote) return;
+    if (remote.version > CURRENT_VERSION) {
+      notifyRefuseVersion();
+      return;
+    }
+    const migrated = runMigrations(remote.data, remote.version);
+    if (!migrated) {
+      toast.error('Failed to migrate synced graph');
+      return;
+    }
+    applyRemoteGraph(migrated, remote.rev, remote.updatedAt);
+  });
 }
 
 export function downloadConflictRemote(): void {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   decideSyncAction,
+  graphSnapshotsEqual,
   formatSyncAge,
   formatSyncId,
   nextRev,
@@ -43,6 +44,14 @@ describe('decideSyncAction', () => {
 
   it('conflicts when remote is ahead and local is dirty', () => {
     expect(decideSyncAction(2, true, { rev: 5, version: v }, v)).toBe('conflict');
+  });
+});
+
+describe('graphSnapshotsEqual', () => {
+  it('treats the same graph payload as equal', () => {
+    const graph = { nodes: [], edges: [], notes: undefined };
+    expect(graphSnapshotsEqual(graph, { nodes: [], edges: [], notes: undefined })).toBe(true);
+    expect(graphSnapshotsEqual(graph, { nodes: [], edges: [], notes: 'different' })).toBe(false);
   });
 });
 

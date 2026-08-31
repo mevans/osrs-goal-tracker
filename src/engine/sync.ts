@@ -14,6 +14,14 @@ export interface SyncEnvelope {
 
 export type SyncAction = 'noop' | 'ignore-stale' | 'push' | 'pull' | 'conflict' | 'refuse-version';
 
+export function graphSnapshotsEqual(a: GraphData, b: GraphData): boolean {
+  return (
+    JSON.stringify(a.nodes) === JSON.stringify(b.nodes) &&
+    JSON.stringify(a.edges) === JSON.stringify(b.edges) &&
+    JSON.stringify(a.notes) === JSON.stringify(b.notes)
+  );
+}
+
 export function decideSyncAction(
   lastSyncedRev: number,
   dirty: boolean,

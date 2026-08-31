@@ -476,6 +476,7 @@ export const useGraphStore = create<GraphState>()(
             return n;
           });
           nodes = syncGroupCompletionStates(nodes);
+          if (nodes.every((n, i) => n === state.nodes[i])) return state;
           return { nodes };
         });
       },
@@ -494,6 +495,7 @@ export const useGraphStore = create<GraphState>()(
             };
           });
           nodes = syncGroupCompletionStates(nodes);
+          if (nodes.every((n, i) => n === state.nodes[i])) return state;
           return { nodes };
         });
       },
