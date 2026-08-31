@@ -1,0 +1,357 @@
+[
+  {
+    "id": "Abyssal Sire",
+    "name": "Abyssal Sire",
+    "womKey": "abyssal_sire"
+  },
+  {
+    "id": "Alchemical Hydra",
+    "name": "Alchemical Hydra",
+    "womKey": "alchemical_hydra"
+  },
+  {
+    "id": "Amoxliatl",
+    "name": "Amoxliatl",
+    "womKey": "amoxliatl"
+  },
+  {
+    "id": "Araxxor",
+    "name": "Araxxor",
+    "womKey": "araxxor"
+  },
+  {
+    "id": "Artio",
+    "name": "Artio",
+    "womKey": "artio"
+  },
+  {
+    "id": "Barrows Chests",
+    "name": "Barrows Chests",
+    "womKey": "barrows_chests"
+  },
+  {
+    "id": "Brutus",
+    "name": "Brutus",
+    "womKey": "brutus"
+  },
+  {
+    "id": "Bryophyta",
+    "name": "Bryophyta",
+    "womKey": "bryophyta"
+  },
+  {
+    "id": "Callisto",
+    "name": "Callisto",
+    "womKey": "callisto"
+  },
+  {
+    "id": "Calvar'ion",
+    "name": "Calvar'ion",
+    "womKey": "calvarion"
+  },
+  {
+    "id": "Cerberus",
+    "name": "Cerberus",
+    "womKey": "cerberus"
+  },
+  {
+    "id": "Chambers Of Xeric",
+    "name": "Chambers Of Xeric",
+    "womKey": "chambers_of_xeric"
+  },
+  {
+    "id": "Chambers Of Xeric (CM)",
+    "name": "Chambers Of Xeric (CM)",
+    "womKey": "chambers_of_xeric_challenge_mode"
+  },
+  {
+    "id": "Chaos Elemental",
+    "name": "Chaos Elemental",
+    "womKey": "chaos_elemental"
+  },
+  {
+    "id": "Chaos Fanatic",
+    "name": "Chaos Fanatic",
+    "womKey": "chaos_fanatic"
+  },
+  {
+    "id": "Commander Zilyana",
+    "name": "Commander Zilyana",
+    "womKey": "commander_zilyana"
+  },
+  {
+    "id": "Corporeal Beast",
+    "name": "Corporeal Beast",
+    "womKey": "corporeal_beast"
+  },
+  {
+    "id": "Crazy Archaeologist",
+    "name": "Crazy Archaeologist",
+    "womKey": "crazy_archaeologist"
+  },
+  {
+    "id": "Dagannoth Prime",
+    "name": "Dagannoth Prime",
+    "womKey": "dagannoth_prime"
+  },
+  {
+    "id": "Dagannoth Rex",
+    "name": "Dagannoth Rex",
+    "womKey": "dagannoth_rex"
+  },
+  {
+    "id": "Dagannoth Supreme",
+    "name": "Dagannoth Supreme",
+    "womKey": "dagannoth_supreme"
+  },
+  {
+    "id": "Deranged Archaeologist",
+    "name": "Deranged Archaeologist",
+    "womKey": "deranged_archaeologist"
+  },
+  {
+    "id": "Doom of Mokhaiotl",
+    "name": "Doom of Mokhaiotl",
+    "womKey": "doom_of_mokhaiotl"
+  },
+  {
+    "id": "Duke Sucellus",
+    "name": "Duke Sucellus",
+    "womKey": "duke_sucellus"
+  },
+  {
+    "id": "General Graardor",
+    "name": "General Graardor",
+    "womKey": "general_graardor"
+  },
+  {
+    "id": "Giant Mole",
+    "name": "Giant Mole",
+    "womKey": "giant_mole"
+  },
+  {
+    "id": "Grotesque Guardians",
+    "name": "Grotesque Guardians",
+    "womKey": "grotesque_guardians"
+  },
+  {
+    "id": "Hespori",
+    "name": "Hespori",
+    "womKey": "hespori"
+  },
+  {
+    "id": "K'ril Tsutsaroth",
+    "name": "K'ril Tsutsaroth",
+    "womKey": "lunar_chests"
+  },
+  {
+    "id": "Kalphite Queen",
+    "name": "Kalphite Queen",
+    "womKey": "king_black_dragon"
+  },
+  {
+    "id": "King Black Dragon",
+    "name": "King Black Dragon",
+    "womKey": "kraken"
+  },
+  {
+    "id": "Kraken",
+    "name": "Kraken",
+    "womKey": "kreearra"
+  },
+  {
+    "id": "Kree'Arra",
+    "name": "Kree'Arra",
+    "womKey": "kril_tsutsaroth"
+  },
+  {
+    "id": "Lunar Chests",
+    "name": "Lunar Chests",
+    "womKey": "mad_angel"
+  },
+  {
+    "id": "Mad Angel",
+    "name": "Mad Angel",
+    "womKey": "maggot_king"
+  },
+  {
+    "id": "Maggot King",
+    "name": "Maggot King",
+    "womKey": "mimic"
+  },
+  {
+    "id": "Mimic",
+    "name": "Mimic",
+    "womKey": "nex"
+  },
+  {
+    "id": "Nex",
+    "name": "Nex",
+    "womKey": "nightmare"
+  },
+  {
+    "id": "Nightmare",
+    "name": "Nightmare",
+    "womKey": "phosanis_nightmare"
+  },
+  {
+    "id": "Obor",
+    "name": "Obor",
+    "womKey": "phantom_muspah"
+  },
+  {
+    "id": "Phantom Muspah",
+    "name": "Phantom Muspah",
+    "womKey": "sarachnis"
+  },
+  {
+    "id": "Phosani's Nightmare",
+    "name": "Phosani's Nightmare",
+    "womKey": "obor"
+  },
+  {
+    "id": "Sarachnis",
+    "name": "Sarachnis",
+    "womKey": "scorpia"
+  },
+  {
+    "id": "Scorpia",
+    "name": "Scorpia",
+    "womKey": "scurrius"
+  },
+  {
+    "id": "Scurrius",
+    "name": "Scurrius",
+    "womKey": "shellbane_gryphon"
+  },
+  {
+    "id": "Shellbane Gryphon",
+    "name": "Shellbane Gryphon",
+    "womKey": "skotizo"
+  },
+  {
+    "id": "Skotizo",
+    "name": "Skotizo",
+    "womKey": "sol_heredit"
+  },
+  {
+    "id": "Sol Heredit",
+    "name": "Sol Heredit",
+    "womKey": "spindel"
+  },
+  {
+    "id": "Spindel",
+    "name": "Spindel",
+    "womKey": "tempoross"
+  },
+  {
+    "id": "Tempoross",
+    "name": "Tempoross",
+    "womKey": "the_gauntlet"
+  },
+  {
+    "id": "The Corrupted Gauntlet",
+    "name": "The Corrupted Gauntlet",
+    "womKey": "the_hueycoatl"
+  },
+  {
+    "id": "The Gauntlet",
+    "name": "The Gauntlet",
+    "womKey": "the_corrupted_gauntlet"
+  },
+  {
+    "id": "The Hueycoatl",
+    "name": "The Hueycoatl",
+    "womKey": "kalphite_queen"
+  },
+  {
+    "id": "The Leviathan",
+    "name": "The Leviathan",
+    "womKey": "the_leviathan"
+  },
+  {
+    "id": "The Royal Titans",
+    "name": "The Royal Titans",
+    "womKey": "the_royal_titans"
+  },
+  {
+    "id": "The Whisperer",
+    "name": "The Whisperer",
+    "womKey": "the_whisperer"
+  },
+  {
+    "id": "Theatre Of Blood",
+    "name": "Theatre Of Blood",
+    "womKey": "theatre_of_blood"
+  },
+  {
+    "id": "Theatre Of Blood (HM)",
+    "name": "Theatre Of Blood (HM)",
+    "womKey": "theatre_of_blood_hard_mode"
+  },
+  {
+    "id": "Thermonuclear Smoke Devil",
+    "name": "Thermonuclear Smoke Devil",
+    "womKey": "thermonuclear_smoke_devil"
+  },
+  {
+    "id": "Tombs of Amascut",
+    "name": "Tombs of Amascut",
+    "womKey": "tombs_of_amascut"
+  },
+  {
+    "id": "Tombs of Amascut (Expert Mode)",
+    "name": "Tombs of Amascut (Expert Mode)",
+    "womKey": "tombs_of_amascut_expert"
+  },
+  {
+    "id": "TzKal-Zuk",
+    "name": "TzKal-Zuk",
+    "womKey": "tzkal_zuk"
+  },
+  {
+    "id": "TzTok-Jad",
+    "name": "TzTok-Jad",
+    "womKey": "tztok_jad"
+  },
+  {
+    "id": "Vardorvis",
+    "name": "Vardorvis",
+    "womKey": "vardorvis"
+  },
+  {
+    "id": "Venenatis",
+    "name": "Venenatis",
+    "womKey": "venenatis"
+  },
+  {
+    "id": "Vet'ion",
+    "name": "Vet'ion",
+    "womKey": "vetion"
+  },
+  {
+    "id": "Vorkath",
+    "name": "Vorkath",
+    "womKey": "vorkath"
+  },
+  {
+    "id": "Wintertodt",
+    "name": "Wintertodt",
+    "womKey": "wintertodt"
+  },
+  {
+    "id": "Yama",
+    "name": "Yama",
+    "womKey": "yama"
+  },
+  {
+    "id": "Zalcano",
+    "name": "Zalcano",
+    "womKey": "zalcano"
+  },
+  {
+    "id": "Zulrah",
+    "name": "Zulrah",
+    "womKey": "zulrah"
+  }
+]

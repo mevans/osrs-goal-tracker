@@ -28,8 +28,11 @@ jobs:
       - name: Fetch item data from OSRS Wiki
         run: npm run fetch:items
 
+      - name: Fetch boss list from Wise Old Man
+        run: npm run fetch:bosses
+
       - name: Format wiki data
-        run: npx prettier --write src/engine/quest-data.json src/engine/item-data.json
+        run: npx prettier --write src/engine/quest-data.json src/engine/item-data.json src/engine/boss-data.json
 
       - name: Commit updated wiki data
         env:
@@ -37,10 +40,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/engine/quest-data.json src/engine/item-data.json
+          git add src/engine/quest-data.json src/engine/item-data.json src/engine/boss-data.json
           if git diff --staged --quiet; then
             echo "No wiki data changes to commit."
             exit 0
           fi
-          git commit -m "chore: update quest and item data from OSRS Wiki"
+          git commit -m "chore: update quest, item, and boss data"
           git push
