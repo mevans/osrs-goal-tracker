@@ -2888,6 +2888,30 @@
     "questReqs": [],
     "questPoints": 0
   },
+  "The Chosen Commander": {
+    "name": "The Chosen Commander",
+    "difficulty": "master",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Agility",
+        "level": 58,
+        "boostable": true
+      },
+      {
+        "skill": "Thieving",
+        "level": 54,
+        "boostable": true
+      },
+      {
+        "skill": "Strength",
+        "level": 46,
+        "boostable": true
+      }
+    ],
+    "questReqs": ["Land of the Goblins"],
+    "questPoints": 0
+  },
   "The Curse of Arrav": {
     "name": "The Curse of Arrav",
     "difficulty": "master",
@@ -3874,6 +3898,22 @@
         "boostable": true
       }
     ],
+    "questReqs": [],
+    "questPoints": 0
+  },
+  "Fairytale III - Nexus of Power": {
+    "name": "Fairytale III - Nexus of Power",
+    "difficulty": "master",
+    "members": true,
+    "skillReqs": [],
+    "questReqs": [],
+    "questPoints": 0
+  },
+  "Fool's Gold": {
+    "name": "Fool's Gold",
+    "difficulty": "master",
+    "members": true,
+    "skillReqs": [],
     "questReqs": [],
     "questPoints": 0
   }
