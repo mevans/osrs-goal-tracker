@@ -400,6 +400,7 @@
   { "id": "22302", "name": "Ancient effigy", "wikiName": "Ancient_effigy" },
   { "id": "21807", "name": "Ancient emblem", "wikiName": "Ancient_emblem" },
   { "id": "27616", "name": "Ancient essence", "wikiName": "Ancient_essence_1" },
+  { "id": "34641", "name": "Ancient fabric", "wikiName": "Ancient_fabric" },
   { "id": "12466", "name": "Ancient full helm", "wikiName": "Ancient_full_helm" },
   { "id": "25686", "name": "Ancient globe", "wikiName": "Ancient_globe" },
   { "id": "26233", "name": "Ancient godsword", "wikiName": "Ancient_godsword" },
@@ -4791,6 +4792,14 @@
   { "id": "13532", "name": "Ideology of Darkness", "wikiName": "Ideology_of_Darkness" },
   { "id": "28464", "name": "Illuminating lure", "wikiName": "Illuminating_lure" },
   { "id": "22043", "name": "Imafore's betrayal", "wikiName": "Imafore%27s_betrayal" },
+  { "id": "34633", "name": "Imbued ancient cape", "wikiName": "Imbued_ancient_cape" },
+  {
+    "id": "34607",
+    "name": "Imbued ancient cape (Deadman)",
+    "wikiName": "Imbued_ancient_cape_(Deadman)"
+  },
+  { "id": "34625", "name": "Imbued ancient max cape", "wikiName": "Imbued_ancient_max_cape" },
+  { "id": "34627", "name": "Imbued ancient max hood", "wikiName": "Imbued_ancient_max_hood" },
   { "id": "28806", "name": "Imbued barronite", "wikiName": "Imbued_barronite" },
   { "id": "21793", "name": "Imbued Guthix cape", "wikiName": "Imbued_Guthix_cape" },
   {
@@ -6424,6 +6433,7 @@
   { "id": "12651", "name": "Pet Zilyana", "wikiName": "Pet_Zilyana" },
   { "id": "28655", "name": "Petal garland", "wikiName": "Petal_garland" },
   { "id": "1577", "name": "Pete's candlestick", "wikiName": "Pete%27s_candlestick" },
+  { "id": "34644", "name": "Pete's vouchers", "wikiName": "Pete%27s_vouchers" },
   { "id": "4283", "name": "Petition form", "wikiName": "Petition_form" },
   { "id": "26569", "name": "Pharmakos berries", "wikiName": "Pharmakos_berries" },
   { "id": "8971", "name": "Phasmatys flag", "wikiName": "Phasmatys_flag" },
