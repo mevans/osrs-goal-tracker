@@ -8,8 +8,10 @@ import type {
   QuestData,
   BossData,
   ItemData,
+  DiaryData,
 } from '../../engine/types';
 import { getNodeTitle } from '../../engine/node-utils';
+import { diaryCheckedCount, getDiary } from '../../engine/diary-db';
 import { SkillIcon } from '../SkillIcon';
 import { BossIcon } from '../BossIcon';
 import { ItemIcon } from '../ItemIcon';
@@ -17,6 +19,7 @@ import { ShortcutHint } from '../Kbd';
 import { useGraphStore } from '../../store/graph-store';
 import { useUIStore } from '../../store/ui-store';
 import { QuestPrereqsPanel } from './QuestPrereqsPanel';
+import { DiaryPrereqsPanel } from './DiaryPrereqsPanel';
 
 export interface CustomNodeData {
   title: string;
@@ -28,6 +31,7 @@ export interface CustomNodeData {
   questData: QuestData | undefined;
   bossData: BossData | undefined;
   itemData: ItemData | undefined;
+  diaryData: DiaryData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
   [key: string]: unknown;
@@ -40,6 +44,7 @@ const TYPE_COLORS: Record<NodeType, string> = {
   task: 'bg-purple-900/60',
   kill: 'bg-red-900/60',
   item: 'bg-cyan-900/60',
+  diary: 'bg-green-900/60',
   group: 'bg-stone-700/60',
 };
 
@@ -50,6 +55,7 @@ const TYPE_LABELS: Record<NodeType, string> = {
   task: 'Task',
   kill: 'Kill',
   item: 'Acquire Item',
+  diary: 'Diary',
   group: 'Group',
 };
 
@@ -88,11 +94,12 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
     questData: data.questData,
     bossData: data.bossData,
     itemData: data.itemData,
+    diaryData: data.diaryData,
   });
 
   const canEdit = true;
   const isMultiSelect = useGraphStore((s) => s.selectedNodeIds.length > 1);
-  const { updateNode, toggleNodeComplete, removeNode } = useGraphStore.getState();
+  const { updateNode, toggleNodeComplete, toggleDiaryTask, removeNode } = useGraphStore.getState();
   const { setEditingNodeId } = useUIStore.getState();
 
   return (
@@ -100,6 +107,11 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
       {data.nodeType === 'quest' && data.questData && (
         <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Left} offset={8}>
           <QuestPrereqsPanel questId={data.questData.questId} nodeId={id} />
+        </NodeToolbar>
+      )}
+      {data.nodeType === 'diary' && data.diaryData && (
+        <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Left} offset={8}>
+          <DiaryPrereqsPanel diaryId={data.diaryData.diaryId} nodeId={id} />
         </NodeToolbar>
       )}
 
@@ -198,7 +210,9 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
       </NodeToolbar>
 
       <div
-        className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 w-[180px] shadow-lg relative group transition-opacity duration-300`}
+        className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 ${
+          data.nodeType === 'diary' ? 'w-[260px]' : 'w-[180px]'
+        } shadow-lg relative group transition-opacity duration-300`}
       >
         {/* Top handle - Prerequisites flow IN here */}
         <Handle
@@ -265,6 +279,15 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
           </>
         )}
 
+        {data.nodeType === 'diary' && data.diaryData && (
+          <DiaryTaskList
+            nodeId={id}
+            diaryId={data.diaryData.diaryId}
+            completed={data.diaryData.completed}
+            onToggle={toggleDiaryTask}
+          />
+        )}
+
         {q && (data.nodeType !== 'kill' || q.target > 0 || q.current > 0) && (
           <div className="mt-1.5">
             {data.nodeType === 'kill' && q.target === 0 ? (
@@ -319,5 +342,55 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
         </div>
       </div>
     </>
+  );
+}
+
+function DiaryTaskList({
+  nodeId,
+  diaryId,
+  completed,
+  onToggle,
+}: {
+  nodeId: string;
+  diaryId: string;
+  completed: boolean[];
+  onToggle: (nodeId: string, taskIndex: number) => void;
+}) {
+  const tasks = getDiary(diaryId)?.tasks ?? [];
+  if (tasks.length === 0) return null;
+  const done = diaryCheckedCount(completed, tasks.length);
+
+  return (
+    <div className="mt-2 border-t border-green-800/80 pt-1.5">
+      <div className="text-[10px] text-green-300/80 mb-1">
+        {done}/{tasks.length}
+      </div>
+      <ul className="flex flex-col gap-1">
+        {tasks.map((task, index) => {
+          const checked = completed[index] ?? false;
+          return (
+            <li key={index}>
+              <label className="nodrag nopan flex items-start gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  className="nodrag nopan mt-0.5 accent-green-500 shrink-0"
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => onToggle(nodeId, index)}
+                />
+                <span
+                  className={`text-[11px] leading-snug ${
+                    checked ? 'text-stone-500 line-through' : 'text-stone-100'
+                  }`}
+                >
+                  {task.text}
+                </span>
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

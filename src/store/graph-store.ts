@@ -10,8 +10,10 @@ import type {
   Quantity,
   BossData,
   ItemData,
+  DiaryData,
 } from '../engine/types';
 import { generateId } from '../engine/types';
+import { getDiary, withToggledTask } from '../engine/diary-db';
 import {
   isGroupMember,
   resolveStoredEdgeId,
@@ -22,6 +24,29 @@ import {
   syncGroupCompletionStates,
 } from '../engine/fold-view';
 import { analytics } from '../analytics';
+
+function applyCompletion(node: GraphNode, complete: boolean): GraphNode {
+  if (complete && node.quantity) {
+    return {
+      ...node,
+      complete: true,
+      quantity: { ...node.quantity, current: node.quantity.target },
+    };
+  }
+  if (node.diaryData) {
+    const taskCount =
+      getDiary(node.diaryData.diaryId)?.tasks.length ?? node.diaryData.completed.length;
+    return {
+      ...node,
+      complete,
+      diaryData: {
+        diaryId: node.diaryData.diaryId,
+        completed: Array.from({ length: taskCount }, () => complete),
+      },
+    };
+  }
+  return { ...node, complete };
+}
 
 function pruneGroupsAfterMemberRemoval(nodes: GraphNode[], removedIds: Set<string>): GraphNode[] {
   return nodes
@@ -43,6 +68,7 @@ export interface AddNodeParams {
   questData: { questId: string } | undefined;
   bossData: BossData | undefined;
   itemData: ItemData | undefined;
+  diaryData: DiaryData | undefined;
   quantity: Quantity | undefined;
   tags: string[] | undefined;
 }
@@ -65,6 +91,7 @@ interface GraphState {
   moveNode: (id: string, position: { x: number; y: number }) => void;
   moveNodes: (positions: { id: string; position: { x: number; y: number } }[]) => void;
   toggleNodeComplete: (id: string) => void;
+  toggleDiaryTask: (id: string, taskIndex: number) => void;
   toggleNodesComplete: (ids: string[]) => void;
   duplicateNodes: (ids: string[]) => string[];
   addTagToNode: (nodeId: string, tag: string) => void;
@@ -110,6 +137,7 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           bossData: params.bossData ?? undefined,
           itemData: params.itemData ?? undefined,
+          diaryData: params.diaryData ?? undefined,
           quantity: params.quantity ?? undefined,
           groupData: undefined,
           tags: params.tags ?? [],
@@ -131,6 +159,7 @@ export const useGraphStore = create<GraphState>()(
           questData: params.questData ?? undefined,
           bossData: params.bossData ?? undefined,
           itemData: params.itemData ?? undefined,
+          diaryData: params.diaryData ?? undefined,
           quantity: params.quantity ?? undefined,
           groupData: undefined,
           tags: params.tags ?? [],
@@ -228,14 +257,7 @@ export const useGraphStore = create<GraphState>()(
           let nodes = state.nodes.map((n) => {
             if (!targetSet.has(n.id)) return n;
             if (newComplete) analytics.nodeCompleted(n.type);
-            if (newComplete && n.quantity) {
-              return {
-                ...n,
-                complete: true,
-                quantity: { ...n.quantity, current: n.quantity.target },
-              };
-            }
-            return { ...n, complete: newComplete };
+            return applyCompletion(n, newComplete);
           });
           nodes = syncGroupCompletionStates(nodes);
           return { nodes };
@@ -256,18 +278,28 @@ export const useGraphStore = create<GraphState>()(
           let nodes = state.nodes.map((n) => {
             if (!idsSet.has(n.id)) return n;
             if (newComplete) analytics.nodeCompleted(n.type);
-            if (newComplete && n.quantity) {
-              return {
-                ...n,
-                complete: true,
-                quantity: { ...n.quantity, current: n.quantity.target },
-              };
-            }
-            return { ...n, complete: newComplete };
+            return applyCompletion(n, newComplete);
           });
           nodes = syncGroupCompletionStates(nodes);
           return { nodes };
         });
+      },
+
+      toggleDiaryTask: (id, taskIndex) => {
+        set((state) => ({
+          nodes: state.nodes.map((n) => {
+            if (n.id !== id || !n.diaryData) return n;
+            const taskCount = getDiary(n.diaryData.diaryId)?.tasks.length ?? 0;
+            const completed = withToggledTask(n.diaryData.completed, taskCount, taskIndex);
+            const complete = taskCount > 0 && completed.every(Boolean);
+            if (complete && !n.complete) analytics.nodeCompleted(n.type);
+            return {
+              ...n,
+              complete,
+              diaryData: { diaryId: n.diaryData.diaryId, completed },
+            };
+          }),
+        }));
       },
 
       duplicateNodes: (ids) => {
@@ -283,6 +315,9 @@ export const useGraphStore = create<GraphState>()(
             id: newId,
             position: { x: node.position.x + 40, y: node.position.y + 40 },
             complete: false,
+            diaryData: node.diaryData
+              ? { diaryId: node.diaryData.diaryId, completed: [] }
+              : undefined,
           };
         });
 
@@ -506,6 +541,7 @@ export const useGraphStore = create<GraphState>()(
             ...n,
             complete: false,
             quantity: n.quantity ? { ...n.quantity, current: 0 } : undefined,
+            diaryData: n.diaryData ? { diaryId: n.diaryData.diaryId, completed: [] } : undefined,
           }));
           nodes = syncGroupCompletionStates(nodes);
           return { nodes };
@@ -540,6 +576,7 @@ export const useGraphStore = create<GraphState>()(
           questData: undefined,
           bossData: undefined,
           itemData: undefined,
+          diaryData: undefined,
           quantity: undefined,
           groupData: { memberIds: uniqueIds },
           tags: [],

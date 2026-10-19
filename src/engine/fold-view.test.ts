@@ -23,6 +23,7 @@ function node(id: string, overrides: Partial<GraphNode> = {}): GraphNode {
     skillData: undefined,
     questData: undefined,
     bossData: undefined,
+    diaryData: undefined,
     itemData: undefined,
     quantity: undefined,
     groupData: undefined,

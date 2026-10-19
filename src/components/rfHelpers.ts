@@ -70,6 +70,7 @@ export function buildRfNodes(
         questData: n.questData,
         bossData: n.bossData,
         itemData: n.itemData,
+        diaryData: n.diaryData,
         quantity: n.quantity,
         groupData: undefined,
         tags: n.tags,

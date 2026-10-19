@@ -2,8 +2,17 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { OSRS_SKILLS } from '../engine/types';
 import { ALL_QUESTS } from '../engine/quest-db';
 import { ALL_BOSSES } from '../engine/boss-db';
+import { ALL_DIARIES, DIARY_AREAS, getDiaryName } from '../engine/diary-db';
 import { getItemName } from '../engine/item-db';
-import type { GraphNode, NodeType, SkillName, Quantity, BossData, ItemData } from '../engine/types';
+import type {
+  GraphNode,
+  NodeType,
+  SkillName,
+  Quantity,
+  BossData,
+  ItemData,
+  DiaryData,
+} from '../engine/types';
 import { SkillIcon } from './SkillIcon';
 import { BossIcon } from './BossIcon';
 import { ItemPicker } from './ItemPicker';
@@ -63,6 +72,26 @@ const SkillTypeIcon = () => (
   >
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
     <polyline points="17 6 23 6 23 12" />
+  </svg>
+);
+
+const DiaryIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <path d="M3 6h.01" />
+    <path d="M3 12h.01" />
+    <path d="M3 18h.01" />
   </svg>
 );
 
@@ -183,6 +212,17 @@ const NODE_TYPE_CONFIG: TypeConfig[] = [
     buttonClass: 'bg-green-700 hover:bg-green-600',
   },
   {
+    value: 'diary',
+    label: 'Diary',
+    description: 'Achievement diary tasks',
+    Icon: DiaryIcon,
+    formBorder: 'border-l-green-500',
+    cardBorder: 'border-green-500',
+    cardBg: 'bg-green-500/10',
+    iconColor: 'text-green-400',
+    buttonClass: 'bg-green-700 hover:bg-green-600',
+  },
+  {
     value: 'task',
     label: 'Task',
     description: 'Actions & unlocks',
@@ -227,6 +267,7 @@ export interface NodeFormResult {
   questData: { questId: string } | undefined;
   bossData: BossData | undefined;
   itemData: ItemData | undefined;
+  diaryData: DiaryData | undefined;
   quantity: Quantity | undefined;
   tags: string[];
 }
@@ -256,6 +297,9 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
   const [boost, setBoost] = useState(initialNode?.skillData?.boost?.toString() ?? '');
   const [questId, setQuestId] = useState(
     initialNode?.questData?.questId ?? ALL_QUESTS[0]?.name ?? '',
+  );
+  const [diaryId, setDiaryId] = useState(
+    initialNode?.diaryData?.diaryId ?? ALL_DIARIES[0]?.id ?? '',
   );
   const [bossId, setBossId] = useState(initialNode?.bossData?.bossId ?? ALL_BOSSES[0]?.id ?? '');
   const [itemId, setItemId] = useState(initialNode?.itemData?.itemId ?? '');
@@ -305,6 +349,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
     if ((type === 'goal' || type === 'task') && !title.trim()) return;
     if (type === 'skill' && !targetLevel) return;
     if (type === 'quest' && !questId) return;
+    if (type === 'diary' && !diaryId) return;
     if (type === 'kill' && !bossId) return;
     if (type === 'item' && !itemId) return;
 
@@ -316,6 +361,8 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
         boostVal > 0 ? `${level - boostVal}+${boostVal} ${skillName}` : `${level} ${skillName}`;
     } else if (type === 'quest') {
       finalTitle = questId;
+    } else if (type === 'diary') {
+      finalTitle = getDiaryName(diaryId);
     } else if (type === 'kill') {
       finalTitle = bossId;
     } else if (type === 'item') {
@@ -336,6 +383,14 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
       questData: type === 'quest' && questId ? { questId } : undefined,
       bossData: type === 'kill' && bossId ? { bossId } : undefined,
       itemData: type === 'item' && itemId ? { itemId } : undefined,
+      diaryData:
+        type === 'diary' && diaryId
+          ? {
+              diaryId,
+              completed:
+                initialNode?.diaryData?.diaryId === diaryId ? initialNode.diaryData.completed : [],
+            }
+          : undefined,
       quantity:
         type === 'kill'
           ? { target: killTarget, current: killCurrent }
@@ -430,6 +485,27 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                 <option key={quest.name} value={quest.name}>
                   {quest.name}
                 </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {type === 'diary' && (
+          <div className="mb-3">
+            <select
+              autoFocus
+              className="w-full bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
+              value={diaryId}
+              onChange={(e) => setDiaryId(e.target.value)}
+            >
+              {DIARY_AREAS.map((area) => (
+                <optgroup key={area} label={area}>
+                  {ALL_DIARIES.filter((diary) => diary.area === area).map((diary) => (
+                    <option key={diary.id} value={diary.id}>
+                      {diary.name} ({diary.tasks.length})
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>

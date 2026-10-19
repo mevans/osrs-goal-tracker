@@ -3,7 +3,7 @@ import type { GraphData } from './types';
 /**
  * Current schema version. Increment when making breaking changes to GraphData.
  */
-export const CURRENT_VERSION = 5;
+export const CURRENT_VERSION = 6;
 
 /**
  * Raw data shape from unknown (possibly old) saves. Typed as a loose record
@@ -44,6 +44,11 @@ const migrations: Record<number, Migration> = {
   4: (data) => ({
     ...data,
     notes: typeof data['notes'] === 'string' ? data['notes'] : undefined,
+  }),
+  // v5 → v6: diary nodes
+  5: (data) => ({
+    ...data,
+    nodes: (data['nodes'] as RawData[]).map((n) => ({ ...n, diaryData: undefined })),
   }),
 };
 

@@ -91,6 +91,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
         questData: { questId: prereqId },
         bossData: undefined,
         itemData: undefined,
+        diaryData: undefined,
         quantity: undefined,
         tags: undefined,
         position: pos,
@@ -113,6 +114,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
         questData: undefined,
         bossData: undefined,
         itemData: undefined,
+        diaryData: undefined,
         quantity: undefined,
         tags: undefined,
         position: pos,
@@ -141,7 +143,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
 
   return (
     <div
-      className="bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2.5 w-[220px] max-h-[420px] flex flex-col gap-2"
+      className="nowheel bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2.5 w-[220px] max-h-[420px] flex flex-col gap-2"
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >

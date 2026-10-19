@@ -1,4 +1,4 @@
-export type NodeType = 'goal' | 'quest' | 'skill' | 'task' | 'kill' | 'item' | 'group';
+export type NodeType = 'goal' | 'quest' | 'skill' | 'task' | 'kill' | 'item' | 'diary' | 'group';
 export type EdgeType = 'requires' | 'improves';
 export type DerivedStatus = 'complete' | 'available' | 'blocked';
 
@@ -49,6 +49,12 @@ export interface ItemData {
   itemId: string;
 }
 
+export interface DiaryData {
+  diaryId: string;
+  /** Parallel to the diary's task list. Missing entries are unchecked. */
+  completed: boolean[];
+}
+
 export interface Quantity {
   target: number;
   current: number;
@@ -69,6 +75,7 @@ export interface GraphNode {
   questData: QuestData | undefined;
   bossData: BossData | undefined;
   itemData: ItemData | undefined;
+  diaryData: DiaryData | undefined;
   quantity: Quantity | undefined;
   groupData: GroupData | undefined;
   tags: string[];

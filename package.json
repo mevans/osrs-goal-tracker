@@ -11,6 +11,7 @@
     "fetch:quests": "tsx scripts/fetch-quest-reqs.ts",
     "fetch:items": "npx tsx scripts/fetch-item-db.ts",
     "fetch:bosses": "npx tsx scripts/fetch-boss-db.ts",
+    "fetch:diaries": "npx tsx scripts/fetch-diary-tasks.ts",
     "build": "npm run generate:seo && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
