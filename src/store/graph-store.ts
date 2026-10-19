@@ -316,7 +316,7 @@ export const useGraphStore = create<GraphState>()(
             position: { x: node.position.x + 40, y: node.position.y + 40 },
             complete: false,
             diaryData: node.diaryData
-              ? { diaryId: node.diaryData.diaryId, completed: [] }
+              ? { diaryId: node.diaryData.diaryId, completed: Array<boolean>() }
               : undefined,
           };
         });
@@ -541,7 +541,9 @@ export const useGraphStore = create<GraphState>()(
             ...n,
             complete: false,
             quantity: n.quantity ? { ...n.quantity, current: 0 } : undefined,
-            diaryData: n.diaryData ? { diaryId: n.diaryData.diaryId, completed: [] } : undefined,
+            diaryData: n.diaryData
+              ? { diaryId: n.diaryData.diaryId, completed: Array<boolean>() }
+              : undefined,
           }));
           nodes = syncGroupCompletionStates(nodes);
           return { nodes };
