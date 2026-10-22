@@ -5,6 +5,7 @@ import {
   applyGroupMemberTranslation,
   applyLayoutWithFolds,
   collectUnfoldSelection,
+  computeGroupStatus,
   expandCompletionTargetIds,
   expandCopyTargetIds,
   isGroupComplete,
@@ -159,5 +160,59 @@ describe('applyLayoutWithFolds', () => {
     expect(group?.position.x).not.toBe(20);
     expect(memberA?.position.x).not.toBe(0);
     expect(memberA!.position.x - group!.position.x).toBe(-20);
+  });
+
+  it('does not stack goals that are only linked by an improves edge', () => {
+    const laidOut = applyLayoutWithFolds(
+      [node('a', { position: { x: 0, y: 0 } }), node('b', { position: { x: 40, y: 0 } })],
+      [{ id: 'e1', from: 'a', to: 'b', type: 'improves' }],
+      { x: 0, y: 0 },
+    );
+
+    const a = laidOut.find((n) => n.id === 'a')!;
+    const b = laidOut.find((n) => n.id === 'b')!;
+    expect(a.position.y).toBe(b.position.y);
+    expect(a.position.x).not.toBe(b.position.x);
+  });
+});
+
+describe('computeGroupStatus', () => {
+  const group = node('g', { type: 'group', groupData: { memberIds: ['a', 'b'] } });
+
+  it('follows members: complete, available, then blocked', () => {
+    const nodes = [node('a'), node('b'), group];
+
+    expect(
+      computeGroupStatus(
+        group,
+        nodes,
+        new Map([
+          ['a', 'complete'],
+          ['b', 'complete'],
+        ]),
+      ),
+    ).toBe('complete');
+
+    expect(
+      computeGroupStatus(
+        group,
+        nodes,
+        new Map([
+          ['a', 'blocked'],
+          ['b', 'available'],
+        ]),
+      ),
+    ).toBe('available');
+
+    expect(
+      computeGroupStatus(
+        group,
+        nodes,
+        new Map([
+          ['a', 'blocked'],
+          ['b', 'blocked'],
+        ]),
+      ),
+    ).toBe('blocked');
   });
 });

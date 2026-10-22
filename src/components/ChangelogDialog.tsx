@@ -1,4 +1,5 @@
 import Markdown, { type Components } from 'react-markdown';
+import { Dialog, dialogPrimary } from './ui/dialog';
 import { CHANGELOG, LATEST_CHANGELOG_ID, type ChangelogEntry } from '../changelog';
 import { useChangelogStore } from '../store/changelog-store';
 
@@ -38,44 +39,28 @@ export function ChangelogDialog({ entries, onClose, markSeenOnClose }: Changelog
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-      onClick={handleClose}
+    <Dialog
+      title={isWhatsNew ? "What's New" : 'Changelog'}
+      {...(isWhatsNew ? { description: 'Updates since your last visit' } : {})}
+      onClose={handleClose}
+      width="lg"
+      footer={
+        <button type="button" onClick={handleClose} className={dialogPrimary}>
+          {markSeenOnClose ? 'Got it' : 'Close'}
+        </button>
+      }
     >
-      <div
-        className="bg-surface-800 border border-surface-border rounded-lg w-[480px] max-h-[80vh] shadow-xl flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-5 pt-5 pb-3 border-b border-surface-border">
-          <h2 className="text-lg font-semibold text-brand-text">
-            {isWhatsNew ? "What's New" : 'Changelog'}
-          </h2>
-          {isWhatsNew && (
-            <p className="text-xs text-stone-500 mt-1">Updates since your last visit</p>
-          )}
-        </div>
-
-        <div className="overflow-y-auto px-5 py-4 flex flex-col gap-5">
-          {entries.map((entry) => (
-            <section key={entry.id}>
-              <div className="flex items-baseline gap-2 mb-2">
-                <h3 className="text-sm font-semibold text-stone-200">{entry.title}</h3>
-                <span className="text-xs text-stone-500">{entry.date}</span>
-              </div>
-              <Markdown components={markdownComponents}>{entry.content}</Markdown>
-            </section>
-          ))}
-        </div>
-
-        <div className="flex justify-end px-5 py-4 border-t border-surface-border">
-          <button
-            onClick={handleClose}
-            className="px-3 py-1.5 text-sm text-white bg-brand hover:bg-brand-bright rounded font-medium"
-          >
-            {markSeenOnClose ? 'Got it' : 'Close'}
-          </button>
-        </div>
+      <div className="flex flex-col gap-5">
+        {entries.map((entry) => (
+          <section key={entry.id}>
+            <div className="mb-2 flex items-baseline gap-2">
+              <h3 className="text-sm font-semibold text-stone-200">{entry.title}</h3>
+              <span className="text-xs text-stone-500">{entry.date}</span>
+            </div>
+            <Markdown components={markdownComponents}>{entry.content}</Markdown>
+          </section>
+        ))}
       </div>
-    </div>
+    </Dialog>
   );
 }

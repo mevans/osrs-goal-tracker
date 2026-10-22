@@ -13,6 +13,7 @@ import type {
   DiaryData,
 } from '../engine/types';
 import { generateId } from '../engine/types';
+import { buildGraphNode } from '../engine/build-node';
 import { getDiary, withToggledTask } from '../engine/diary-db';
 import {
   isGroupMember,
@@ -24,6 +25,7 @@ import {
   syncGroupCompletionStates,
 } from '../engine/fold-view';
 import { analytics } from '../analytics';
+import { useSelectionStore } from './selection-store';
 
 function applyCompletion(node: GraphNode, complete: boolean): GraphNode {
   if (complete && node.quantity) {
@@ -46,6 +48,25 @@ function applyCompletion(node: GraphNode, complete: boolean): GraphNode {
     };
   }
   return { ...node, complete };
+}
+
+function nodeFromParams(id: string, params: AddNodeParams): GraphNode {
+  return buildGraphNode({
+    id,
+    type: params.type,
+    title: params.title,
+    position: params.position,
+    complete: false,
+    notes: params.notes,
+    skillData: params.skillData,
+    questData: params.questData,
+    bossData: params.bossData,
+    itemData: params.itemData,
+    diaryData: params.diaryData,
+    quantity: params.quantity,
+    groupData: undefined,
+    tags: params.tags,
+  });
 }
 
 function pruneGroupsAfterMemberRemoval(nodes: GraphNode[], removedIds: Set<string>): GraphNode[] {
@@ -77,8 +98,6 @@ interface GraphState {
   nodes: GraphNode[];
   edges: GraphEdge[];
   notes: string | undefined;
-  selectedNodeIds: string[];
-  selectedEdgeIds: string[];
 
   addNode: (params: AddNodeParams) => string;
   addNodeWithEdge: (
@@ -100,8 +119,6 @@ interface GraphState {
   removeEdge: (id: string) => void;
   reverseEdge: (id: string) => void;
   setEdgeType: (id: string, type: EdgeType) => void;
-  selectNodes: (ids: string[]) => void;
-  selectEdges: (ids: string[]) => void;
   copySelection: () => Promise<number>;
   pasteClipboard: (center: { x: number; y: number }) => Promise<number>;
   loadGraph: (data: GraphData) => void;
@@ -121,49 +138,17 @@ export const useGraphStore = create<GraphState>()(
       nodes: [],
       edges: [],
       notes: undefined,
-      selectedNodeIds: [],
-      selectedEdgeIds: [],
 
       addNode: (params) => {
         const id = generateId();
-        const node: GraphNode = {
-          id,
-          type: params.type,
-          title: params.title,
-          position: params.position,
-          complete: false,
-          notes: params.notes ?? undefined,
-          skillData: params.skillData ?? undefined,
-          questData: params.questData ?? undefined,
-          bossData: params.bossData ?? undefined,
-          itemData: params.itemData ?? undefined,
-          diaryData: params.diaryData ?? undefined,
-          quantity: params.quantity ?? undefined,
-          groupData: undefined,
-          tags: params.tags ?? [],
-        };
+        const node = nodeFromParams(id, params);
         set((state) => ({ nodes: [...state.nodes, node] }));
         return id;
       },
 
       addNodeWithEdge: (params, edgeSpec) => {
         const nodeId = generateId();
-        const node: GraphNode = {
-          id: nodeId,
-          type: params.type,
-          title: params.title,
-          position: params.position,
-          complete: false,
-          notes: params.notes ?? undefined,
-          skillData: params.skillData ?? undefined,
-          questData: params.questData ?? undefined,
-          bossData: params.bossData ?? undefined,
-          itemData: params.itemData ?? undefined,
-          diaryData: params.diaryData ?? undefined,
-          quantity: params.quantity ?? undefined,
-          groupData: undefined,
-          tags: params.tags ?? [],
-        };
+        const node = nodeFromParams(nodeId, params);
         const from = 'from' in edgeSpec ? edgeSpec.from : nodeId;
         const to = 'to' in edgeSpec ? edgeSpec.to : nodeId;
         set((state) => {
@@ -195,39 +180,39 @@ export const useGraphStore = create<GraphState>()(
       },
 
       removeNode: (id) => {
-        set((state) => {
-          const removedIds = new Set([id]);
-          const unfolded = collectUnfoldSelection(removedIds, state.nodes);
-          return {
-            nodes: pruneGroupsAfterMemberRemoval(
-              state.nodes.filter((n) => n.id !== id),
-              removedIds,
-            ),
-            edges: state.edges.filter((e) => e.from !== id && e.to !== id),
-            selectedNodeIds:
-              unfolded.length > 0 ? unfolded : state.selectedNodeIds.filter((nid) => nid !== id),
-            selectedEdgeIds: unfolded.length > 0 ? [] : state.selectedEdgeIds,
-          };
-        });
+        const removedIds = new Set([id]);
+        const unfolded = collectUnfoldSelection(removedIds, get().nodes);
+        set((state) => ({
+          nodes: pruneGroupsAfterMemberRemoval(
+            state.nodes.filter((n) => n.id !== id),
+            removedIds,
+          ),
+          edges: state.edges.filter((e) => e.from !== id && e.to !== id),
+        }));
+        const selection = useSelectionStore.getState();
+        selection.setSelection(
+          unfolded.length > 0 ? unfolded : selection.selectedNodeIds.filter((nid) => nid !== id),
+          unfolded.length > 0 ? [] : selection.selectedEdgeIds,
+        );
       },
 
       removeNodes: (ids) => {
         const idSet = new Set(ids);
-        set((state) => {
-          const unfolded = collectUnfoldSelection(idSet, state.nodes);
-          return {
-            nodes: pruneGroupsAfterMemberRemoval(
-              state.nodes.filter((n) => !idSet.has(n.id)),
-              idSet,
-            ),
-            edges: state.edges.filter((e) => !idSet.has(e.from) && !idSet.has(e.to)),
-            selectedNodeIds:
-              unfolded.length > 0
-                ? unfolded
-                : state.selectedNodeIds.filter((nid) => !idSet.has(nid)),
-            selectedEdgeIds: unfolded.length > 0 ? [] : state.selectedEdgeIds,
-          };
-        });
+        const unfolded = collectUnfoldSelection(idSet, get().nodes);
+        set((state) => ({
+          nodes: pruneGroupsAfterMemberRemoval(
+            state.nodes.filter((n) => !idSet.has(n.id)),
+            idSet,
+          ),
+          edges: state.edges.filter((e) => !idSet.has(e.from) && !idSet.has(e.to)),
+        }));
+        const selection = useSelectionStore.getState();
+        selection.setSelection(
+          unfolded.length > 0
+            ? unfolded
+            : selection.selectedNodeIds.filter((nid) => !idSet.has(nid)),
+          unfolded.length > 0 ? [] : selection.selectedEdgeIds,
+        );
       },
 
       moveNode: (id, position) => {
@@ -334,8 +319,12 @@ export const useGraphStore = create<GraphState>()(
         set((state) => ({
           nodes: [...state.nodes, ...newNodes],
           edges: [...state.edges, ...newEdges],
-          selectedNodeIds: newNodes.map((n) => n.id),
         }));
+        const selection = useSelectionStore.getState();
+        selection.setSelection(
+          newNodes.map((n) => n.id),
+          selection.selectedEdgeIds,
+        );
 
         return newNodes.map((n) => n.id);
       },
@@ -392,17 +381,12 @@ export const useGraphStore = create<GraphState>()(
         }));
       },
 
-      selectNodes: (ids) => {
-        set({ selectedNodeIds: ids, selectedEdgeIds: [] });
-      },
-
-      selectEdges: (ids) => {
-        set({ selectedEdgeIds: ids, selectedNodeIds: [] });
-      },
-
       copySelection: async () => {
         const state = get();
-        const copyIds = expandCopyTargetIds(state.selectedNodeIds, state.nodes);
+        const copyIds = expandCopyTargetIds(
+          useSelectionStore.getState().selectedNodeIds,
+          state.nodes,
+        );
         const selectedSet = new Set(copyIds);
         const nodesToCopy = state.nodes.filter((n) => selectedSet.has(n.id) && n.type !== 'group');
         const edgesToCopy = state.edges.filter(
@@ -464,8 +448,12 @@ export const useGraphStore = create<GraphState>()(
           set((state) => ({
             nodes: [...state.nodes, ...newNodes],
             edges: [...state.edges, ...newEdges],
-            selectedNodeIds: newNodes.map((n) => n.id),
           }));
+          const selection = useSelectionStore.getState();
+          selection.setSelection(
+            newNodes.map((n) => n.id),
+            selection.selectedEdgeIds,
+          );
 
           return newNodes.length;
         } catch (err) {
@@ -480,9 +468,8 @@ export const useGraphStore = create<GraphState>()(
           nodes: data.nodes,
           edges: data.edges,
           notes: data.notes ?? undefined,
-          selectedNodeIds: [],
-          selectedEdgeIds: [],
         });
+        useSelectionStore.getState().setSelection([], []);
       },
 
       setNotes: (notes) => set({ notes: notes || undefined }),
@@ -551,7 +538,8 @@ export const useGraphStore = create<GraphState>()(
       },
 
       clearGraph: () => {
-        set({ nodes: [], edges: [], notes: undefined, selectedNodeIds: [], selectedEdgeIds: [] });
+        set({ nodes: [], edges: [], notes: undefined });
+        useSelectionStore.getState().setSelection([], []);
       },
 
       createFoldGroup: (memberIds, title) => {
@@ -567,7 +555,7 @@ export const useGraphStore = create<GraphState>()(
         const cx = members.reduce((sum, n) => sum + n.position.x, 0) / members.length;
         const cy = members.reduce((sum, n) => sum + n.position.y, 0) / members.length;
         const groupId = generateId();
-        const groupNode: GraphNode = {
+        const groupNode = buildGraphNode({
           id: groupId,
           type: 'group',
           title: title ?? `${members.length} nodes`,
@@ -582,13 +570,12 @@ export const useGraphStore = create<GraphState>()(
           quantity: undefined,
           groupData: { memberIds: uniqueIds },
           tags: [],
-        };
+        });
 
         set({
           nodes: [...state.nodes, groupNode],
-          selectedNodeIds: [groupId],
-          selectedEdgeIds: [],
         });
+        useSelectionStore.getState().selectNodes([groupId]);
         return groupId;
       },
 
@@ -597,10 +584,14 @@ export const useGraphStore = create<GraphState>()(
         const memberIds = group?.groupData?.memberIds ?? [];
         set((state) => ({
           nodes: state.nodes.filter((n) => n.id !== groupId),
-          selectedNodeIds:
-            memberIds.length > 0 ? memberIds : state.selectedNodeIds.filter((id) => id !== groupId),
-          selectedEdgeIds: [],
         }));
+        const selection = useSelectionStore.getState();
+        selection.setSelection(
+          memberIds.length > 0
+            ? memberIds
+            : selection.selectedNodeIds.filter((id) => id !== groupId),
+          [],
+        );
       },
     }),
     {

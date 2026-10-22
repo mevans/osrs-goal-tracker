@@ -1,22 +1,32 @@
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { getDiary, getDiaryName, previousDiaryId } from '../../engine/diary-db';
-import { useGraphStore } from '../../store/graph-store';
-import { usePlayerStore } from '../../store/player-store';
 import { SkillIcon } from '../SkillIcon';
-import type { SkillName } from '../../engine/types';
+import type { EdgeType, GraphEdge, GraphNode, SkillName } from '../../engine/types';
+import type { AddNodeParams } from '../../store/graph-store';
 
 interface Props {
   diaryId: string;
   nodeId: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  playerSkills: Partial<Record<SkillName, number>>;
+  onAddNodeWithEdge: (
+    params: AddNodeParams,
+    edge: { to: string; type: EdgeType } | { from: string; type: EdgeType },
+  ) => string;
+  onAddEdge: (from: string, to: string, type: EdgeType) => string;
 }
 
-export function DiaryPrereqsPanel({ diaryId, nodeId }: Props) {
-  const nodes = useGraphStore((s) => s.nodes);
-  const edges = useGraphStore((s) => s.edges);
-  const { addNodeWithEdge, addEdge } = useGraphStore.getState();
-  const playerSkills = usePlayerStore((s) => s.skills);
-
+export function DiaryPrereqsPanel({
+  diaryId,
+  nodeId,
+  nodes,
+  edges,
+  playerSkills,
+  onAddNodeWithEdge,
+  onAddEdge,
+}: Props) {
   const entry = getDiary(diaryId);
   const thisNode = nodes.find((n) => n.id === nodeId);
   const priorId = previousDiaryId(diaryId);
@@ -91,7 +101,7 @@ export function DiaryPrereqsPanel({ diaryId, nodeId }: Props) {
   }
 
   function addDiaryNode(id: string, index: number, total: number) {
-    addNodeWithEdge(
+    onAddNodeWithEdge(
       {
         type: 'diary',
         title: getDiaryName(id),
@@ -110,7 +120,7 @@ export function DiaryPrereqsPanel({ diaryId, nodeId }: Props) {
   }
 
   function addQuestNode(prereqId: string, index: number, total: number) {
-    addNodeWithEdge(
+    onAddNodeWithEdge(
       {
         type: 'quest',
         title: '',
@@ -129,7 +139,7 @@ export function DiaryPrereqsPanel({ diaryId, nodeId }: Props) {
   }
 
   function addSkillNode(skill: string, level: number, index: number, total: number) {
-    addNodeWithEdge(
+    onAddNodeWithEdge(
       {
         type: 'skill',
         title: '',
@@ -148,7 +158,7 @@ export function DiaryPrereqsPanel({ diaryId, nodeId }: Props) {
   }
 
   function connectExisting(existingId: string) {
-    addEdge(existingId, nodeId, 'requires');
+    onAddEdge(existingId, nodeId, 'requires');
   }
 
   function addAllMissing() {
@@ -162,7 +172,7 @@ export function DiaryPrereqsPanel({ diaryId, nodeId }: Props) {
 
   return (
     <div
-      className="nowheel bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2.5 w-[220px] max-h-[420px] flex flex-col gap-2"
+      className="nowheel w-full flex flex-col gap-2"
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >

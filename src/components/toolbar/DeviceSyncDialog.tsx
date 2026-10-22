@@ -5,6 +5,7 @@ import { useSyncStore } from '../../store/sync-store';
 import { formatSyncAge, formatSyncId } from '../../engine/sync';
 import { analytics } from '../../analytics';
 import { joinDeviceSync, startDeviceSync, unlinkDevice } from '../../sync/run-sync';
+import { confirm } from '../ui/confirm';
 
 export function DeviceSyncSection() {
   const syncId = useSyncStore((s) => s.syncId);
@@ -45,9 +46,13 @@ function UnlinkedView() {
   const handleJoin = async () => {
     const nodeCount = useGraphStore.getState().nodes.length;
     if (nodeCount > 0) {
-      const ok = window.confirm(
-        'This will replace your current graph with the synced one. Continue?\n\n(Export first if you want to save your current work)',
-      );
+      const ok = await confirm({
+        title: 'Replace your current graph?',
+        description:
+          'Joining replaces this graph with the synced one. Export first if you want to save your current work.',
+        confirmLabel: 'Replace',
+        tone: 'danger',
+      });
       if (!ok) return;
     }
     setBusy(true);
@@ -130,10 +135,13 @@ function LinkedView({
     }
   };
 
-  const handleUnlink = () => {
-    const ok = window.confirm(
-      'This device will stop syncing. The code still works on your other devices.',
-    );
+  const handleUnlink = async () => {
+    const ok = await confirm({
+      title: 'Unlink this device?',
+      description: 'This device will stop syncing. The code still works on your other devices.',
+      confirmLabel: 'Unlink',
+      tone: 'danger',
+    });
     if (!ok) return;
     unlinkDevice();
     toast.success('This device is unlinked');
@@ -173,7 +181,7 @@ function LinkedView({
       <p className="text-xs text-stone-500 mb-3">{statusLabel}</p>
 
       <button
-        onClick={handleUnlink}
+        onClick={() => void handleUnlink()}
         className="px-3 py-1.5 text-sm text-red-300 hover:text-red-200 bg-surface-700 hover:bg-surface-600 rounded"
       >
         Unlink this device

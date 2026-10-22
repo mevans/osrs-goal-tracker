@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Dialog, dialogCancel, dialogPrimary } from './ui/dialog';
 
 interface FoldNameDialogProps {
   defaultName: string;
@@ -19,35 +20,31 @@ export function FoldNameDialog({ defaultName, onSubmit, onClose }: FoldNameDialo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-surface-800 border border-surface-border rounded-lg p-5 w-[360px] shadow-xl">
-        <h2 className="text-lg font-semibold text-brand-text mb-3">Name folded group</h2>
-        <input
-          ref={inputRef}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSubmit();
-            if (e.key === 'Escape') onClose();
-          }}
-          className="w-full bg-surface-700 text-stone-200 text-sm rounded px-3 py-2 border border-surface-border focus:border-amber-500/50 focus:outline-none mb-4"
-          aria-label="Group name"
-        />
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-3 py-1.5 text-sm text-stone-300 hover:text-white rounded hover:bg-surface-700"
-          >
+    <Dialog
+      title="Name folded group"
+      onClose={onClose}
+      width="sm"
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={dialogCancel}>
             Cancel
           </button>
-          <button
-            onClick={handleSubmit}
-            className="px-3 py-1.5 text-sm text-white bg-amber-700 hover:bg-amber-600 rounded font-medium"
-          >
+          <button type="button" onClick={handleSubmit} className={dialogPrimary}>
             Fold
           </button>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    >
+      <input
+        ref={inputRef}
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') handleSubmit();
+        }}
+        className="w-full rounded border border-surface-border bg-surface-700 px-3 py-2 text-sm text-stone-200 focus:border-amber-500/50 focus:outline-none"
+        aria-label="Group name"
+      />
+    </Dialog>
   );
 }

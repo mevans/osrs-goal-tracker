@@ -73,6 +73,9 @@ export function useKeyboardShortcuts(options: ShortcutOptions) {
       const mod = e.ctrlKey || e.metaKey;
       const key = e.key;
 
+      // Dialogs handle their own keys. Escape in particular must not also clear the selection.
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return;
+
       // Escape — close edit dialog or deselect
       if (key === 'Escape') {
         if (editingNodeId) {

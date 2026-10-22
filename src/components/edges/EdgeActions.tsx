@@ -1,7 +1,7 @@
 import { EdgeLabelRenderer } from '@xyflow/react';
-import { useGraphStore } from '../../store/graph-store';
 import { ShortcutHint } from '../Kbd';
 import type { EdgeType } from '../../engine/types';
+import { useGraphActions } from '../graph-actions';
 
 interface EdgeActionBarProps {
   edgeId: string;
@@ -11,7 +11,9 @@ interface EdgeActionBarProps {
 }
 
 export function EdgeActionBar({ edgeId, edgeType, labelX, labelY }: EdgeActionBarProps) {
-  const { reverseEdge, setEdgeType, removeEdge } = useGraphStore.getState();
+  const actions = useGraphActions();
+  if (!actions) return null;
+  const { reverseEdge, setEdgeType, removeEdge } = actions;
   const isRequires = edgeType === 'requires';
 
   return (

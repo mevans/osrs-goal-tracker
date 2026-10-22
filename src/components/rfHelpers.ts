@@ -80,6 +80,20 @@ export function buildRfNodes(
   });
 }
 
+/** Keep a node under the cursor when a derived view rebuilds mid-drag. */
+export function preserveDraggingPositions<
+  T extends { id: string; position: { x: number; y: number }; dragging?: boolean },
+>(previous: T[], next: T[]): T[] {
+  const dragging = new Map(
+    previous.filter((node) => node.dragging).map((node) => [node.id, node.position]),
+  );
+  if (dragging.size === 0) return next;
+  return next.map((node) => {
+    const position = dragging.get(node.id);
+    return position ? { ...node, position, dragging: true } : node;
+  });
+}
+
 export function buildRfEdges(
   edges: GraphEdge[],
   highlightedEdgeIds?: Set<string> | null,

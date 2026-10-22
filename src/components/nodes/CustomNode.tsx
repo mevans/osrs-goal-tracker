@@ -1,5 +1,4 @@
-import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflow/react';
-import { toast } from 'sonner';
+import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
 import type {
   NodeType,
   DerivedStatus,
@@ -15,11 +14,9 @@ import { diaryCheckedCount, getDiary } from '../../engine/diary-db';
 import { SkillIcon } from '../SkillIcon';
 import { BossIcon } from '../BossIcon';
 import { ItemIcon } from '../ItemIcon';
-import { ShortcutHint } from '../Kbd';
-import { useGraphStore } from '../../store/graph-store';
-import { useUIStore } from '../../store/ui-store';
-import { QuestPrereqsPanel } from './QuestPrereqsPanel';
-import { DiaryPrereqsPanel } from './DiaryPrereqsPanel';
+import { nodeAppearance, statusAppearance } from '../node-appearance';
+import { NODE_WIDTH, useSnappedFrame } from '../node-size';
+import { useGraphActions } from '../graph-actions';
 
 export interface CustomNodeData {
   title: string;
@@ -37,34 +34,6 @@ export interface CustomNodeData {
   [key: string]: unknown;
 }
 
-const TYPE_COLORS: Record<NodeType, string> = {
-  goal: 'bg-amber-900/60',
-  quest: 'bg-blue-900/60',
-  skill: 'bg-green-900/60',
-  task: 'bg-purple-900/60',
-  kill: 'bg-red-900/60',
-  item: 'bg-cyan-900/60',
-  diary: 'bg-green-900/60',
-  group: 'bg-stone-700/60',
-};
-
-const TYPE_LABELS: Record<NodeType, string> = {
-  goal: 'Goal',
-  quest: 'Quest',
-  skill: 'Skill',
-  task: 'Task',
-  kill: 'Kill',
-  item: 'Acquire Item',
-  diary: 'Diary',
-  group: 'Group',
-};
-
-const STATUS_BORDERS: Record<DerivedStatus, string> = {
-  blocked: 'border-surface-border',
-  available: 'border-surface-600',
-  complete: 'border-green-500',
-};
-
 const PROGRESS_COLORS: Record<string, string> = {
   empty: 'bg-surface-600',
   partial: 'bg-amber-500',
@@ -72,8 +41,9 @@ const PROGRESS_COLORS: Record<string, string> = {
 };
 
 export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData>>) {
-  const bgColor = TYPE_COLORS[data.nodeType];
-  const borderColor = STATUS_BORDERS[data.status];
+  const appearance = nodeAppearance(data.nodeType);
+  const bgColor = appearance.surface;
+  const borderColor = statusAppearance(data.status).border;
   const ringClass = selected ? 'ring-2 ring-white/50' : '';
 
   const q = data.quantity;
@@ -97,141 +67,35 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
     diaryData: data.diaryData,
   });
 
-  const canEdit = true;
-  const isMultiSelect = useGraphStore((s) => s.selectedNodeIds.length > 1);
-  const { updateNode, toggleNodeComplete, toggleDiaryTask, removeNode } = useGraphStore.getState();
-  const { setEditingNodeId } = useUIStore.getState();
+  const actions = useGraphActions();
+  const { frameRef, contentRef, height } = useSnappedFrame();
+  const width = data.nodeType === 'diary' ? NODE_WIDTH.diary : NODE_WIDTH.standard;
 
   return (
-    <>
-      {data.nodeType === 'quest' && data.questData && (
-        <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Left} offset={8}>
-          <QuestPrereqsPanel questId={data.questData.questId} nodeId={id} />
-        </NodeToolbar>
-      )}
-      {data.nodeType === 'diary' && data.diaryData && (
-        <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Left} offset={8}>
-          <DiaryPrereqsPanel diaryId={data.diaryData.diaryId} nodeId={id} />
-        </NodeToolbar>
-      )}
+    <div
+      ref={frameRef}
+      className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} shadow-lg relative flex flex-col justify-center group transition-opacity duration-300`}
+      style={{ width, height }}
+    >
+      {/* Top handle - Prerequisites flow IN here */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="bg-blue-400! w-3! h-3! border-2! border-surface-900! opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Prerequisites connect here"
+      />
+      <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+        ↓ needs
+      </div>
 
-      <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Right} offset={8}>
-        <div
-          className="flex flex-col gap-1.5 bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2 min-w-[160px]"
-          onClick={(e) => e.stopPropagation()}
-          onDoubleClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={() => toggleNodeComplete(id)}
-            className={`text-xs py-1.5 px-2 rounded font-medium flex items-center justify-between gap-2 ${
-              data.complete
-                ? 'bg-surface-600 text-stone-300 hover:bg-surface-700'
-                : 'bg-green-600 text-white hover:bg-green-500'
-            }`}
-          >
-            <span>{data.complete ? '✓ Completed' : 'Mark Complete'}</span>
-            <ShortcutHint id="toggleComplete" />
-          </button>
-
-          {q && (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    const step = e.shiftKey ? (e.ctrlKey || e.metaKey ? 100 : 10) : 1;
-                    updateNode(id, { quantity: { ...q, current: Math.max(0, q.current - step) } });
-                  }}
-                  disabled={q.current === 0}
-                  className="text-xs w-7 h-7 rounded bg-surface-700 text-stone-300 hover:bg-surface-600 disabled:opacity-50 shrink-0"
-                  title="−1  (shift: −10,  ctrl+shift: −100)"
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={0}
-                  {...(q.target > 0 && { max: q.target })}
-                  value={q.current}
-                  onChange={(e) => {
-                    const raw = Math.max(0, Number(e.target.value) || 0);
-                    const val = q.target > 0 ? Math.min(q.target, raw) : raw;
-                    updateNode(id, { quantity: { ...q, current: val } });
-                  }}
-                  className="min-w-0 flex-1 text-center text-xs bg-surface-700 text-stone-200 rounded border border-surface-border focus:border-brand focus:outline-none py-1 [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                />
-                {q.target > 0 && (
-                  <span className="text-xs text-stone-400 shrink-0">/ {q.target}</span>
-                )}
-                <button
-                  onClick={(e) => {
-                    const step = e.shiftKey ? (e.ctrlKey || e.metaKey ? 100 : 10) : 1;
-                    updateNode(id, {
-                      quantity: {
-                        ...q,
-                        current:
-                          q.target > 0 ? Math.min(q.target, q.current + step) : q.current + step,
-                      },
-                    });
-                  }}
-                  disabled={q.target > 0 && q.current >= q.target}
-                  className="text-xs w-7 h-7 rounded bg-surface-700 text-stone-300 hover:bg-surface-600 disabled:opacity-50 shrink-0"
-                  title="+1  (shift: +10,  ctrl+shift: +100)"
-                >
-                  +
-                </button>
-              </div>
-              <p className="text-[10px] text-stone-500 text-center">shift ×10 · ctrl ×100</p>
-            </div>
-          )}
-
-          {canEdit && (
-            <button
-              onClick={() => setEditingNodeId(id)}
-              className="text-xs py-1.5 px-2 rounded bg-brand/20 text-brand-text hover:bg-brand/30 border border-brand/30 flex items-center justify-between gap-2"
-            >
-              <span>Edit Details</span>
-              <ShortcutHint id="editNode" />
-            </button>
-          )}
-
-          <div className="h-px bg-surface-border -mx-0.5" />
-
-          <button
-            onClick={() => {
-              removeNode(id);
-              toast.success('Node deleted');
-            }}
-            className="text-xs py-1.5 px-2 rounded text-red-400 hover:text-red-300 hover:bg-surface-700 flex items-center justify-between gap-2"
-          >
-            <span>Delete</span>
-            <ShortcutHint id="delete" />
-          </button>
-        </div>
-      </NodeToolbar>
-
-      <div
-        className={`rounded-lg border-2 ${borderColor} ${bgColor} ${ringClass} px-3 py-2 ${
-          data.nodeType === 'diary' ? 'w-[260px]' : 'w-[180px]'
-        } shadow-lg relative group transition-opacity duration-300`}
-      >
-        {/* Top handle - Prerequisites flow IN here */}
-        <Handle
-          type="target"
-          position={Position.Top}
-          className="bg-blue-400! w-3! h-3! border-2! border-surface-900! opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Prerequisites connect here"
-        />
-        <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-          ↓ needs
-        </div>
-
+      <div ref={contentRef} className="px-3 py-2">
         {data.skillData ? (
           <div className="flex items-center gap-2.5">
             <SkillIcon skill={data.skillData.skillName} size={36} />
             <div className="min-w-0">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">
-                  {TYPE_LABELS[data.nodeType]}
+                  {appearance.shortLabel}
                 </span>
                 {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
               </div>
@@ -244,7 +108,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
             <div className="min-w-0">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">
-                  {TYPE_LABELS[data.nodeType]}
+                  {appearance.shortLabel}
                 </span>
                 {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
               </div>
@@ -257,7 +121,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
             <div className="min-w-0">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">
-                  {TYPE_LABELS[data.nodeType]}
+                  {appearance.shortLabel}
                 </span>
                 {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
               </div>
@@ -268,7 +132,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
           <>
             <div className="flex items-center gap-1.5 mb-0.5">
               <span className="text-[10px] uppercase tracking-wide text-stone-400 font-medium">
-                {TYPE_LABELS[data.nodeType]}
+                {appearance.shortLabel}
               </span>
               {data.complete && <span className="text-green-400 text-xs">&#10003;</span>}
             </div>
@@ -284,7 +148,7 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
             nodeId={id}
             diaryId={data.diaryData.diaryId}
             completed={data.diaryData.completed}
-            onToggle={toggleDiaryTask}
+            onToggle={actions ? actions.toggleDiaryTask : undefined}
           />
         )}
 
@@ -329,19 +193,19 @@ export function CustomNode({ data, selected, id }: NodeProps<Node<CustomNodeData
             ))}
           </div>
         )}
-
-        {/* Bottom handle - Dependents flow OUT from here */}
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          className="bg-purple-400! w-3! h-3! border-2! border-surface-900! opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Dependents connect from here"
-        />
-        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-          ↓ unlocks
-        </div>
       </div>
-    </>
+
+      {/* Bottom handle - Dependents flow OUT from here */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="bg-purple-400! w-3! h-3! border-2! border-surface-900! opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Dependents connect from here"
+      />
+      <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-stone-400 uppercase tracking-wider pointer-events-none whitespace-nowrap font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+        ↓ unlocks
+      </div>
+    </div>
   );
 }
 
@@ -354,7 +218,7 @@ function DiaryTaskList({
   nodeId: string;
   diaryId: string;
   completed: boolean[];
-  onToggle: (nodeId: string, taskIndex: number) => void;
+  onToggle: ((nodeId: string, taskIndex: number) => void) | undefined;
 }) {
   const tasks = getDiary(diaryId)?.tasks ?? [];
   if (tasks.length === 0) return null;
@@ -374,10 +238,11 @@ function DiaryTaskList({
                 <input
                   type="checkbox"
                   checked={checked}
+                  disabled={!onToggle}
                   className="nodrag nopan mt-0.5 accent-green-500 shrink-0"
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={(e) => e.stopPropagation()}
-                  onChange={() => onToggle(nodeId, index)}
+                  onChange={() => onToggle?.(nodeId, index)}
                 />
                 <span
                   className={`text-[11px] leading-snug ${

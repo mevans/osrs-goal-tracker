@@ -215,7 +215,9 @@ export function applyLayoutWithFolds(
   const foldView = applyFoldView(nodes, edges);
   const laidOutVisible = applyLayout(
     foldView.visibleNodes,
-    foldView.visibleEdges.map((e) => ({ from: e.from, to: e.to })),
+    foldView.visibleEdges
+      .filter((e) => e.type === 'requires')
+      .map((e) => ({ from: e.from, to: e.to })),
     origin,
   );
 

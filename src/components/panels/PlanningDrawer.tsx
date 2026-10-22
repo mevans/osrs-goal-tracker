@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useReactFlow } from '@xyflow/react';
 import { useGraphStore } from '../../store/graph-store';
+import { useSelectionStore } from '../../store/selection-store';
+import { getGroupIdForMember } from '../../engine/fold-view';
 import {
   getAvailableNodes,
   getBlockedNodes,
@@ -9,6 +12,8 @@ import {
 } from '../../engine/graph-engine';
 import { SkillIcon } from '../SkillIcon';
 import { getNodeTitle } from '../../engine/node-utils';
+import { getNodeTypeInfo } from '../../engine/node-registry';
+import { statusAppearance } from '../node-appearance';
 
 type StatusFilter = 'available' | 'blocked' | 'bottlenecks';
 
@@ -18,7 +23,7 @@ const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
   { key: 'bottlenecks', label: 'Bottlenecks' },
 ];
 
-export function PlanningDrawer() {
+export function PlanningDrawer({ onBackToSelection }: { onBackToSelection?: () => void }) {
   const [drawerView, setDrawerView] = useState<'planning' | 'notes'>('planning');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('available');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -27,7 +32,23 @@ export function PlanningDrawer() {
   const edges = useGraphStore((s) => s.edges);
   const notes = useGraphStore((s) => s.notes ?? '');
   const setNotes = useGraphStore.getState().setNotes;
-  const selectNodes = useGraphStore.getState().selectNodes;
+  const selectNodes = useSelectionStore.getState().selectNodes;
+  const { setCenter, getViewport, getNode } = useReactFlow();
+
+  const focusNode = (id: string) => {
+    selectNodes([id]);
+    const visibleId = getGroupIdForMember(id, nodes) ?? id;
+    const rendered = getNode(visibleId);
+    const stored = nodes.find((node) => node.id === visibleId);
+    const position = rendered?.position ?? stored?.position;
+    if (!position) return;
+    const width = rendered?.measured?.width ?? 180;
+    const height = rendered?.measured?.height ?? 72;
+    void setCenter(position.x + width / 2, position.y + height / 2, {
+      zoom: getViewport().zoom,
+      duration: 400,
+    });
+  };
 
   const planningNodes = useMemo(() => nodes.filter((n) => n.type !== 'group'), [nodes]);
 
@@ -83,7 +104,16 @@ export function PlanningDrawer() {
 
   return (
     <div className="w-72 bg-surface-800 border-l border-surface-border flex flex-col overflow-hidden">
-      <div className="p-3 border-b border-surface-border">
+      <div className="p-3 border-b border-surface-border flex flex-col gap-2">
+        {onBackToSelection && (
+          <button
+            type="button"
+            onClick={onBackToSelection}
+            className="text-xs text-left text-stone-300 hover:text-white"
+          >
+            Back to selected node
+          </button>
+        )}
         <div className="flex gap-1">
           {(
             [
@@ -178,21 +208,15 @@ export function PlanningDrawer() {
                   return (
                     <li key={node.id}>
                       <button
-                        onClick={() => selectNodes([node.id])}
+                        onClick={() => focusNode(node.id)}
                         className="w-full text-left rounded px-2 py-1.5 hover:bg-surface-700 transition-colors"
                       >
                         <div className="flex items-center gap-2">
                           <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              status === 'complete'
-                                ? 'bg-green-400'
-                                : status === 'available'
-                                  ? 'bg-blue-400'
-                                  : 'bg-stone-500'
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusAppearance(status).dot}`}
                           />
-                          <span className="text-[10px] uppercase text-stone-500 w-9 shrink-0">
-                            {node.type}
+                          <span className="text-[10px] uppercase text-stone-500 shrink-0">
+                            {getNodeTypeInfo(node.type).shortLabel}
                           </span>
                           {node.skillData && (
                             <SkillIcon skill={node.skillData.skillName} size={13} />

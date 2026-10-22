@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'sonner';
+import { ConfirmHost } from './components/ui/confirm';
 import { EditorPage } from './pages/EditorPage';
 import { SharedViewPage } from './pages/SharedViewPage';
 
@@ -27,6 +28,7 @@ function App() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <Toaster theme="dark" richColors position="bottom-right" />
+      <ConfirmHost />
       <Routes>
         <Route path="/" element={<EditorPage />} />
         <Route path="/shared" element={<SharedViewPage />} />

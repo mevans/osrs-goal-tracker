@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { OSRS_SKILLS } from '../engine/types';
 import { ALL_QUESTS } from '../engine/quest-db';
 import { ALL_BOSSES } from '../engine/boss-db';
-import { ALL_DIARIES, DIARY_AREAS, getDiaryName } from '../engine/diary-db';
+import { ALL_DIARIES, getDiaryName } from '../engine/diary-db';
 import { getItemName } from '../engine/item-db';
 import type {
   GraphNode,
@@ -13,10 +13,11 @@ import type {
   ItemData,
   DiaryData,
 } from '../engine/types';
-import { SkillIcon } from './SkillIcon';
-import { BossIcon } from './BossIcon';
-import { ItemPicker } from './ItemPicker';
 import { useGraphStore } from '../store/graph-store';
+import { NodeTypeFields } from './node-dialog/TypeFields';
+import { creatableNodeTypes } from '../engine/node-registry';
+import { Dialog, dialogCancel } from './ui/dialog';
+import { nodeAppearance } from './node-appearance';
 
 // --- Icons ---
 
@@ -165,97 +166,31 @@ const ChevronDown = () => (
 
 // --- Type config ---
 
-type TypeConfig = {
-  value: NodeType;
-  label: string;
-  description: string;
-  Icon: () => React.ReactElement;
-  formBorder: string;
-  cardBorder: string;
-  cardBg: string;
-  iconColor: string;
-  buttonClass: string;
+const TYPE_ICONS: Record<Exclude<NodeType, 'group'>, () => React.ReactElement> = {
+  goal: GoalIcon,
+  quest: QuestIcon,
+  skill: SkillTypeIcon,
+  diary: DiaryIcon,
+  task: TaskIcon,
+  kill: KillIcon,
+  item: ItemIcon,
 };
 
-const NODE_TYPE_CONFIG: TypeConfig[] = [
-  {
-    value: 'goal',
-    label: 'Goal',
-    description: 'End goals & item grinds',
-    Icon: GoalIcon,
-    formBorder: 'border-l-amber-500',
-    cardBorder: 'border-amber-500',
-    cardBg: 'bg-amber-500/10',
-    iconColor: 'text-amber-400',
-    buttonClass: 'bg-amber-600 hover:bg-amber-500',
-  },
-  {
-    value: 'quest',
-    label: 'Quest',
-    description: 'Quest completions',
-    Icon: QuestIcon,
-    formBorder: 'border-l-blue-500',
-    cardBorder: 'border-blue-500',
-    cardBg: 'bg-blue-500/10',
-    iconColor: 'text-blue-400',
-    buttonClass: 'bg-brand hover:bg-brand-bright',
-  },
-  {
-    value: 'skill',
-    label: 'Skill Target',
-    description: 'Train a skill to a level',
-    Icon: SkillTypeIcon,
-    formBorder: 'border-l-green-500',
-    cardBorder: 'border-green-500',
-    cardBg: 'bg-green-500/10',
-    iconColor: 'text-green-400',
-    buttonClass: 'bg-green-700 hover:bg-green-600',
-  },
-  {
-    value: 'diary',
-    label: 'Diary',
-    description: 'Achievement diary tasks',
-    Icon: DiaryIcon,
-    formBorder: 'border-l-green-500',
-    cardBorder: 'border-green-500',
-    cardBg: 'bg-green-500/10',
-    iconColor: 'text-green-400',
-    buttonClass: 'bg-green-700 hover:bg-green-600',
-  },
-  {
-    value: 'task',
-    label: 'Task',
-    description: 'Actions & unlocks',
-    Icon: TaskIcon,
-    formBorder: 'border-l-purple-500',
-    cardBorder: 'border-purple-500',
-    cardBg: 'bg-purple-500/10',
-    iconColor: 'text-purple-400',
-    buttonClass: 'bg-purple-700 hover:bg-purple-600',
-  },
-  {
-    value: 'kill',
-    label: 'Kill',
-    description: 'Boss & monster kills',
-    Icon: KillIcon,
-    formBorder: 'border-l-red-500',
-    cardBorder: 'border-red-500',
-    cardBg: 'bg-red-500/10',
-    iconColor: 'text-red-400',
-    buttonClass: 'bg-red-700 hover:bg-red-600',
-  },
-  {
-    value: 'item',
-    label: 'Acquire Item',
-    description: 'Items to obtain',
-    Icon: ItemIcon,
-    formBorder: 'border-l-cyan-500',
-    cardBorder: 'border-cyan-500',
-    cardBg: 'bg-cyan-500/10',
-    iconColor: 'text-cyan-400',
-    buttonClass: 'bg-cyan-700 hover:bg-cyan-600',
-  },
-];
+const NODE_TYPE_CONFIG = creatableNodeTypes().map((info) => {
+  const appearance = nodeAppearance(info.type);
+  const iconType = info.type === 'group' ? 'task' : info.type;
+  return {
+    value: info.type,
+    label: info.label,
+    description: info.description,
+    Icon: TYPE_ICONS[iconType],
+    formBorder: appearance.accentBorder,
+    cardBorder: appearance.cardBorder,
+    cardBg: appearance.cardBg,
+    iconColor: appearance.iconColor,
+    buttonClass: appearance.buttonClass,
+  };
+});
 
 // --- Types ---
 
@@ -417,15 +352,33 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
   const cfg = NODE_TYPE_CONFIG.find((c) => c.value === type)!;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <form
-        onSubmit={handleSubmit}
-        className={`bg-surface-800 border border-surface-border border-l-4 ${cfg.formBorder} rounded-lg p-5 w-96 shadow-xl max-h-[90vh] overflow-y-auto`}
-      >
-        <h2 className="text-base font-semibold text-white mb-4">
-          {isEdit ? `Edit ${cfg.label}` : `New ${cfg.label}`}
-        </h2>
-
+    <Dialog
+      title={isEdit ? `Edit ${cfg.label}` : `New ${cfg.label}`}
+      onClose={onClose}
+      width="md"
+      className={`border-l-4 ${cfg.formBorder}`}
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={dialogCancel}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="node-dialog-form"
+            disabled={
+              (hasTitle && !title.trim()) ||
+              (type === 'skill' && !targetLevel) ||
+              (type === 'kill' && !bossId) ||
+              (type === 'item' && !itemId)
+            }
+            className={`px-3 py-1.5 text-sm text-white rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${cfg.buttonClass}`}
+          >
+            {isEdit ? 'Save' : `Add ${cfg.label}`}
+          </button>
+        </>
+      }
+    >
+      <form id="node-dialog-form" onSubmit={handleSubmit}>
         {/* Type picker */}
         <div className="grid grid-cols-2 gap-2 mb-4">
           {NODE_TYPE_CONFIG.map((c) => (
@@ -452,171 +405,31 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
           ))}
         </div>
 
-        {/* Title — goal/task */}
-        {hasTitle && (
-          <div className="mb-3">
-            <input
-              ref={titleInputRef}
-              className="w-full bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={type === 'goal' ? 'e.g. Fire Cape' : 'e.g. Unlock Piety'}
-            />
-          </div>
-        )}
-
-        {/* Item search */}
-        {type === 'item' && (
-          <div className="mb-3">
-            <ItemPicker itemId={itemId} onChange={setItemId} autoFocus={!isEdit} />
-          </div>
-        )}
-
-        {/* Quest select */}
-        {type === 'quest' && (
-          <div className="mb-3">
-            <select
-              autoFocus
-              className="w-full bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-              value={questId}
-              onChange={(e) => setQuestId(e.target.value)}
-            >
-              {ALL_QUESTS.map((quest) => (
-                <option key={quest.name} value={quest.name}>
-                  {quest.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {type === 'diary' && (
-          <div className="mb-3">
-            <select
-              autoFocus
-              className="w-full bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-              value={diaryId}
-              onChange={(e) => setDiaryId(e.target.value)}
-            >
-              {DIARY_AREAS.map((area) => (
-                <optgroup key={area} label={area}>
-                  {ALL_DIARIES.filter((diary) => diary.area === area).map((diary) => (
-                    <option key={diary.id} value={diary.id}>
-                      {diary.name} ({diary.tasks.length})
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Boss select */}
-        {type === 'kill' && (
-          <>
-            <div className="mb-3">
-              <div className="flex items-center gap-2">
-                {bossId && <BossIcon bossId={bossId} size={28} />}
-                <select
-                  autoFocus
-                  className="flex-1 bg-surface-700 text-white rounded px-3 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-                  value={bossId}
-                  onChange={(e) => setBossId(e.target.value)}
-                >
-                  {ALL_BOSSES.map((boss) => (
-                    <option key={boss.id} value={boss.id}>
-                      {boss.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* KC tracking */}
-            <div className="mb-3">
-              <label className="block text-xs text-stone-400 mb-1.5">
-                Kill count
-                <span className="text-stone-600 ml-1">
-                  — leave target blank if grinding for a drop
-                </span>
-              </label>
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-stone-500">Current KC</span>
-                  <input
-                    type="number"
-                    min={0}
-                    className="w-24 bg-surface-700 text-white rounded px-2 py-1.5 border border-surface-border focus:border-brand focus:outline-none text-sm"
-                    value={kcCurrent}
-                    onChange={(e) => setKcCurrent(e.target.value)}
-                    placeholder="0"
-                  />
-                </div>
-                <span className="text-stone-600 mt-4">/</span>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] text-stone-500">
-                    Target KC <span className="text-stone-600">(optional)</span>
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    className="w-24 bg-surface-700 text-white rounded px-2 py-1.5 border border-surface-border focus:border-brand focus:outline-none text-sm"
-                    value={kcTarget}
-                    onChange={(e) => setKcTarget(e.target.value)}
-                    placeholder="e.g. 40"
-                  />
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Skill fields */}
-        {type === 'skill' && (
-          <div className="flex gap-2 mb-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <SkillIcon skill={skillName} size={20} />
-                <select
-                  className="flex-1 bg-surface-700 text-white rounded px-2 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-                  value={skillName}
-                  onChange={(e) => setSkillName(e.target.value as SkillName)}
-                >
-                  {[...OSRS_SKILLS]
-                    .sort((a, b) => a.localeCompare(b))
-                    .map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            </div>
-            <div className="w-20">
-              <input
-                autoFocus
-                type="number"
-                min={1}
-                max={99}
-                className="w-full bg-surface-700 text-white rounded px-2 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-                value={targetLevel}
-                onChange={(e) => setTargetLevel(e.target.value)}
-                placeholder="Level"
-              />
-            </div>
-            <div className="w-20">
-              <input
-                type="number"
-                min={0}
-                max={25}
-                className="w-full bg-surface-700 text-white rounded px-2 py-2 border border-surface-border focus:border-brand focus:outline-none text-sm"
-                value={boost}
-                onChange={(e) => setBoost(e.target.value)}
-                placeholder="Boost"
-              />
-            </div>
-          </div>
-        )}
+        <NodeTypeFields
+          type={type}
+          isEdit={isEdit}
+          title={title}
+          onTitleChange={setTitle}
+          titleInputRef={titleInputRef}
+          itemId={itemId}
+          onItemChange={setItemId}
+          questId={questId}
+          onQuestChange={setQuestId}
+          diaryId={diaryId}
+          onDiaryChange={setDiaryId}
+          bossId={bossId}
+          onBossChange={setBossId}
+          kcCurrent={kcCurrent}
+          onKcCurrentChange={setKcCurrent}
+          kcTarget={kcTarget}
+          onKcTargetChange={setKcTarget}
+          skillName={skillName}
+          onSkillChange={setSkillName}
+          targetLevel={targetLevel}
+          onTargetLevelChange={setTargetLevel}
+          boost={boost}
+          onBoostChange={setBoost}
+        />
 
         {/* More options toggle */}
         <button
@@ -712,6 +525,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
                           addTag();
                         }
                       } else if (e.key === 'Escape') {
+                        e.stopPropagation();
                         setHighlightedIndex(-1);
                         setNewTag('');
                       }
@@ -753,29 +567,7 @@ export function NodeDialog({ initialNode, onSubmit, onClose }: NodeDialogProps) 
             </div>
           </div>
         )}
-
-        <div className="flex gap-2 justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 py-1.5 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={
-              (hasTitle && !title.trim()) ||
-              (type === 'skill' && !targetLevel) ||
-              (type === 'kill' && !bossId) ||
-              (type === 'item' && !itemId)
-            }
-            className={`px-3 py-1.5 text-sm text-white rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors ${cfg.buttonClass}`}
-          >
-            {isEdit ? 'Save' : `Add ${cfg.label}`}
-          </button>
-        </div>
       </form>
-    </div>
+    </Dialog>
   );
 }

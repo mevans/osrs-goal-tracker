@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { GraphEditor } from '../components/GraphEditor';
 import { Toolbar } from '../components/toolbar/Toolbar';
-import { PlanningDrawer } from '../components/panels/PlanningDrawer';
+import { SidePanel } from '../components/panels/SidePanel';
+import { EditorGraphActions } from '../components/graph-actions';
 import { KeyboardHelp } from '../components/KeyboardHelp';
 import { ChangelogDialog } from '../components/ChangelogDialog';
 import { SyncConflictDialog } from '../components/SyncConflictDialog';
@@ -17,10 +18,8 @@ import {
 } from '../changelog';
 import { useChangelogHydrated, useChangelogStore } from '../store/changelog-store';
 import { useGraphStore } from '../store/graph-store';
-import type { EdgeType } from '../engine/types';
 
 export function EditorPage() {
-  const [edgeMode] = useState<EdgeType>('requires');
   const [manualOpen, setManualOpen] = useState(false);
   const [autoDismissed, setAutoDismissed] = useState(false);
   const hydrated = useChangelogHydrated();
@@ -56,14 +55,14 @@ export function EditorPage() {
           }
         />
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className="flex-1">
-            <GraphEditor edgeMode={edgeMode} />
+        <EditorGraphActions>
+          <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1">
+              <GraphEditor />
+            </div>
+            <SidePanel />
           </div>
-
-          {/* Only show side panel for multi-select, otherwise show planning drawer */}
-          <PlanningDrawer />
-        </div>
+        </EditorGraphActions>
       </div>
 
       {showChangelog && (

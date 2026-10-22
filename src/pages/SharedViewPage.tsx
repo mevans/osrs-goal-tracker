@@ -5,7 +5,6 @@ import {
   ReactFlow,
   ReactFlowProvider,
   MiniMap,
-  Controls,
   Background,
   BackgroundVariant,
   Panel,
@@ -13,11 +12,12 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { parseShareParam } from '../engine/serialization';
+import { deriveGraphView } from '../engine/graph-view';
 import { analytics } from '../analytics';
 import { useGraphStore } from '../store/graph-store';
-import { computeAllStatuses } from '../engine/graph-engine';
-import { applyFoldView, computeGroupStatus } from '../engine/fold-view';
+import { confirm } from '../components/ui/confirm';
 import type { GraphData } from '../engine/types';
+import { GraphControls } from '../components/GraphControls';
 import { CustomNode } from '../components/nodes/CustomNode';
 import { FoldGroupNode } from '../components/nodes/FoldGroupNode';
 import type { RfNodeData } from '../components/rfHelpers';
@@ -78,34 +78,35 @@ export function SharedViewPage() {
 function SharedView({ data }: { data: GraphData }) {
   const navigate = useNavigate();
 
-  const statuses = useMemo(() => {
-    const base = computeAllStatuses(data.nodes, data.edges);
-    for (const node of data.nodes) {
-      if (node.type === 'group') {
-        base.set(node.id, computeGroupStatus(node, data.nodes, base));
-      }
-    }
-    return base;
-  }, [data.nodes, data.edges]);
-
-  const foldView = useMemo(() => applyFoldView(data.nodes, data.edges), [data.nodes, data.edges]);
+  const view = useMemo(
+    () =>
+      deriveGraphView({
+        nodes: data.nodes,
+        edges: data.edges,
+        selectedNodeIds: [],
+        selectedEdgeIds: [],
+        hideCompleted: false,
+      }),
+    [data.nodes, data.edges],
+  );
 
   const rfNodes: Node<RfNodeData>[] = useMemo(
-    () => buildRfNodes(foldView.visibleNodes, data.nodes, statuses, { draggable: false }),
-    [foldView.visibleNodes, data.nodes, statuses],
+    () => buildRfNodes(view.visibleNodes, data.nodes, view.statuses, { draggable: false }),
+    [view, data.nodes],
   );
 
-  const rfEdges: Edge[] = useMemo(
-    () => buildRfEdges(foldView.visibleEdges),
-    [foldView.visibleEdges],
-  );
+  const rfEdges: Edge[] = useMemo(() => buildRfEdges(view.visibleEdges), [view.visibleEdges]);
 
-  const handleOpenInEditor = () => {
+  const handleOpenInEditor = async () => {
     const { nodes: existingNodes } = useGraphStore.getState();
     if (existingNodes.length > 0) {
-      const confirmed = window.confirm(
-        'This will replace your current plan in the editor. Continue?\n\n(Export your current plan first if you want to save it)',
-      );
+      const confirmed = await confirm({
+        title: 'Replace your current plan?',
+        description:
+          'This opens the shared graph in the editor. Export your current plan first if you want to save it.',
+        confirmLabel: 'Replace',
+        tone: 'danger',
+      });
       if (!confirmed) return;
     }
     useGraphStore.getState().loadGraph(data);
@@ -147,7 +148,7 @@ function SharedView({ data }: { data: GraphData }) {
             proOptions={{ hideAttribution: true }}
           >
             <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#374151" />
-            <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!" />
+            <GraphControls />
             <MiniMap
               className="bg-surface-800! border-surface-border!"
               nodeColor="#4b5563"

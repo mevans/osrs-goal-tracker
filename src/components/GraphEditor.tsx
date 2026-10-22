@@ -6,8 +6,6 @@ import { useViewportCenter } from '../hooks/useViewportCenter';
 import {
   ReactFlow,
   MiniMap,
-  Controls,
-  ControlButton,
   Background,
   BackgroundVariant,
   Panel,
@@ -22,16 +20,11 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { applyLayoutWithFolds } from '../engine/fold-view';
+import { deriveGraphView } from '../engine/graph-view';
 import { analytics } from '../analytics';
 import { useGraphStore } from '../store/graph-store';
-import { computeAllStatuses, getAllPrerequisites, getAllDependents } from '../engine/graph-engine';
-import {
-  applyFoldView,
-  computeGroupStatus,
-  getMemberToGroupMap,
-  isGroupComplete,
-  resolveStoredEdgeId,
-} from '../engine/fold-view';
+import { useSelectionStore } from '../store/selection-store';
+import { confirm } from './ui/confirm';
 import { CustomNode } from './nodes/CustomNode';
 import { FoldGroupNode } from './nodes/FoldGroupNode';
 import type { RfNodeData } from './rfHelpers';
@@ -42,96 +35,20 @@ import { MultiSelectActions } from './MultiSelectActions';
 import { useUIStore } from '../store/ui-store';
 import { usePreferencesStore } from '../store/preferences-store';
 import { usePlayerStore } from '../store/player-store';
-import type { EdgeType } from '../engine/types';
-import { buildRfNodes, buildRfEdges } from './rfHelpers';
+import { buildRfNodes, buildRfEdges, preserveDraggingPositions } from './rfHelpers';
 import logoUrl from '../assets/logo.png';
 import { GraphLegend } from './GraphLegend';
+import { GraphControls } from './GraphControls';
 
 const nodeTypes = { custom: CustomNode, foldGroup: FoldGroupNode };
 const edgeTypes = { requires: RequiresEdge, improves: ImprovesEdge };
 
-// SVG icons for React Flow ControlButton (must use fill="currentColor" to respect RF color theming)
-const TidyIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-  >
-    <path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z" opacity="0.85" />
-  </svg>
-);
-
-const UndoIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-  >
-    <path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z" />
-  </svg>
-);
-
-const RedoIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-  >
-    <path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z" />
-  </svg>
-);
-
-const EyeIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const EyeOffIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 3l18 18" />
-    <path d="M10.6 10.7a2 2 0 0 0 2.8 2.8" />
-    <path d="M9.9 5.1A11 11 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-3.2 3.6" />
-    <path d="M6.1 6.1A18 18 0 0 0 2 12s3.5 7 10 7a11 11 0 0 0 4.2-.8" />
-  </svg>
-);
-
-interface GraphEditorProps {
-  edgeMode: EdgeType;
-}
-
-export function GraphEditor({ edgeMode }: GraphEditorProps) {
+export function GraphEditor() {
   const nodes = useGraphStore((s) => s.nodes);
   const edges = useGraphStore((s) => s.edges);
-  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
-  const selectedEdgeIds = useGraphStore((s) => s.selectedEdgeIds);
+  const selectedNodeIds = useSelectionStore((s) => s.selectedNodeIds);
+  const selectedEdgeIds = useSelectionStore((s) => s.selectedEdgeIds);
+  const { selectNodes, selectEdges } = useSelectionStore.getState();
   const {
     moveNode,
     moveNodes,
@@ -139,8 +56,6 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     addEdge,
     removeNodes,
     removeEdge,
-    selectNodes,
-    selectEdges,
     toggleNodesComplete,
     duplicateNodes,
     copySelection,
@@ -206,87 +121,17 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     [editingNodeId, nodes],
   );
 
-  const statuses = useMemo(() => {
-    const base = computeAllStatuses(nodes, edges);
-    for (const node of nodes) {
-      if (node.type === 'group') {
-        base.set(node.id, computeGroupStatus(node, nodes, base));
-      }
-    }
-    return base;
-  }, [nodes, edges]);
-
-  const foldView = useMemo(() => applyFoldView(nodes, edges), [nodes, edges]);
-
-  // Compute highlight set: selected nodes + all prerequisites + all dependents (requires edges only)
-  // OR just the two endpoints when an edge is selected
-  const highlightedNodeIds = useMemo(() => {
-    const memberToGroup = getMemberToGroupMap(nodes);
-
-    const addGroupForMember = (set: Set<string>, nodeId: string) => {
-      const groupId = memberToGroup.get(nodeId);
-      if (groupId) set.add(groupId);
-    };
-
-    const addPrereqsAndDependents = (set: Set<string>, nodeId: string) => {
-      getAllPrerequisites(nodeId, edges).forEach((id) => {
-        set.add(id);
-        addGroupForMember(set, id);
-      });
-      getAllDependents(nodeId, edges).forEach((id) => {
-        set.add(id);
-        addGroupForMember(set, id);
-      });
-    };
-
-    if (selectedNodeIds.length > 0) {
-      const set = new Set<string>();
-      for (const nodeId of selectedNodeIds) {
-        set.add(nodeId);
-        const node = nodes.find((n) => n.id === nodeId);
-        if (node?.type === 'group' && node.groupData) {
-          for (const memberId of node.groupData.memberIds) {
-            set.add(memberId);
-            addPrereqsAndDependents(set, memberId);
-          }
-        } else {
-          addPrereqsAndDependents(set, nodeId);
-        }
-      }
-      return set;
-    }
-
-    if (selectedEdgeIds.length > 0) {
-      const set = new Set<string>();
-      for (const edgeId of selectedEdgeIds) {
-        const edge = edges.find((e) => e.id === resolveStoredEdgeId(edgeId));
-        if (edge) {
-          set.add(edge.from);
-          set.add(edge.to);
-          addGroupForMember(set, edge.from);
-          addGroupForMember(set, edge.to);
-        }
-      }
-      return set;
-    }
-
-    return null;
-  }, [selectedNodeIds, selectedEdgeIds, edges, nodes]);
-
-  // Compute highlighted edges: selected edges + edges between highlighted nodes
-  const highlightedEdgeIds = useMemo(() => {
-    if (!highlightedNodeIds) return null;
-    const set = new Set<string>(selectedEdgeIds);
-
-    for (const edge of foldView.visibleEdges) {
-      const stored = edges.find((e) => e.id === resolveStoredEdgeId(edge.id));
-      if (stored && highlightedNodeIds.has(stored.from) && highlightedNodeIds.has(stored.to)) {
-        set.add(edge.id);
-      }
-    }
-
-    return set;
-  }, [highlightedNodeIds, selectedEdgeIds, foldView.visibleEdges, edges]);
+  const view = useMemo(
+    () =>
+      deriveGraphView({
+        nodes,
+        edges,
+        selectedNodeIds,
+        selectedEdgeIds,
+        hideCompleted,
+      }),
+    [nodes, edges, selectedNodeIds, selectedEdgeIds, hideCompleted],
+  );
 
   // Close edit dialog when selection changes
   useEffect(() => {
@@ -323,63 +168,54 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
     | undefined
   >(undefined);
 
-  // Local RF state — React Flow owns positions and selection during interaction
+  // Local RF state tracks an in-progress drag. The derived view replaces everything else.
   const [rfNodes, setRfNodes] = useState<Node<RfNodeData>[]>(() =>
-    buildRfNodes(foldView.visibleNodes, nodes, statuses, {
-      highlightedIds: highlightedNodeIds,
+    buildRfNodes(view.visibleNodes, nodes, view.statuses, {
+      highlightedIds: view.highlightedNodeIds,
       selectedNodeIds,
     }),
   );
   const [rfEdges, setRfEdges] = useState<Edge[]>(() =>
-    buildRfEdges(foldView.visibleEdges, highlightedEdgeIds, selectedEdgeIds),
+    buildRfEdges(view.visibleEdges, view.highlightedEdgeIds, selectedEdgeIds),
   );
 
-  // Sync Zustand → local RF state for data changes (add/remove/update/toggle) + highlighting + selection
   useEffect(() => {
-    let visibleNodes = foldView.visibleNodes;
-    if (hideCompleted) {
-      visibleNodes = visibleNodes.filter((n) =>
-        n.type === 'group' ? !isGroupComplete(n, nodes) : !n.complete,
-      );
-    }
-    setRfNodes(
-      buildRfNodes(visibleNodes, nodes, statuses, {
-        highlightedIds: highlightedNodeIds,
-        selectedNodeIds,
-      }),
+    setRfNodes((previous) =>
+      preserveDraggingPositions(
+        previous,
+        buildRfNodes(view.visibleNodes, nodes, view.statuses, {
+          highlightedIds: view.highlightedNodeIds,
+          selectedNodeIds,
+        }),
+      ),
     );
-  }, [foldView, nodes, statuses, highlightedNodeIds, selectedNodeIds, hideCompleted]);
+  }, [view, nodes, selectedNodeIds]);
 
   useEffect(() => {
-    let visibleEdges = foldView.visibleEdges;
-    if (hideCompleted) {
-      const hiddenIds = new Set<string>();
-      for (const n of nodes) {
-        if (n.type === 'group') {
-          if (isGroupComplete(n, nodes)) hiddenIds.add(n.id);
-        } else if (n.complete) {
-          hiddenIds.add(n.id);
-        }
-      }
-      visibleEdges = visibleEdges.filter((e) => !hiddenIds.has(e.from) && !hiddenIds.has(e.to));
-    }
-    setRfEdges(buildRfEdges(visibleEdges, highlightedEdgeIds, selectedEdgeIds));
-  }, [foldView, edges, nodes, highlightedEdgeIds, selectedEdgeIds, hideCompleted]);
+    setRfEdges(buildRfEdges(view.visibleEdges, view.highlightedEdgeIds, selectedEdgeIds));
+  }, [view, selectedEdgeIds]);
 
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) => {
+    async (changes: NodeChange[]) => {
       const removeChanges = changes.filter((c) => c.type === 'remove');
 
-      // Confirm and batch-delete removals
       if (removeChanges.length > 0) {
         const totalEdges = removeChanges.reduce(
           (sum, c) => sum + edges.filter((e) => e.from === c.id || e.to === c.id).length,
           0,
         );
         const nodeWord = removeChanges.length === 1 ? 'node' : `${removeChanges.length} nodes`;
-        const edgeNote =
-          totalEdges > 0 ? ` and ${totalEdges} edge${totalEdges !== 1 ? 's' : ''}` : '';
-        if (!window.confirm(`Delete ${nodeWord}${edgeNote}?`)) return;
+        const ok = await confirm({
+          title: `Delete ${nodeWord}?`,
+          ...(totalEdges > 0
+            ? {
+                description: `This also removes ${totalEdges} edge${totalEdges === 1 ? '' : 's'}.`,
+              }
+            : {}),
+          confirmLabel: 'Delete',
+          tone: 'danger',
+        });
+        if (!ok) return;
       }
 
       // Apply ALL changes locally (position, select, dimensions, remove)
@@ -425,11 +261,11 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
   const onConnect: OnConnect = useCallback(
     (connection) => {
       if (connection.source && connection.target) {
-        const id = addEdge(connection.source, connection.target, edgeMode);
+        const id = addEdge(connection.source, connection.target, 'requires');
         if (!id) toast.warning('A connection already exists between these nodes');
       }
     },
-    [addEdge, edgeMode],
+    [addEdge],
   );
 
   const onSelectionChange = useCallback(
@@ -497,15 +333,15 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
       // If dragged from source handle (bottom), existing node is the prerequisite
       const edgeSpec =
         pendingConnection.handleType === 'target'
-          ? { to: pendingConnection.sourceId, type: edgeMode }
-          : { from: pendingConnection.sourceId, type: edgeMode };
+          ? { to: pendingConnection.sourceId, type: 'requires' }
+          : { from: pendingConnection.sourceId, type: 'requires' };
 
       useGraphStore
         .getState()
         .addNodeWithEdge({ ...result, position: pendingConnection.position }, edgeSpec);
       setPendingConnection(undefined);
     },
-    [pendingConnection, edgeMode],
+    [pendingConnection],
   );
 
   return (
@@ -533,46 +369,21 @@ export function GraphEditor({ edgeMode }: GraphEditorProps) {
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Cross} gap={40} size={1.5} color="#2a2420" />
-        <Controls className="bg-surface-800! border-surface-border! shadow-lg! [&>button]:bg-surface-800! [&>button]:border-surface-border! [&>button]:text-stone-300! [&>button:hover]:bg-surface-700!">
-          <ControlButton onClick={handleTidyLayout} title="Tidy Layout">
-            <TidyIcon />
-          </ControlButton>
-          <ControlButton
-            onClick={() => {
-              useGraphStore.temporal.getState().undo();
-              analytics.undoUsed();
-            }}
-            title="Undo (Ctrl+Z)"
-            style={{ opacity: canUndo ? 1 : 0.3, cursor: canUndo ? 'pointer' : 'not-allowed' }}
-          >
-            <UndoIcon />
-          </ControlButton>
-          <ControlButton
-            onClick={() => {
-              useGraphStore.temporal.getState().redo();
-              analytics.redoUsed();
-            }}
-            title="Redo (Ctrl+Shift+Z)"
-            style={{ opacity: canRedo ? 1 : 0.3, cursor: canRedo ? 'pointer' : 'not-allowed' }}
-          >
-            <RedoIcon />
-          </ControlButton>
-        </Controls>
-        <Panel position="bottom-left" className="!left-[52px] !bottom-[15px] !m-0">
-          <button
-            type="button"
-            onClick={toggleHideCompleted}
-            title={hideCompleted ? 'Show completed nodes' : 'Hide completed nodes'}
-            className={`flex items-center gap-1.5 h-[26px] px-2 text-xs rounded border shadow-lg ${
-              hideCompleted
-                ? 'bg-brand border-brand text-white'
-                : 'bg-surface-800 border-surface-border text-stone-300 hover:bg-surface-700'
-            }`}
-          >
-            {hideCompleted ? <EyeOffIcon /> : <EyeIcon />}
-            {hideCompleted ? 'Show completed' : 'Hide completed'}
-          </button>
-        </Panel>
+        <GraphControls
+          onTidy={handleTidyLayout}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          hideCompleted={hideCompleted}
+          onToggleHideCompleted={toggleHideCompleted}
+          onUndo={() => {
+            useGraphStore.temporal.getState().undo();
+            analytics.undoUsed();
+          }}
+          onRedo={() => {
+            useGraphStore.temporal.getState().redo();
+            analytics.redoUsed();
+          }}
+        />
         <MiniMap
           className="bg-surface-800! border-surface-border!"
           nodeColor="#3a3028"

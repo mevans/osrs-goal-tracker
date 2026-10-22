@@ -1,6 +1,8 @@
 /**
- * Improved topological layout for graph nodes.
- * Groups nodes by their goal clusters and reduces edge crossings.
+ * Tidy layout.
+ * Each sink is a goal. Nodes that lead only to that goal stay in its column.
+ * Nodes that lead to several goals sit between those columns. Goal columns
+ * that share nodes are placed beside each other.
  */
 
 interface LayoutNode {
@@ -15,108 +17,135 @@ interface LayoutEdge {
 
 const LAYER_GAP_Y = 160;
 const NODE_GAP_X = 220;
-const CLUSTER_GAP_X = 400;
+const COLUMN_GAP = 180;
 
-/**
- * Find all sink nodes (nodes with no outgoing edges or type === 'goal').
- * These are the root goals that define clusters.
- */
-function findSinkNodes(nodeIds: string[], edges: LayoutEdge[]): string[] {
-  const hasOutgoing = new Set<string>();
-  for (const edge of edges) {
-    hasOutgoing.add(edge.from);
-  }
-  return nodeIds.filter((id) => !hasOutgoing.has(id));
-}
-
-/**
- * BFS backwards from a sink node to find all nodes in its cluster.
- * Returns a map of nodeId -> distance from sink.
- */
-function findCluster(
-  sinkId: string,
-  nodeIds: Set<string>,
-  edges: LayoutEdge[],
-): Map<string, number> {
-  // Build reverse adjacency: to -> [from]
+function adjacency(nodeIds: string[], edges: LayoutEdge[]) {
+  const outgoing = new Map<string, string[]>();
   const incoming = new Map<string, string[]>();
   for (const id of nodeIds) {
+    outgoing.set(id, []);
     incoming.set(id, []);
   }
   for (const edge of edges) {
-    if (nodeIds.has(edge.from) && nodeIds.has(edge.to)) {
-      const list = incoming.get(edge.to);
-      if (list) list.push(edge.from);
-    }
+    if (!outgoing.has(edge.from) || !incoming.has(edge.to)) continue;
+    outgoing.get(edge.from)!.push(edge.to);
+    incoming.get(edge.to)!.push(edge.from);
   }
-
-  const distances = new Map<string, number>();
-  const queue: Array<{ id: string; dist: number }> = [{ id: sinkId, dist: 0 }];
-  distances.set(sinkId, 0);
-
-  while (queue.length > 0) {
-    const { id, dist } = queue.shift()!;
-    const parents = incoming.get(id) ?? [];
-
-    for (const parentId of parents) {
-      if (!distances.has(parentId)) {
-        distances.set(parentId, dist + 1);
-        queue.push({ id: parentId, dist: dist + 1 });
-      }
-    }
-  }
-
-  return distances;
+  return { outgoing, incoming };
 }
 
-/**
- * Assign nodes to clusters based on which sink they're closest to.
- * Returns a map of sinkId -> Set<nodeId>.
- */
-function assignClusters(
+/** Sinks each node can reach, including itself when it is a sink. Cycles add none. */
+function reachableSinks(
   nodeIds: string[],
   edges: LayoutEdge[],
-  sinkIds: string[],
+  outgoing: Map<string, string[]>,
 ): Map<string, Set<string>> {
-  const nodeSet = new Set(nodeIds);
-  const clusterAssignments = new Map<string, Set<string>>();
-  const nodeToCluster = new Map<string, string>();
-
-  for (const sinkId of sinkIds) {
-    clusterAssignments.set(sinkId, new Set());
+  const reach = new Map<string, Set<string>>();
+  for (const id of nodeIds) {
+    const outs = outgoing.get(id) ?? [];
+    reach.set(id, outs.length === 0 ? new Set([id]) : new Set());
   }
 
-  // For each sink, find all reachable nodes
-  const allClusters = new Map<string, Map<string, number>>();
-  for (const sinkId of sinkIds) {
-    allClusters.set(sinkId, findCluster(sinkId, nodeSet, edges));
-  }
-
-  // Assign each node to the sink it's closest to
-  for (const nodeId of nodeIds) {
-    let minDist = Infinity;
-    let bestSink: string | undefined;
-
-    for (const [sinkId, distances] of allClusters) {
-      const dist = distances.get(nodeId);
-      if (dist !== undefined && dist < minDist) {
-        minDist = dist;
-        bestSink = sinkId;
+  const limit = nodeIds.length;
+  for (let pass = 0; pass < limit; pass++) {
+    let changed = false;
+    for (const edge of edges) {
+      const dest = reach.get(edge.from);
+      const source = reach.get(edge.to);
+      if (!dest || !source) continue;
+      for (const sink of source) {
+        if (!dest.has(sink)) {
+          dest.add(sink);
+          changed = true;
+        }
       }
     }
+    if (!changed) break;
+  }
 
-    if (bestSink) {
-      clusterAssignments.get(bestSink)!.add(nodeId);
-      nodeToCluster.set(nodeId, bestSink);
-    } else {
-      // Orphan node — assign to first sink as fallback
-      if (sinkIds.length > 0) {
-        clusterAssignments.get(sinkIds[0]!)!.add(nodeId);
+  return reach;
+}
+
+function longestDepths(nodeIds: string[], edges: LayoutEdge[]): Map<string, number> {
+  const depth = new Map(nodeIds.map((id) => [id, 0]));
+  const limit = nodeIds.length;
+  for (let pass = 0; pass < limit; pass++) {
+    let changed = false;
+    for (const edge of edges) {
+      if (!depth.has(edge.from) || !depth.has(edge.to)) continue;
+      const next = Math.min(limit, (depth.get(edge.from) ?? 0) + 1);
+      if (next > (depth.get(edge.to) ?? 0)) {
+        depth.set(edge.to, next);
+        changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+  return depth;
+}
+
+function orderGoals(
+  sinks: string[],
+  members: Map<string, string[]>,
+  shared: { sinks: Set<string> }[],
+): string[] {
+  const similarity = new Map<string, Map<string, number>>();
+  for (const sink of sinks) similarity.set(sink, new Map());
+  for (const node of shared) {
+    const reached = [...node.sinks].sort();
+    for (let i = 0; i < reached.length; i++) {
+      for (let j = i + 1; j < reached.length; j++) {
+        const a = reached[i]!;
+        const b = reached[j]!;
+        similarity.get(a)!.set(b, (similarity.get(a)!.get(b) ?? 0) + 1);
+        similarity.get(b)!.set(a, (similarity.get(b)!.get(a) ?? 0) + 1);
       }
     }
   }
 
-  return clusterAssignments;
+  const remaining = [...sinks].sort(
+    (a, b) => (members.get(b)?.length ?? 0) - (members.get(a)?.length ?? 0) || a.localeCompare(b),
+  );
+  const order = [remaining.shift()!];
+  while (remaining.length > 0) {
+    const last = order[order.length - 1]!;
+    let bestIndex = 0;
+    let bestScore = -1;
+    remaining.forEach((id, index) => {
+      const score = similarity.get(last)!.get(id) ?? 0;
+      const bestId = remaining[bestIndex]!;
+      if (score > bestScore || (score === bestScore && id.localeCompare(bestId) < 0)) {
+        bestIndex = index;
+        bestScore = score;
+      }
+    });
+    order.push(remaining.splice(bestIndex, 1)[0]!);
+  }
+  return order;
+}
+
+function barycenter(id: string, incoming: Map<string, string[]>, xOf: Map<string, number>): number {
+  const parents = (incoming.get(id) ?? []).filter((parent) => xOf.has(parent));
+  if (parents.length === 0) return 0;
+  return parents.reduce((sum, parent) => sum + (xOf.get(parent) ?? 0), 0) / parents.length;
+}
+
+function spreadAround(ids: string[], center: number): Map<string, number> {
+  const start = center - ((ids.length - 1) * NODE_GAP_X) / 2;
+  return new Map(ids.map((id, index) => [id, start + index * NODE_GAP_X]));
+}
+
+/** Keep left-to-right order, but never place two nodes closer than one column step. */
+function separateTargets(entries: { id: string; target: number }[]): Map<string, number> {
+  const sorted = [...entries].sort((a, b) => a.target - b.target || a.id.localeCompare(b.id));
+  const placed: number[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const min = i === 0 ? sorted[i]!.target : placed[i - 1]! + NODE_GAP_X;
+    placed.push(Math.max(sorted[i]!.target, min));
+  }
+  const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length;
+  const shift = mean(sorted.map((entry) => entry.target)) - mean(placed);
+  return new Map(sorted.map((entry, index) => [entry.id, placed[index]! + shift]));
 }
 
 /**
@@ -233,7 +262,8 @@ function layoutCluster(
 }
 
 /**
- * Main layout function: cluster by goals, layout each cluster, arrange horizontally.
+ * Place each goal's private chain in a column. Shared prerequisites sit
+ * between the columns they feed. Columns that share nodes are neighbours.
  */
 export function computeLayeredLayout(
   nodeIds: string[],
@@ -242,41 +272,104 @@ export function computeLayeredLayout(
 ): Map<string, { x: number; y: number }> {
   if (nodeIds.length === 0) return new Map();
 
-  const sinkIds = findSinkNodes(nodeIds, edges);
+  const { outgoing, incoming } = adjacency(nodeIds, edges);
+  const reach = reachableSinks(nodeIds, edges, outgoing);
+  const sinks = nodeIds.filter((id) => (outgoing.get(id) ?? []).length === 0);
+  if (sinks.length === 0) return layoutCluster(nodeIds, edges, origin);
 
-  // If no clear sinks, fall back to simple layout
-  if (sinkIds.length === 0) {
-    return layoutCluster(nodeIds, edges, origin);
+  const members = new Map<string, string[]>(sinks.map((sink) => [sink, []]));
+  const shared: { id: string; sinks: Set<string> }[] = [];
+  const unsinked: string[] = [];
+  for (const id of nodeIds) {
+    const sinksReached = reach.get(id) ?? new Set<string>();
+    if (sinksReached.size === 1) {
+      members.get([...sinksReached][0]!)!.push(id);
+    } else if (sinksReached.size > 1) {
+      shared.push({ id, sinks: sinksReached });
+    } else {
+      unsinked.push(id);
+    }
   }
 
-  const clusters = assignClusters(nodeIds, edges, sinkIds);
-  const allPositions = new Map<string, { x: number; y: number }>();
+  const depth = longestDepths(nodeIds, edges);
+  const order = orderGoals(sinks, members, shared);
+  const widest = new Map(
+    order.map((sink) => {
+      const counts = new Map<number, number>();
+      for (const id of members.get(sink) ?? []) {
+        const layer = depth.get(id) ?? 0;
+        counts.set(layer, (counts.get(layer) ?? 0) + 1);
+      }
+      return [sink, Math.max(1, ...counts.values())];
+    }),
+  );
 
-  let clusterOffsetX = origin.x;
-
-  for (const [, clusterNodes] of clusters) {
-    if (clusterNodes.size === 0) continue;
-
-    const clusterNodeList = [...clusterNodes];
-    const clusterPositions = layoutCluster(clusterNodeList, edges, {
-      x: clusterOffsetX,
-      y: origin.y,
-    });
-
-    // Find max X in this cluster to determine next cluster offset
-    let maxX = clusterOffsetX;
-    for (const pos of clusterPositions.values()) {
-      if (pos.x > maxX) maxX = pos.x;
-    }
-
-    for (const [id, pos] of clusterPositions) {
-      allPositions.set(id, pos);
-    }
-
-    clusterOffsetX = maxX + CLUSTER_GAP_X;
+  const center = new Map<string, number>();
+  let cursor = origin.x;
+  for (const sink of order) {
+    const pitch = Math.max(NODE_GAP_X, ((widest.get(sink) ?? 1) - 1) * NODE_GAP_X);
+    center.set(sink, cursor + pitch / 2);
+    cursor += pitch + COLUMN_GAP;
   }
 
-  return allPositions;
+  const layers = new Map<number, string[]>();
+  for (const id of nodeIds) {
+    if (unsinked.includes(id)) continue;
+    const layer = depth.get(id) ?? 0;
+    const list = layers.get(layer) ?? [];
+    list.push(id);
+    layers.set(layer, list);
+  }
+
+  const xOf = new Map<string, number>();
+  for (const layer of [...layers.keys()].sort((a, b) => a - b)) {
+    const ids = layers.get(layer) ?? [];
+    const targets = new Map<string, number>();
+
+    const sharedHere = shared.filter((node) => ids.includes(node.id));
+    const spans = new Map<string, string[]>();
+    for (const node of sharedHere) {
+      const key = [...node.sinks].sort().join('\0');
+      const list = spans.get(key) ?? [];
+      list.push(node.id);
+      spans.set(key, list);
+    }
+    for (const [key, spanIds] of spans) {
+      const spanSinks = key.split('\0');
+      const spanCenter =
+        spanSinks.reduce((sum, sink) => sum + (center.get(sink) ?? origin.x), 0) / spanSinks.length;
+      const ordered = [...spanIds].sort(
+        (a, b) => barycenter(a, incoming, xOf) - barycenter(b, incoming, xOf) || a.localeCompare(b),
+      );
+      for (const [id, x] of spreadAround(ordered, spanCenter)) targets.set(id, x);
+    }
+
+    for (const sink of order) {
+      const columnIds = (members.get(sink) ?? []).filter((id) => ids.includes(id));
+      const ordered = [...columnIds].sort(
+        (a, b) => barycenter(a, incoming, xOf) - barycenter(b, incoming, xOf) || a.localeCompare(b),
+      );
+      for (const [id, x] of spreadAround(ordered, center.get(sink) ?? origin.x)) targets.set(id, x);
+    }
+
+    for (const [id, x] of separateTargets(
+      ids.map((id) => ({ id, target: targets.get(id) ?? 0 })),
+    )) {
+      xOf.set(id, x);
+    }
+  }
+
+  const positions = new Map<string, { x: number; y: number }>();
+  for (const [id, x] of xOf) {
+    positions.set(id, { x, y: origin.y + (depth.get(id) ?? 0) * LAYER_GAP_Y });
+  }
+
+  if (unsinked.length > 0) {
+    const extra = layoutCluster(unsinked, edges, { x: cursor, y: origin.y });
+    for (const [id, pos] of extra) positions.set(id, pos);
+  }
+
+  return positions;
 }
 
 /**

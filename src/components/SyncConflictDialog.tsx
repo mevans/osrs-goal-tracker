@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Dialog } from './ui/dialog';
 import { toast } from 'sonner';
 import { analytics } from '../analytics';
 import {
@@ -37,41 +38,39 @@ export function SyncConflictDialog() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      <div className="bg-surface-800 border border-surface-border rounded-lg p-5 w-[480px] shadow-xl">
-        <h2 className="text-lg font-semibold text-brand-text mb-3">Sync conflict</h2>
-        <p className="text-sm text-stone-400 mb-4">
-          This device and another both changed the graph before they could sync. Pick which copy to
-          keep. You can also download the other copy as JSON first.
-        </p>
-
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => void handleKeepLocal()}
-            disabled={busy}
-            className="px-3 py-2 text-sm text-white bg-brand hover:bg-brand-bright rounded disabled:opacity-50"
-          >
-            Keep this device
-          </button>
-          <button
-            onClick={() => void handleKeepRemote()}
-            disabled={busy}
-            className="px-3 py-2 text-sm text-stone-200 bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-50"
-          >
-            Keep the other device
-          </button>
-          <button
-            onClick={() => {
-              analytics.deviceSyncConflict('download-other');
-              downloadConflictRemote();
-            }}
-            disabled={busy}
-            className="px-3 py-2 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-50"
-          >
-            Download the other as JSON
-          </button>
-        </div>
+    <Dialog
+      title="Sync conflict"
+      description="This device and another both changed the graph before they could sync. Pick which copy to keep. You can also download the other copy as JSON first."
+      onClose={() => {}}
+      width="lg"
+      dismissable={false}
+    >
+      <div className="flex flex-col gap-2">
+        <button
+          onClick={() => void handleKeepLocal()}
+          disabled={busy}
+          className="px-3 py-2 text-sm text-white bg-brand hover:bg-brand-bright rounded disabled:opacity-50"
+        >
+          Keep this device
+        </button>
+        <button
+          onClick={() => void handleKeepRemote()}
+          disabled={busy}
+          className="px-3 py-2 text-sm text-stone-200 bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-50"
+        >
+          Keep the other device
+        </button>
+        <button
+          onClick={() => {
+            analytics.deviceSyncConflict('download-other');
+            downloadConflictRemote();
+          }}
+          disabled={busy}
+          className="px-3 py-2 text-sm text-stone-300 hover:text-white bg-surface-700 hover:bg-surface-600 rounded disabled:opacity-50"
+        >
+          Download the other as JSON
+        </button>
       </div>
-    </div>
+    </Dialog>
   );
 }

@@ -12,6 +12,7 @@ import { exportToJson, importFromJson } from '../../engine/serialization';
 import { usePlayerStore } from '../../store/player-store';
 import { useSyncStore } from '../../store/sync-store';
 import { analytics } from '../../analytics';
+import { confirm } from '../ui/confirm';
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -120,11 +121,14 @@ export function Toolbar({ onOpenChangelog, hasUnseenChangelog }: ToolbarProps) {
 
     const data = await importFromJson(file);
     if (data) {
-      if (
-        window.confirm(
-          'Import will replace your current graph. Continue?\n\n(Export first if you want to save your current work)',
-        )
-      ) {
+      const ok = await confirm({
+        title: 'Replace your current graph?',
+        description:
+          'Import replaces the graph on this device. Export first if you want to save your current work.',
+        confirmLabel: 'Import',
+        tone: 'danger',
+      });
+      if (ok) {
         useGraphStore.getState().loadGraph(data);
         useGraphStore.temporal.getState().clear();
         analytics.importJson();

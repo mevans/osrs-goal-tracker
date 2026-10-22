@@ -1,23 +1,32 @@
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { QUEST_DATABASE } from '../../engine/quest-db';
-import { useGraphStore } from '../../store/graph-store';
-import { usePlayerStore } from '../../store/player-store';
 import { SkillIcon } from '../SkillIcon';
-import type { SkillName } from '../../engine/types';
+import type { EdgeType, GraphEdge, GraphNode, SkillName } from '../../engine/types';
+import type { AddNodeParams } from '../../store/graph-store';
 
 interface Props {
   questId: string;
   nodeId: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  playerSkills: Partial<Record<SkillName, number>>;
+  onAddNodeWithEdge: (
+    params: AddNodeParams,
+    edge: { to: string; type: EdgeType } | { from: string; type: EdgeType },
+  ) => string;
+  onAddEdge: (from: string, to: string, type: EdgeType) => string;
 }
 
-export function QuestPrereqsPanel({ questId, nodeId }: Props) {
-  const nodes = useGraphStore((s) => s.nodes);
-  const edges = useGraphStore((s) => s.edges);
-  const { addNodeWithEdge, addEdge } = useGraphStore.getState();
-
-  const playerSkills = usePlayerStore((s) => s.skills);
-
+export function QuestPrereqsPanel({
+  questId,
+  nodeId,
+  nodes,
+  edges,
+  playerSkills,
+  onAddNodeWithEdge,
+  onAddEdge,
+}: Props) {
   const entry = QUEST_DATABASE[questId];
   const thisNode = nodes.find((n) => n.id === nodeId);
 
@@ -82,7 +91,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
     const baseX = thisPos.x - spread / 2 + index * 210;
     const baseY = thisPos.y - 180;
     const pos = total === 1 ? findFreePos(baseX, baseY) : { x: baseX, y: baseY };
-    addNodeWithEdge(
+    onAddNodeWithEdge(
       {
         type: 'quest',
         title: '',
@@ -105,7 +114,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
     const baseX = thisPos.x - spread / 2 + index * 210;
     const baseY = thisPos.y - 180;
     const pos = total === 1 ? findFreePos(baseX, baseY) : { x: baseX, y: baseY };
-    addNodeWithEdge(
+    onAddNodeWithEdge(
       {
         type: 'skill',
         title: '',
@@ -124,7 +133,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
   }
 
   function connectExisting(existingId: string) {
-    addEdge(existingId, nodeId, 'requires');
+    onAddEdge(existingId, nodeId, 'requires');
   }
 
   function addAllMissing() {
@@ -143,7 +152,7 @@ export function QuestPrereqsPanel({ questId, nodeId }: Props) {
 
   return (
     <div
-      className="nowheel bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2.5 w-[220px] max-h-[420px] flex flex-col gap-2"
+      className="nowheel w-full flex flex-col gap-2"
       onClick={(e) => e.stopPropagation()}
       onDoubleClick={(e) => e.stopPropagation()}
     >

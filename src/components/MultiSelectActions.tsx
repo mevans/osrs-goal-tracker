@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { useReactFlow, useViewport } from '@xyflow/react';
 import { toast } from 'sonner';
 import { useGraphStore } from '../store/graph-store';
+import { useSelectionStore } from '../store/selection-store';
 import { expandCompletionTargetIds, isGroupMember } from '../engine/fold-view';
 import { getNodeTitle } from '../engine/node-utils';
+import { NODE_WIDTH } from './node-size';
 import { FoldNameDialog } from './FoldNameDialog';
+import { confirm } from './ui/confirm';
 import { ShortcutHint } from './Kbd';
 
 // Alignment icon components
@@ -98,10 +101,10 @@ function AlignButton({
 
 export function MultiSelectActions() {
   const [showFoldDialog, setShowFoldDialog] = useState(false);
-  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds);
+  const selectedNodeIds = useSelectionStore((s) => s.selectedNodeIds);
   const nodes = useGraphStore((s) => s.nodes);
-  const { toggleNodesComplete, removeNodes, selectNodes, moveNodes, createFoldGroup } =
-    useGraphStore.getState();
+  const selectNodes = useSelectionStore.getState().selectNodes;
+  const { toggleNodesComplete, removeNodes, moveNodes, createFoldGroup } = useGraphStore.getState();
   const { getNodes } = useReactFlow();
   const { x: vpX, y: vpY, zoom } = useViewport();
 
@@ -124,7 +127,7 @@ export function MultiSelectActions() {
   let maxX = -Infinity;
   let maxY = -Infinity;
   for (const node of rfNodes) {
-    const w = node.width ?? 180;
+    const w = node.width ?? NODE_WIDTH.standard;
     const h = node.height ?? 60;
     minX = Math.min(minX, node.position.x);
     minY = Math.min(minY, node.position.y);
@@ -157,7 +160,7 @@ export function MultiSelectActions() {
         position: fn({
           id: node.id,
           position: node.position,
-          width: node.width ?? 180,
+          width: node.width ?? NODE_WIDTH.standard,
           height: node.height ?? 60,
         }),
       })),
@@ -170,7 +173,7 @@ export function MultiSelectActions() {
   };
 
   const alignRight = () => {
-    const ref = Math.max(...rfNodes.map((n) => n.position.x + (n.width ?? 180)));
+    const ref = Math.max(...rfNodes.map((n) => n.position.x + (n.width ?? NODE_WIDTH.standard)));
     align((n) => ({ x: ref - n.width, y: n.position.y }));
   };
 
@@ -199,13 +202,13 @@ export function MultiSelectActions() {
     const sorted = [...rfNodes].sort((a, b) => a.position.x - b.position.x);
     const first = sorted[0]!;
     const last = sorted[sorted.length - 1]!;
-    const totalSpan = last.position.x + (last.width ?? 180) - first.position.x;
-    const totalNodeWidth = sorted.reduce((sum, n) => sum + (n.width ?? 180), 0);
+    const totalSpan = last.position.x + (last.width ?? NODE_WIDTH.standard) - first.position.x;
+    const totalNodeWidth = sorted.reduce((sum, n) => sum + (n.width ?? NODE_WIDTH.standard), 0);
     const gap = (totalSpan - totalNodeWidth) / (sorted.length - 1);
     let cursor = first.position.x;
     moveNodes(
       sorted.map((node) => {
-        const w = node.width ?? 180;
+        const w = node.width ?? NODE_WIDTH.standard;
         const pos = { id: node.id, position: { x: cursor, y: node.position.y } };
         cursor += w + gap;
         return pos;
@@ -333,11 +336,16 @@ export function MultiSelectActions() {
           onClick={() => {
             const count = selectedNodeIds.length;
             const nodeWord = count === 1 ? 'node' : `${count} nodes`;
-            if (window.confirm(`Delete ${nodeWord}?`)) {
+            void confirm({
+              title: `Delete ${nodeWord}?`,
+              confirmLabel: 'Delete',
+              tone: 'danger',
+            }).then((ok) => {
+              if (!ok) return;
               removeNodes(selectedNodeIds);
               selectNodes([]);
               toast.success(`Deleted ${count} node${count !== 1 ? 's' : ''}`);
-            }
+            });
           }}
           className="text-xs py-1 px-2 rounded bg-red-600/40 text-red-300 hover:bg-red-600/60 border border-red-500/40 flex items-center gap-1.5 shrink-0"
         >

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Handle, Position, NodeToolbar, type NodeProps, type Node } from '@xyflow/react';
-import { toast } from 'sonner';
+import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
 import type { DerivedStatus, NodeType } from '../../engine/types';
-import { useGraphStore } from '../../store/graph-store';
+import { nodeAppearance, statusAppearance } from '../node-appearance';
+import { NODE_WIDTH, useSnappedFrame } from '../node-size';
+import { useGraphActions } from '../graph-actions';
 
 export interface GroupMemberSummary {
   id: string;
@@ -19,29 +20,6 @@ export interface FoldGroupNodeData {
   completeCount: number;
   [key: string]: unknown;
 }
-
-const STATUS_DOT: Record<DerivedStatus, string> = {
-  complete: 'bg-green-500',
-  available: 'bg-amber-400',
-  blocked: 'bg-stone-500',
-};
-
-const STATUS_RING: Record<DerivedStatus, string> = {
-  complete: 'border-green-500/70',
-  available: 'border-amber-500/50',
-  blocked: 'border-stone-600',
-};
-
-const MEMBER_TYPE_ACCENT: Record<NodeType, string> = {
-  goal: 'border-l-amber-500',
-  quest: 'border-l-blue-500',
-  skill: 'border-l-green-500',
-  task: 'border-l-purple-500',
-  kill: 'border-l-red-500',
-  item: 'border-l-cyan-500',
-  diary: 'border-l-green-500',
-  group: 'border-l-stone-500',
-};
 
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
@@ -61,18 +39,15 @@ function ChevronIcon({ expanded }: { expanded: boolean }) {
 }
 
 export function GroupTitleInput({
-  groupId,
   title,
-  variant,
+  onRename,
 }: {
-  groupId: string;
   title: string;
-  variant: 'header' | 'toolbar';
+  onRename: ((title: string) => void) | undefined;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { updateNode } = useGraphStore.getState();
 
   useEffect(() => {
     setDraft(title);
@@ -84,7 +59,7 @@ export function GroupTitleInput({
 
   const commit = () => {
     const trimmed = draft.trim();
-    if (trimmed) updateNode(groupId, { title: trimmed });
+    if (trimmed && onRename) onRename(trimmed);
     else setDraft(title);
     setEditing(false);
   };
@@ -108,25 +83,17 @@ export function GroupTitleInput({
         }}
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={(e) => e.stopPropagation()}
-        className={
-          variant === 'header'
-            ? 'w-full text-sm font-semibold text-stone-100 bg-surface-700 border border-amber-500/50 rounded px-1.5 py-0.5 focus:outline-none focus:border-amber-400'
-            : 'w-full text-xs bg-surface-700 text-stone-200 rounded border border-surface-border px-2 py-1.5 focus:border-amber-500/50 focus:outline-none'
-        }
+        className="w-full text-sm font-semibold text-stone-100 bg-surface-700 border border-amber-500/50 rounded px-1.5 py-0.5 focus:outline-none focus:border-amber-400"
         aria-label="Group name"
       />
     );
   }
 
-  if (variant === 'toolbar') {
+  if (!onRename) {
     return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="text-xs py-1.5 px-2 rounded font-medium bg-surface-600 text-stone-200 hover:bg-surface-700 text-left w-full"
-      >
-        Rename…
-      </button>
+      <div className="text-sm font-semibold text-stone-100 leading-snug break-words text-left w-full">
+        {title}
+      </div>
     );
   }
 
@@ -147,8 +114,7 @@ export function GroupTitleInput({
 }
 
 export function FoldGroupNode({ data, selected, id }: NodeProps<Node<FoldGroupNodeData>>) {
-  const { unfoldGroup } = useGraphStore.getState();
-  const isMultiSelect = useGraphStore((s) => s.selectedNodeIds.length > 1);
+  const actions = useGraphActions();
   const [listExpanded, setListExpanded] = useState(false);
   const ringClass = selected ? 'ring-2 ring-amber-400/60' : '';
   const total = data.members.length;
@@ -157,37 +123,21 @@ export function FoldGroupNode({ data, selected, id }: NodeProps<Node<FoldGroupNo
     e.stopPropagation();
     setListExpanded((v) => !v);
   };
+  const { frameRef, contentRef, height } = useSnappedFrame();
 
   return (
-    <>
-      <NodeToolbar isVisible={selected && !isMultiSelect} position={Position.Right} offset={12}>
-        <div
-          className="flex flex-col gap-1.5 bg-surface-800 border border-surface-border rounded-lg shadow-xl p-2 min-w-[160px]"
-          onClick={(e) => e.stopPropagation()}
-          onDoubleClick={(e) => e.stopPropagation()}
-        >
-          <GroupTitleInput groupId={id} title={data.title} variant="toolbar" />
-          <button
-            onClick={() => {
-              unfoldGroup(id);
-              toast.success('Group unfolded');
-            }}
-            className="text-xs py-1.5 px-2 rounded font-medium bg-amber-700/80 text-white hover:bg-amber-600"
-          >
-            Unfold
-          </button>
-        </div>
-      </NodeToolbar>
+    <div
+      ref={frameRef}
+      className={`rounded-xl border border-dashed ${statusAppearance(data.status).ring} bg-surface-900/95 ${ringClass} shadow-xl overflow-hidden flex flex-col justify-center`}
+      style={{ width: NODE_WIDTH.group, height }}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="bg-amber-500/80! w-2.5! h-2.5! border-2! border-surface-900!"
+      />
 
-      <div
-        className={`rounded-xl border border-dashed ${STATUS_RING[data.status]} bg-surface-900/95 ${ringClass} shadow-xl w-[240px] overflow-hidden`}
-      >
-        <Handle
-          type="target"
-          position={Position.Top}
-          className="bg-amber-500/80! w-2.5! h-2.5! border-2! border-surface-900!"
-        />
-
+      <div ref={contentRef}>
         {/* Header */}
         <div
           className={`px-3 py-2.5 bg-stone-800/40 ${listExpanded ? 'border-b border-surface-border/80' : ''}`}
@@ -211,7 +161,10 @@ export function FoldGroupNode({ data, selected, id }: NodeProps<Node<FoldGroupNo
                   Folded group
                 </span>
               </div>
-              <GroupTitleInput groupId={id} title={data.title} variant="header" />
+              <GroupTitleInput
+                title={data.title}
+                onRename={actions ? (next) => actions.updateNode(id, { title: next }) : undefined}
+              />
             </div>
           </div>
           <div className="mt-2 flex items-center gap-2">
@@ -232,10 +185,10 @@ export function FoldGroupNode({ data, selected, id }: NodeProps<Node<FoldGroupNo
             {data.members.map((member) => (
               <li
                 key={member.id}
-                className={`flex items-center gap-2 px-2 py-1.5 rounded-md border-l-2 ${MEMBER_TYPE_ACCENT[member.nodeType]} bg-surface-800/50 hover:bg-surface-800`}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-md border-l-2 ${nodeAppearance(member.nodeType).accentBorder} bg-surface-800/50 hover:bg-surface-800`}
               >
                 <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUS_DOT[member.status]}`}
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusAppearance(member.status).dot}`}
                   title={member.status}
                 />
                 <span
@@ -267,13 +220,13 @@ export function FoldGroupNode({ data, selected, id }: NodeProps<Node<FoldGroupNo
             <ChevronIcon expanded={listExpanded} />
           </button>
         )}
-
-        <Handle
-          type="source"
-          position={Position.Bottom}
-          className="bg-amber-500/80! w-2.5! h-2.5! border-2! border-surface-900!"
-        />
       </div>
-    </>
+
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="bg-amber-500/80! w-2.5! h-2.5! border-2! border-surface-900!"
+      />
+    </div>
   );
 }

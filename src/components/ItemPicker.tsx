@@ -89,7 +89,8 @@ export function ItemPicker({ itemId, onChange, autoFocus = false }: ItemPickerPr
               left: dropdownRect.left,
               width: dropdownRect.width,
             }}
-            className="bg-surface-700 border border-surface-border rounded shadow-lg z-[60] max-h-60 overflow-y-auto overscroll-contain"
+            data-dialog-popover
+            className="pointer-events-auto bg-surface-700 border border-surface-border rounded shadow-lg z-[60] max-h-60 overflow-y-auto overscroll-contain"
           >
             {results.map((item, index) => (
               <li key={item.id}>
