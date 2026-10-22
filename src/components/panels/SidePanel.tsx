@@ -19,5 +19,9 @@ export function SidePanel() {
     return <NodeInspector node={node} onShowPlanning={() => setPreferPlanning(true)} />;
   }
 
-  return <PlanningDrawer onBackToSelection={node ? () => setPreferPlanning(false) : undefined} />;
+  if (node) {
+    return <PlanningDrawer onBackToSelection={() => setPreferPlanning(false)} />;
+  }
+
+  return <PlanningDrawer />;
 }

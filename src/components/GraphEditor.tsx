@@ -333,8 +333,8 @@ export function GraphEditor() {
       // If dragged from source handle (bottom), existing node is the prerequisite
       const edgeSpec =
         pendingConnection.handleType === 'target'
-          ? { to: pendingConnection.sourceId, type: 'requires' }
-          : { from: pendingConnection.sourceId, type: 'requires' };
+          ? { to: pendingConnection.sourceId, type: 'requires' as const }
+          : { from: pendingConnection.sourceId, type: 'requires' as const };
 
       useGraphStore
         .getState()
