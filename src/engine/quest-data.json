@@ -3916,5 +3916,13 @@
     "skillReqs": [],
     "questReqs": [],
     "questPoints": 0
+  },
+  "The Fractured Archive (miniquest)": {
+    "name": "The Fractured Archive (miniquest)",
+    "difficulty": "grandmaster",
+    "members": true,
+    "skillReqs": [],
+    "questReqs": ["While Guthix Sleeps"],
+    "questPoints": 0
   }
 }

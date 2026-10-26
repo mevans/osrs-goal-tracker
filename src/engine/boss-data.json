@@ -252,6 +252,11 @@
   {
     "id": "The Corrupted Gauntlet",
     "name": "The Corrupted Gauntlet",
+    "womKey": "the_fractured_archive"
+  },
+  {
+    "id": "The Fractured Archive",
+    "name": "The Fractured Archive",
     "womKey": "the_hueycoatl"
   },
   {
