@@ -3948,5 +3948,32 @@
     "skillReqs": [],
     "questReqs": ["While Guthix Sleeps"],
     "questPoints": 0
+  },
+  "Mudfoot's Big Adventure": {
+    "name": "Mudfoot's Big Adventure",
+    "difficulty": "novice",
+    "members": true,
+    "skillReqs": [],
+    "questReqs": [],
+    "questPoints": 0
+  },
+  "The Writing's on the Wall": {
+    "name": "The Writing's on the Wall",
+    "difficulty": "intermediate",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Agility",
+        "level": 22,
+        "boostable": false
+      },
+      {
+        "skill": "Thieving",
+        "level": 20,
+        "boostable": false
+      }
+    ],
+    "questReqs": [],
+    "questPoints": 0
   }
 }
