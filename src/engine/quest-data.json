@@ -3975,5 +3975,32 @@
     ],
     "questReqs": [],
     "questPoints": 0
+  },
+  "A Shell of a Friend": {
+    "name": "A Shell of a Friend",
+    "difficulty": "intermediate",
+    "members": true,
+    "skillReqs": [
+      {
+        "skill": "Herblore",
+        "level": 16,
+        "boostable": true
+      },
+      {
+        "skill": "Construction",
+        "level": 15,
+        "boostable": true
+      }
+    ],
+    "questReqs": ["Priest in Peril"],
+    "questPoints": 0
+  },
+  "The Birds and the Wasps": {
+    "name": "The Birds and the Wasps",
+    "difficulty": "novice",
+    "members": true,
+    "skillReqs": [],
+    "questReqs": [],
+    "questPoints": 0
   }
 }
